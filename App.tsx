@@ -292,6 +292,7 @@ function App() {
   const playerCombatStats = useMemo(() => {
       if (!character) return null;
 
+      // Define the initial value for reduce with explicit type
       const initialEquipmentStats: Required<ItemStats> = {
           strength: 0, 
           dexterity: 0, 
@@ -303,13 +304,12 @@ function App() {
           kritiskTräff: 0 
       };
 
-      const equipmentStats: Required<ItemStats> = Object.values(equipment).reduce((acc, item: Item | null) => {
+      const equipmentStats = Object.values(equipment).reduce<Required<ItemStats>>((acc, item) => {
           if (item) {
-              for (const key in (item as Item).stats) {
-                  const stat = key as keyof ItemStats;
-                  const value = (item as Item).stats[stat];
-                  if (value) {
-                      acc[stat] = (acc[stat] || 0) + value;
+              for (const key of Object.keys(item.stats) as Array<keyof ItemStats>) {
+                  const statValue = item.stats[key];
+                  if (statValue !== undefined) {
+                      acc[key] += statValue; 
                   }
               }
           }

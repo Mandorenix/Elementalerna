@@ -921,6 +921,23 @@ export const createCombatPayload = (playerLevel: number, element: Element, diffi
                 }
             ]
         };
+    } else if (element === Element.EARTH && Math.random() < 0.25) { // New environment for Earth
+        environment = {
+            name: "Stenig Terräng",
+            description: "Marken är ojämn och svårframkomlig. Icke-jord-varelser har en chans att bli rotade.",
+            element: Element.EARTH,
+            effects: [
+                {
+                    description: "Alla icke-jord-varelser har 15% chans att bli rotade i 1 runda.",
+                    type: 'status_apply',
+                    status: 'rooted',
+                    statusDuration: 1,
+                    statusChance: 15,
+                    targetScope: 'non_elemental',
+                    targetElement: Element.EARTH
+                }
+            ]
+        };
     }
 
 

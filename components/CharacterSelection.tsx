@@ -11,11 +11,12 @@ const ArchetypeIcon: React.FC<{ archetype: Archetype; onSelect: (archetype: Arch
             onClick={() => onSelect(archetype)}
             className={`flex flex-col items-center p-2 border-2 transition-all duration-300
                         ${isSelected ? 'border-yellow-400 bg-yellow-500/20' : 'border-gray-700 bg-black/30 hover:border-yellow-400 hover:bg-yellow-500/10'}`}
+            title={archetype.name} // Lägger till title-attribut för tillgänglighet
         >
             <div className={`w-10 h-10 flex items-center justify-center mb-1 ${theme}`}>
                 <div className="transform scale-125"><Icon /></div>
             </div>
-            <span className="text-xs text-yellow-300">{archetype.name}</span>
+            {/* <span className="text-xs text-yellow-300">{archetype.name}</span> -- Borttagen textetikett */}
         </button>
     );
 };

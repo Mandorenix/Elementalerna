@@ -72,6 +72,32 @@ export const Icons = {
     // Ultimate Ability Icons
     Meteor: createIcon(["M8 1c-2 2-3 4-3 6s1 4 3 4 3-2 3-4-1-4-3-6zm0 2c-1 1-1 2-1 3s0 2 1 3 1-2 1-3-0-2-1-3z M4 10h8v1H4v-1z M3 12h10v1H3v-1z"], "#ef4444"),
     EarthquakeUltimate: createIcon(["M2 8h2V7h1v2h2V7h2v2h2V7h1v1h2v1H2z M3 10h10v-1H3v1z M1 12h14v1H1v-1z"], "#a16207"),
+    
+    // NEW ICONS FOR EXPANDED AFFINITIES
+    MagmaShield: createIcon(["M8 1C4 1 3 4 3 8s1 7 5 7 5-3 5-7-1-7-5-7zm0 1v1h1v1h1v2H9v1H7V6H5V4h1V3h1V2h1z M7 10h2v1H7v-1z"], "#f97316"), // Magma Skin
+    Volcano: createIcon(["M8 1l-3 4h6L8 1z M4 5h8v1H4V5z M3 6h10v1H3V6z M2 7h12v1H2V7z M1 8h14v1H1V8z M5 9h6v1H5V9z M6 10h4v1H6v-1z M7 11h2v1H7v-1z"], "#ef4444"), // Volcanic Eruption
+    Shard: createIcon(["M8 1l-3 3h2v2h2V4h2L8 1z M4 8h8v1H4V8z M7 10h2v2H7v-1z"], "#475569"), // Obsidian Shard
+    Gaze: createIcon(["M8 4c-2 0-3 2-3 4s1 4 3 4 3-2 3-4-1-4-3-4z M8 6c1 0 1 1 1 2s0 2-1 2-1-1-1-2 0-2 1-2z M5 8h6v1H5V8z M7 10h2v1H7v-1z"], "#1e293b"), // Petrifying Gaze
+    SwiftFire: createIcon(["M8 11v-1h1V9h-1V8h1V7h-1V5h1V4h-1V3h1V2h-1V1H7v1H6v1h1v1h-1v2h1v1h-1v1h1v1H6v1h4v-1h-1v-1H8z M4 7h1v2H4V7z"], "#f59e0b"), // Swift Inferno
+    Tornado: createIcon(["M8 1c-2 0-4 2-4 4h2c0-1 1-2 2-2s2 1 2 2h2c0 2-2 4-4 4z m0 8c2 0 4-2 4-4h-2c0 1-1 2-2 2s-2-1-2-2H4c0 2 2 4 4 4z M7 13h2v1H7v-1z"], "#38bdf8"), // Raging Cyclone
+    Haze: createIcon(["M4 7h2v1H4V7z M10 7h2v1h-2V7z M7 4h2v1H7V4z M5 9h6v1H5V9z M4 11h8v1H4v-1z M7 13h2v1H7v-1z"], "#fbbf24"), // Heat Haze
+    Scorch: createIcon(["M8 11v-1h1V9h-1V8h1V7h-1V5h1V4h-1V3h1V2h-1V1H7v1H6v1h1v1h-1v2h1v1h-1v1h1v1H6v1h4v-1h-1v-1H8z M4 13h8v1H4v-1z"], "#ef4444"), // Scorch Wind
+    SteamCloud: createIcon(["M4 7h2v1H4V7z M10 7h2v1h-2V7z M7 4h2v1H7V4z M5 9h6v1H5V9z M4 11h8v1H4v-1z M7 13h2v1H7v-1z"], "#eab308"), // Steam Veil
+    Geyser: createIcon(["M8 1l-2 2h1v3h2V3h1L8 1z M4 7h8v1H4V7z M3 9h10v1H3V9z M2 11h12v1H2V11z M1 13h14v1H1V13z"], "#60a5fa"), // Geyser Burst
+    Mist: createIcon(["M4 7h2v1H4V7z M10 7h2v1h-2V7z M7 4h2v1H7V4z M5 9h6v1H5V9z M4 11h8v1H4v-1z M7 13h2v1H7v-1z"], "#fcd34d"), // Soothing Mist
+    Cleanse: createIcon(["M8 1l-1 2h2L8 1z M7 3v1h2V3H7z M6 5v1h4V5H6z M5 7v1h6V7H5z M4 9h8v1H4V9z M3 11h10v1H3V11z"], "#4ade80"), // Cleansing Geyser
+    SandClock: createIcon(["M8 1l-3 3h6L8 1z M4 5h8v1H4V5z M3 6h10v1H3V6z M2 7h12v1H2V7z M1 8h14v1H1V8z M5 9h6v1H5V9z M6 10h4v1H6v-1z M7 11h2v1H7v-1z"], "#a16207"), // Shifting Sands
+    Desert: createIcon(["M2 8h2v1H2V8zm2 2h2v-1H4v1zm2 1h2V9H6v2zm2-1h2V8H8v2zm2-2h2V7h-2v1zm2 1h2V6h-2v2z M1 13h14v1H1v-1z"], "#ca8a04"), // Desert Storm
+    Grind: createIcon(["M12 4H4v1h8V4z m0 2H4v1h8V6z m0 3H4v1h8V9z m-2 2H6v1h4v-1z M7 13h2v1H7v-1z"], "#ca8a04"), // Grinding Winds
+    Dust: createIcon(["M8 1c-2 0-4 2-4 4h2c0-1 1-2 2-2s2 1 2 2h2c0 2-2 4-4 4z m0 8c2 0 4-2 4-4h-2c0 1-1 2-2 2s-2-1-2-2H4c0 2 2 4 4 4z M7 13h2v1H7v-1z"], "#a16207"), // Dust Devil
+    Mire: createIcon(["M4 8v1h1v1h6V9h1V8H4z M6 11h4v1H6v-1z M7 13h2v1H7v-1z"], "#78350f"), // Sticky Mire
+    Quagmire: createIcon(["M4 8v1h1v1h6V9h1V8H4z M6 11h4v1H6v-1z M1 13h14v1H1v-1z"], "#78350f"), // Quagmire
+    Leaf: createIcon(["M8 1l-1 2h2L8 1z M7 3v1h2V3H7z M6 5v1h4V5H6z M5 7v1h6V7H5z M4 9h8v1H4V9z M3 11h10v1H3V11z"], "#4d7c0f"), // Verdant Aura
+    Flower: createIcon(["M8 1l-1 2h2L8 1z M7 3v1h2V3H7z M6 5v1h4V5H6z M5 7v1h6V7H5z M4 9h8v1H4V9z M3 11h10v1H3V11z M7 13h2v1H7v-1z"], "#4ade80"), // Lifebloom
+    Frost: createIcon(["M8 1l-2 2h1v3h2V3h1L8 1z M4 7l-2 2h1v3h2V9h1L4 7z m8 0l-2 2h1v3h2V9h1l-2-2z M7 13h2v1H7v-1z"], "#7dd3fc"), // Frostbite
+    Spike: createIcon(["M8 1l-2 2h1v3h2V3h1L8 1z M4 7l-2 2h1v3h2V9h1L4 7z m8 0l-2 2h1v3h2V9h1l-2-2z M1 13h14v1H1v-1z"], "#bae6fd"), // Glacial Spike
+    Lightning: createIcon(["M7 1v1h1v1h1v2H8v1H6V5h1V4h1V3H7V2H6V1h1z M10 10h-1v-1h-1v-1h-1v2h1v1h1v1h1v1h-1v-1h-1v-1h-1v-2h1V9h1v1h1v1h-1z"], "#0284c7"), // Static Charge
+    Thunder: createIcon(["M7 1v1h1v1h1v2H8v1H6V5h1V4h1V3H7V2H6V1h1z M10 10h-1v-1h-1v-1h-1v2h1v1h1v1h1v1h-1v-1h-1v-1h-1v-2h1V9h1v1h1v1h-1z M1 13h14v1H1v-1z"], "#38bdf8"), // Thunderclap
 };
 
 export const ItemVisuals = {
@@ -111,7 +137,7 @@ export const ELEMENT_ICONS: Record<Element, React.FC> = {
     [Element.STORM]: Icons.Storm,
     [Element.VOLCANIC_STORM]: Icons.VolcanicStorm,
     [Element.ELECTRIFIED_MUD]: Icons.ElectrifiedMud,
-    [Element.VITRIFIED_STORM]: Icons.VitrifiedStorm,
+    [Element.VITRIFIED_STORM]: Icons.Vitrified_Storm,
 };
 
 export const elementThemes = {
@@ -442,6 +468,102 @@ export const PASSIVE_TALENTS: Record<string, PassiveTalent> = {
     icon: Icons.HealBonus,
     effect: { type: 'HEAL_BONUS', value: 10, isPercentage: true },
   },
+  'magma_skin': {
+    id: 'magma_skin',
+    name: 'Magmahud',
+    description: '10% chans att bränna anfallare för 3 eldskada i 2 rundor när du tar skada.',
+    element: Element.MAGMA,
+    icon: Icons.MagmaShield,
+    effect: { type: 'APPLY_STATUS', status: { type: 'burning', duration: 2, damage: 3 }, chance: 10 },
+  },
+  'obsidian_shard': {
+    id: 'obsidian_shard',
+    name: 'Obsidianskärva',
+    description: '15% chans att sakta ner anfallare i 1 runda när du tar skada.',
+    element: Element.OBSIDIAN,
+    icon: Icons.Shard,
+    effect: { type: 'APPLY_STATUS', status: { type: 'slowed', duration: 1 }, chance: 15 },
+  },
+  'swift_inferno': {
+    id: 'swift_inferno',
+    name: 'Snabb Inferno',
+    description: 'Efter att ha delat ut eldskada, ökar din ATB-hastighet med 5% i 1 runda.',
+    element: Element.FIRESTORM,
+    icon: Icons.SwiftFire,
+    effect: { type: 'RESOURCE_GAIN', stat: 'dexterity', value: 5, isPercentage: true }, // Represents ATB speed
+  },
+  'heat_haze': {
+    id: 'heat_haze',
+    name: 'Hett Dis',
+    description: '5% chans att blända fiender i 1 runda när du delar ut eld- eller vindskada.',
+    element: Element.HOT_AIR,
+    icon: Icons.Haze,
+    effect: { type: 'APPLY_STATUS', status: { type: 'blinded', duration: 1 }, chance: 5 },
+  },
+  'steam_veil': {
+    id: 'steam_veil',
+    name: 'Ångslöja',
+    description: '10% chans att applicera Ångad på fiender i 1 runda när du träffar med eld- eller vattenförmågor.',
+    element: Element.STEAM,
+    icon: Icons.SteamCloud,
+    effect: { type: 'APPLY_STATUS', status: { type: 'steamed', duration: 1, accuracyReduction: 10 }, chance: 10 },
+  },
+  'soothing_mist': {
+    id: 'soothing_mist',
+    name: 'Lugnande Dimma',
+    description: 'Ökar all helande du mottar med 5%.',
+    element: Element.HOT_SPRINGS,
+    icon: Icons.Mist,
+    effect: { type: 'HEAL_BONUS', value: 5, isPercentage: true },
+  },
+  'shifting_sands': {
+    id: 'shifting_sands',
+    name: 'Skiftande Sand',
+    description: '10% chans att sakta ner anfallare i 1 runda när du tar skada.',
+    element: Element.SAND,
+    icon: Icons.SandClock,
+    effect: { type: 'APPLY_STATUS', status: { type: 'slowed', duration: 1 }, chance: 10 },
+  },
+  'grinding_winds': {
+    id: 'grinding_winds',
+    name: 'Malande Vindar',
+    description: '5% chans att minska fiendens rustning med 1 i 2 rundor när du träffar med vind- eller jordskada.',
+    element: Element.EROSION,
+    icon: Icons.Grind,
+    effect: { type: 'APPLY_STATUS', status: { type: 'armor_reduction', duration: 2, value: 1 }, chance: 5 }, // Placeholder status type
+  },
+  'sticky_mire': {
+    id: 'sticky_mire',
+    name: 'Klibbig Myr',
+    description: '5% chans att rota anfallare i 1 runda när du tar skada.',
+    element: Element.MUD,
+    icon: Icons.Mire,
+    effect: { type: 'APPLY_STATUS', status: { type: 'rooted', duration: 1 }, chance: 5 },
+  },
+  'verdant_aura': {
+    id: 'verdant_aura',
+    name: 'Grönskande Aura',
+    description: 'Ökar all regenerering du mottar med 10%.',
+    element: Element.GROWTH,
+    icon: Icons.Leaf,
+    effect: { type: 'HEAL_BONUS', value: 10, isPercentage: true },
+  },
+  'frostbite': {
+    id: 'frostbite',
+    name: 'Köldskada',
+    description: '5% chans att sakta ner fiender i 2 rundor när du träffar med vatten- eller vindskada.',
+    element: Element.ICE,
+    icon: Icons.Frost,
+    effect: { type: 'APPLY_STATUS', status: { type: 'slowed', duration: 2 }, chance: 5 },
+  },
+  'static_charge': {
+    id: 'static_charge',
+    name: 'Statisk Laddning',
+    description: '5% chans att förlama fiender i 1 runda när du träffar med vind- eller vattenskada.',
+    element: Element.STORM,
+    icon: Icons.Lightning,
+    effect: { type: 'APPLY_STATUS', status: { type: 'stunned', duration: 1 }, chance: 5 }, // Placeholder status type
+  },
   // Add more passive talents here
 };
 
@@ -465,7 +587,141 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
     cooldown: 12,
     effect: { type: 'AOE_DAMAGE', damage: 30, buff: 'rooted', duration: 2 },
   },
-  // Add more ultimate abilities here
+  'volcanic_eruption': {
+    id: 'volcanic_eruption',
+    name: 'Vulkanutbrott',
+    description: 'Orsakar ett vulkanutbrott som skadar alla fiender och sätter dem i brand.',
+    element: Element.MAGMA,
+    icon: Icons.Volcano,
+    cooldown: 15,
+    effect: { type: 'AOE_DAMAGE', damage: 40, buff: 'burning', duration: 3, value: 5 },
+  },
+  'petrifying_gaze': {
+    id: 'petrifying_gaze',
+    name: 'Förstenande Blick',
+    description: 'Förstenar alla fiender, rotar dem och orsakar skada.',
+    element: Element.OBSIDIAN,
+    icon: Icons.Gaze,
+    cooldown: 18,
+    effect: { type: 'AOE_DAMAGE', damage: 35, buff: 'rooted', duration: 3 },
+  },
+  'raging_cyclone': {
+    id: 'raging_cyclone',
+    name: 'Rasande Cyklon',
+    description: 'En rasande cyklon skadar alla fiender och bländar dem.',
+    element: Element.FIRESTORM,
+    icon: Icons.Tornado,
+    cooldown: 14,
+    effect: { type: 'AOE_DAMAGE', damage: 30, buff: 'blinded', duration: 2 },
+  },
+  'scorch_wind': {
+    id: 'scorch_wind',
+    name: 'Svedande Vind',
+    description: 'En het vind skadar alla fiender och applicerar Ångad.',
+    element: Element.HOT_AIR,
+    icon: Icons.Scorch,
+    cooldown: 13,
+    effect: { type: 'AOE_DAMAGE', damage: 25, buff: 'steamed', duration: 2, value: 3 },
+  },
+  'geyser_burst': {
+    id: 'geyser_burst',
+    name: 'Gejserutbrott',
+    description: 'En kraftfull gejser skadar alla fiender och knuffar tillbaka dem.',
+    element: Element.STEAM,
+    icon: Icons.Geyser,
+    cooldown: 14,
+    effect: { type: 'AOE_DAMAGE', damage: 30, buff: 'pushed_back', duration: 1 }, // Placeholder status type
+  },
+  'cleansing_geyser': {
+    id: 'cleansing_geyser',
+    name: 'Renande Gejser',
+    description: 'En gejser läker alla allierade och tar bort negativa statusar.',
+    element: Element.HOT_SPRINGS,
+    icon: Icons.Cleanse,
+    cooldown: 16,
+    effect: { type: 'MASS_HEAL', heal: 60, buff: 'cleanse_debuffs' }, // Placeholder buff type
+  },
+  'desert_storm': {
+    id: 'desert_storm',
+    name: 'Ökenstorm',
+    description: 'En massiv sandstorm skadar, bländar och saktar ner alla fiender.',
+    element: Element.SAND,
+    icon: Icons.Desert,
+    cooldown: 15,
+    effect: { type: 'AOE_DAMAGE', damage: 35, buff: 'blinded', duration: 2, value: 2 }, // Value for slow amount
+  },
+  'dust_devil': {
+    id: 'dust_devil',
+    name: 'Dammvirvel',
+    description: 'En dammvirvel skadar alla fiender och minskar deras rustning.',
+    element: Element.EROSION,
+    icon: Icons.Dust,
+    cooldown: 13,
+    effect: { type: 'AOE_DAMAGE', damage: 25, buff: 'armor_reduction', duration: 3, value: 3 },
+  },
+  'quagmire': {
+    id: 'quagmire',
+    name: 'Kärr',
+    description: 'Skapar ett kärr som rotar och förgiftar alla fiender.',
+    element: Element.MUD,
+    icon: Icons.Quagmire,
+    cooldown: 16,
+    effect: { type: 'AOE_DAMAGE', damage: 20, buff: 'rooted', duration: 3, value: 4 }, // Value for poison damage
+  },
+  'lifebloom': {
+    id: 'lifebloom',
+    name: 'Livsblom',
+    description: 'En livsblom läker alla allierade och ger dem regenerering.',
+    element: Element.GROWTH,
+    icon: Icons.Flower,
+    cooldown: 17,
+    effect: { type: 'MASS_HEAL', heal: 50, buff: 'regenerating', duration: 4, value: 10 },
+  },
+  'glacial_spike': {
+    id: 'glacial_spike',
+    name: 'Glaciärspik',
+    description: 'En massiv isspik skadar en fiende kraftigt och fryser dem.',
+    element: Element.ICE,
+    icon: Icons.Spike,
+    cooldown: 12,
+    effect: { type: 'SINGLE_TARGET_DAMAGE', damage: 70, buff: 'frozen', duration: 2 }, // Placeholder status type
+  },
+  'thunderclap': {
+    id: 'thunderclap',
+    name: 'Åskknall',
+    description: 'En åskknall skadar och förlamar alla fiender.',
+    element: Element.STORM,
+    icon: Icons.Thunder,
+    cooldown: 14,
+    effect: { type: 'AOE_DAMAGE', damage: 40, buff: 'stunned', duration: 1 },
+  },
+  'volcanic_storm_ultimate': {
+    id: 'volcanic_storm_ultimate',
+    name: 'Vulkanisk Storm',
+    description: 'En rasande tornado som slungar ut brinnande stenbumlingar och skadar alla fiender massivt.',
+    element: Element.VOLCANIC_STORM,
+    icon: Icons.VolcanicStorm,
+    cooldown: 20,
+    effect: { type: 'AOE_DAMAGE', damage: 80, buff: 'burning', duration: 5, value: 8 },
+  },
+  'electrified_mud_ultimate': {
+    id: 'electrified_mud_ultimate',
+    name: 'Elektrifierad Lera',
+    description: 'Ett fält av lera som saktar, skadar med blixtar och förlamar alla fiender.',
+    element: Element.ELECTRIFIED_MUD,
+    icon: Icons.ElectrifiedMud,
+    cooldown: 20,
+    effect: { type: 'AOE_DAMAGE', damage: 60, buff: 'stunned', duration: 2, value: 5 }, // Value for slow/poison
+  },
+  'vitrified_storm_ultimate': {
+    id: 'vitrified_storm_ultimate',
+    name: 'Förglasad Storm',
+    description: 'En het storm som smälter sand till ett fält av vasst glas, skadar och minskar rustning på alla fiender.',
+    element: Element.VITRIFIED_STORM,
+    icon: Icons.VitrifiedStorm,
+    cooldown: 20,
+    effect: { type: 'AOE_DAMAGE', damage: 70, buff: 'armor_reduction', duration: 4, value: 10 },
+  },
 };
 
 
@@ -475,6 +731,7 @@ export const ELEMENTAL_AFFINITY_BONUSES: Record<Element, ElementalBonus[]> = {
     { threshold: 5, description: "+5% Kritisk Träff", effect: { type: 'STAT_BONUS', stat: 'kritiskTräff', value: 5, isPercentage: true } },
     { threshold: 10, description: "+10% Eldskada", effect: { type: 'DAMAGE_BONUS', element: Element.FIRE, value: 10, isPercentage: true } },
     { threshold: 15, description: "Låser upp passiv talang: Eldens Vrede", effect: { type: 'PASSIVE_TALENT', talentId: 'fire_vengeance' } },
+    { threshold: 20, description: "+15% Eldskada", effect: { type: 'DAMAGE_BONUS', element: Element.FIRE, value: 15, isPercentage: true } },
     { threshold: 25, description: "Låser upp ultimat förmåga: Meteorregn", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'fire_meteor' } },
   ],
   [Element.EARTH]: [
@@ -482,63 +739,124 @@ export const ELEMENTAL_AFFINITY_BONUSES: Record<Element, ElementalBonus[]> = {
     { threshold: 5, description: "+10 Max Hälsa", effect: { type: 'STAT_BONUS', stat: 'constitution', value: 10 } }, // Constitution affects max health
     { threshold: 10, description: "+10% Jordresistans", effect: { type: 'RESISTANCE', element: Element.EARTH, value: 10, isPercentage: true } },
     { threshold: 15, description: "Låser upp passiv talang: Jordens Resonans", effect: { type: 'PASSIVE_TALENT', talentId: 'earth_resonance' } },
+    { threshold: 20, description: "+15% Max Hälsa", effect: { type: 'STAT_BONUS', stat: 'constitution', value: 15, isPercentage: true } },
     { threshold: 25, description: "Låser upp ultimat förmåga: Jordens Vrede", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'earth_quake_ultimate' } },
   ],
   [Element.WIND]: [
     { threshold: 1, description: "+1 Undvikandechans", effect: { type: 'STAT_BONUS', stat: 'undvikandechans', value: 1 } },
     { threshold: 5, description: "+5% ATB-hastighet", effect: { type: 'RESOURCE_REGEN', stat: 'dexterity', value: 5, isPercentage: true } }, // Representing ATB speed
     { threshold: 10, description: "+10% Vindskada", effect: { type: 'DAMAGE_BONUS', element: Element.WIND, value: 10, isPercentage: true } },
+    { threshold: 15, description: "+10% Undvikandechans", effect: { type: 'STAT_BONUS', stat: 'undvikandechans', value: 10, isPercentage: true } },
+    { threshold: 20, description: "+10% ATB-hastighet", effect: { type: 'RESOURCE_REGEN', stat: 'dexterity', value: 10, isPercentage: true } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Rasande Cyklon", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'raging_cyclone' } },
   ],
   [Element.WATER]: [
     { threshold: 1, description: "+1 Intelligens", effect: { type: 'STAT_BONUS', stat: 'intelligence', value: 1 } },
     { threshold: 5, description: "+5% Resursregeneration", effect: { type: 'RESOURCE_REGEN', stat: 'intelligence', value: 5, isPercentage: true } }, // Affects Aether regen
     { threshold: 10, description: "+10% Vattenresistans", effect: { type: 'RESISTANCE', element: Element.WATER, value: 10, isPercentage: true } },
+    { threshold: 15, description: "+10% Helande effekt", effect: { type: 'HEAL_BONUS', value: 10, isPercentage: true } },
+    { threshold: 20, description: "+10% Resursregeneration", effect: { type: 'RESOURCE_REGEN', stat: 'intelligence', value: 10, isPercentage: true } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Gejserutbrott", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'geyser_burst' } },
   ],
-  // Hybrid elements can have bonuses too, or be unlocked by combining base elements
+  // Hybrid elements
   [Element.MAGMA]: [
-    { threshold: 1, description: "+2 Skada, +2 Rustning", effect: { type: 'STAT_BONUS', stat: 'skada', value: 2 } }, // Placeholder, more complex effects later
+    { threshold: 1, description: "+2 Skada, +2 Rustning", effect: { type: 'STAT_BONUS', stat: 'skada', value: 2 } },
+    { threshold: 5, description: "+10% Eld- och Jordresistans", effect: { type: 'RESISTANCE', element: Element.FIRE, value: 10, isPercentage: true } },
+    { threshold: 10, description: "Låser upp passiv talang: Magmahud", effect: { type: 'PASSIVE_TALENT', talentId: 'magma_skin' } },
+    { threshold: 15, description: "+15% Magmaskada", effect: { type: 'DAMAGE_BONUS', element: Element.MAGMA, value: 15, isPercentage: true } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Vulkanutbrott", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'volcanic_eruption' } },
   ],
   [Element.OBSIDIAN]: [
     { threshold: 1, description: "+3 Rustning, +1 Styrka", effect: { type: 'STAT_BONUS', stat: 'rustning', value: 3 } },
+    { threshold: 5, description: "+15% Skadeåterkastning", effect: { type: 'DAMAGE_BONUS', stat: 'rustning', value: 15, isPercentage: true } }, // Placeholder for retaliation
+    { threshold: 10, description: "Låser upp passiv talang: Obsidianskärva", effect: { type: 'PASSIVE_TALENT', talentId: 'obsidian_shard' } },
+    { threshold: 15, description: "+20 Max Hälsa", effect: { type: 'STAT_BONUS', stat: 'constitution', value: 20 } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Förstenande Blick", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'petrifying_gaze' } },
   ],
   [Element.FIRESTORM]: [
     { threshold: 1, description: "+2 Dexteritet, +2 Intelligens", effect: { type: 'STAT_BONUS', stat: 'dexterity', value: 2 } },
+    { threshold: 5, description: "+10% Kritisk Skada", effect: { type: 'STAT_BONUS', stat: 'kritiskTräff', value: 10, isPercentage: true } },
+    { threshold: 10, description: "Låser upp passiv talang: Snabb Inferno", effect: { type: 'PASSIVE_TALENT', talentId: 'swift_inferno' } },
+    { threshold: 15, description: "+15% Eldstormskada", effect: { type: 'DAMAGE_BONUS', element: Element.FIRESTORM, value: 15, isPercentage: true } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Rasande Cyklon", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'raging_cyclone' } },
   ],
   [Element.HOT_AIR]: [
     { threshold: 1, description: "+10% chans att blinda fiender", effect: { type: 'DAMAGE_BONUS', stat: 'dexterity', value: 10, isPercentage: true } },
+    { threshold: 5, description: "+5% Undvikandechans", effect: { type: 'STAT_BONUS', stat: 'undvikandechans', value: 5, isPercentage: true } },
+    { threshold: 10, description: "Låser upp passiv talang: Hett Dis", effect: { type: 'PASSIVE_TALENT', talentId: 'heat_haze' } },
+    { threshold: 15, description: "+10% chans att applicera Ångad", effect: { type: 'APPLY_STATUS', status: { type: 'steamed', duration: 2, accuracyReduction: 15 }, chance: 10 } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Svedande Vind", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'scorch_wind' } },
   ],
   [Element.STEAM]: [
     { threshold: 1, description: "+10% chans att bränna fiender", effect: { type: 'DAMAGE_BONUS', stat: 'intelligence', value: 10, isPercentage: true } },
+    { threshold: 5, description: "+5% Aether Regeneration", effect: { type: 'RESOURCE_REGEN', stat: 'intelligence', value: 5, isPercentage: true } },
+    { threshold: 10, description: "Låser upp passiv talang: Ångslöja", effect: { type: 'PASSIVE_TALENT', talentId: 'steam_veil' } },
+    { threshold: 15, description: "+15% Ångskada", effect: { type: 'DAMAGE_BONUS', element: Element.STEAM, value: 15, isPercentage: true } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Gejserutbrott", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'geyser_burst' } },
   ],
   [Element.HOT_SPRINGS]: [
     { threshold: 1, description: "+5% helande effekt", effect: { type: 'RESOURCE_REGEN', stat: 'intelligence', value: 5, isPercentage: true } },
+    { threshold: 5, description: "+10 Max Hälsa", effect: { type: 'STAT_BONUS', stat: 'constitution', value: 10 } },
+    { threshold: 10, description: "Låser upp passiv talang: Lugnande Dimma", effect: { type: 'PASSIVE_TALENT', talentId: 'soothing_mist' } },
+    { threshold: 15, description: "+10% Resursregeneration", effect: { type: 'RESOURCE_REGEN', stat: 'intelligence', value: 10, isPercentage: true } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Renande Gejser", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'cleansing_geyser' } },
   ],
   [Element.SAND]: [
     { threshold: 1, description: "+10% chans att sakta ner fiender", effect: { type: 'DAMAGE_BONUS', stat: 'dexterity', value: 10, isPercentage: true } },
+    { threshold: 5, description: "+5% Undvikandechans", effect: { type: 'STAT_BONUS', stat: 'undvikandechans', value: 5, isPercentage: true } },
+    { threshold: 10, description: "Låser upp passiv talang: Skiftande Sand", effect: { type: 'PASSIVE_TALENT', talentId: 'shifting_sands' } },
+    { threshold: 15, description: "+15% Sandskada", effect: { type: 'DAMAGE_BONUS', element: Element.SAND, value: 15, isPercentage: true } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Ökenstorm", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'desert_storm' } },
   ],
   [Element.EROSION]: [
     { threshold: 1, description: "-5% fienderustning", effect: { type: 'DAMAGE_BONUS', stat: 'armor', value: -5, isPercentage: true } },
+    { threshold: 5, description: "+5% Kritisk Träff", effect: { type: 'STAT_BONUS', stat: 'kritiskTräff', value: 5, isPercentage: true } },
+    { threshold: 10, description: "Låser upp passiv talang: Malande Vindar", effect: { type: 'PASSIVE_TALENT', talentId: 'grinding_winds' } },
+    { threshold: 15, description: "-10% fienderustning", effect: { type: 'DAMAGE_BONUS', stat: 'armor', value: -10, isPercentage: true } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Dammvirvel", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'dust_devil' } },
   ],
   [Element.MUD]: [
     { threshold: 1, description: "+10% chans att rota fiender", effect: { type: 'DAMAGE_BONUS', stat: 'constitution', value: 10, isPercentage: true } },
+    { threshold: 5, description: "+10 Max Hälsa", effect: { type: 'STAT_BONUS', stat: 'constitution', value: 10 } },
+    { threshold: 10, description: "Låser upp passiv talang: Klibbig Myr", effect: { type: 'PASSIVE_TALENT', talentId: 'sticky_mire' } },
+    { threshold: 15, description: "+15% Lerskada", effect: { type: 'DAMAGE_BONUS', element: Element.MUD, value: 15, isPercentage: true } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Kärr", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'quagmire' } },
   ],
   [Element.GROWTH]: [
     { threshold: 1, description: "+5% regenerering", effect: { type: 'RESOURCE_REGEN', stat: 'constitution', value: 5, isPercentage: true } },
+    { threshold: 5, description: "+10 Max Hälsa", effect: { type: 'STAT_BONUS', stat: 'constitution', value: 10 } },
+    { threshold: 10, description: "Låser upp passiv talang: Grönskande Aura", effect: { type: 'PASSIVE_TALENT', talentId: 'verdant_aura' } },
+    { threshold: 15, description: "+10% Helande effekt", effect: { type: 'HEAL_BONUS', value: 10, isPercentage: true } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Livsblom", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'lifebloom' } },
   ],
   [Element.ICE]: [
     { threshold: 1, description: "+10% chans att frysa fiender", effect: { type: 'DAMAGE_BONUS', stat: 'intelligence', value: 10, isPercentage: true } },
+    { threshold: 5, description: "+5% Kritisk Träff", effect: { type: 'STAT_BONUS', stat: 'kritiskTräff', value: 5, isPercentage: true } },
+    { threshold: 10, description: "Låser upp passiv talang: Köldskada", effect: { type: 'PASSIVE_TALENT', talentId: 'frostbite' } },
+    { threshold: 15, description: "+15% Isskada", effect: { type: 'DAMAGE_BONUS', element: Element.ICE, value: 15, isPercentage: true } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Glaciärspik", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'glacial_spike' } },
   ],
   [Element.STORM]: [
     { threshold: 1, description: "+10% chans att förlama fiender", effect: { type: 'DAMAGE_BONUS', stat: 'dexterity', value: 10, isPercentage: true } },
+    { threshold: 5, description: "+5% ATB-hastighet", effect: { type: 'RESOURCE_REGEN', stat: 'dexterity', value: 5, isPercentage: true } },
+    { threshold: 10, description: "Låser upp passiv talang: Statisk Laddning", effect: { type: 'PASSIVE_TALENT', talentId: 'static_charge' } },
+    { threshold: 15, description: "+15% Stormskada", effect: { type: 'DAMAGE_BONUS', element: Element.STORM, value: 15, isPercentage: true } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Åskknall", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'thunderclap' } },
   ],
   [Element.VOLCANIC_STORM]: [
-    { threshold: 1, description: "Massiv områdesskada", effect: { type: 'DAMAGE_BONUS', stat: 'damage', value: 10, isPercentage: true } },
+    { threshold: 1, description: "+5 Skada, +5 Intelligens", effect: { type: 'STAT_BONUS', stat: 'skada', value: 5 } },
+    { threshold: 5, description: "+20% Eld- och Vindskada", effect: { type: 'DAMAGE_BONUS', element: Element.FIRE, value: 20, isPercentage: true } },
+    { threshold: 10, description: "Låser upp ultimat förmåga: Vulkanisk Storm", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'volcanic_storm_ultimate' } },
   ],
   [Element.ELECTRIFIED_MUD]: [
-    { threshold: 1, description: "Skadar och saktar ner fiender", effect: { type: 'DAMAGE_BONUS', stat: 'damage', value: 10, isPercentage: true } },
+    { threshold: 1, description: "+5 Konstitution, +5 Intelligens", effect: { type: 'STAT_BONUS', stat: 'constitution', value: 5 } },
+    { threshold: 5, description: "+20% Jord- och Vattenskada", effect: { type: 'DAMAGE_BONUS', element: Element.EARTH, value: 20, isPercentage: true } },
+    { threshold: 10, description: "Låser upp ultimat förmåga: Elektrifierad Lera", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'electrified_mud_ultimate' } },
   ],
   [Element.VITRIFIED_STORM]: [
-    { threshold: 1, description: "Skapar ett fält av vasst glas", effect: { type: 'DAMAGE_BONUS', stat: 'damage', value: 10, isPercentage: true } },
+    { threshold: 1, description: "+5 Dexteritet, +5 Styrka", effect: { type: 'STAT_BONUS', stat: 'dexterity', value: 5 } },
+    { threshold: 5, description: "+20% Vind- och Eldskada", effect: { type: 'DAMAGE_BONUS', element: Element.WIND, value: 20, isPercentage: true } },
+    { threshold: 10, description: "Låser upp ultimat förmåga: Förglasad Storm", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'vitrified_storm_ultimate' } },
   ],
   [Element.NEUTRAL]: [], // Neutral element has no specific bonuses
 };

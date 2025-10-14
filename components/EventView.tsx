@@ -3,6 +3,7 @@ import type { GameEvent, Enemy, CombatLogMessage, Character, StatusEffect, Playe
 import { Element } from '../types';
 import { Icons, ARCHETYPES, PLAYER_ABILITIES } from '../constants';
 import { soundEffects } from '../sound'; // Aktiverar importen av ljudeffekter
+import CombatBackground from './CombatBackground'; // Import the new CombatBackground component
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
@@ -450,6 +451,25 @@ const EventView: React.FC<{
                      await applyAffix(item.affix, defender, attacker);
                      attacker = actors.find(a => a.id === attackerId)!; // Refresh attacker state
                      if (attacker.isDefeated) break;
+                }
+                // Check for retaliation from player's Magma Armor
+                const playerActor = actors.find(a => a.type === 'PLAYER');
+                if (playerActor && !playerActor.isDefeated) {
+                    const retaliateEffect = playerActor.statusEffects.find(e => e.type === 'retaliating');
+                    if (retaliateEffect && retaliateEffect.type === 'retaliating' && Math.random() * 100 < 30) { // 30% chance to retaliate
+                        await sleep(300);
+                        const retaliateDamage = retaliateEffect.damage;
+                        const newAttackerHp = Math.max(0, attacker.hp - retaliateDamage);
+                        updateActorState(attackerId, { hp: newAttackerHp, animationState: 'hit' });
+                        addDamagePopup(retaliateDamage.toString(), attackerId, 'damage');
+                        addLogMessage(`${playerActor.name}'s Magma Armor skadar ${attacker.name}!`);
+                        if (newAttackerHp <= 0) {
+                            updateActorState(attackerId, { isDefeated: true });
+                            addLogMessage(`${attacker.name} besegrades av Magma Armor!`);
+                        }
+                        await sleep(300);
+                        updateActorState(attackerId, { animationState: 'idle' });
+                    }
                 }
             }
           }
@@ -1021,6 +1041,9 @@ const EventView: React.FC<{
 
   return (
     <div className="flex-grow w-full h-full p-2 text-white flex flex-col items-center justify-center bg-black/80 relative overflow-hidden">
+        {/* Combat Background */}
+        <CombatBackground element={event.element} />
+
         {/* Environment Display */}
         {event.environment && (
             <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 pixelated-border p-3 text-center z-10 max-w-md">

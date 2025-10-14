@@ -277,6 +277,289 @@
           animation: vfx-haze 1.5s infinite alternate;
           border-radius: 50%;
       }
+
+      /* --- Combat Backgrounds --- */
+      .combat-background {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-size: cover;
+        background-position: center;
+        transition: background-image 1s ease-in-out;
+        z-index: 0; /* Ensure it's behind UI elements */
+      }
+
+      .parallax-layer {
+        position: absolute;
+        inset: -10%; /* Extend beyond bounds for parallax effect */
+        background-size: cover;
+        background-position: center;
+        animation: parallax-move 60s linear infinite alternate; /* Slow, subtle movement */
+        opacity: 0.8;
+      }
+
+      .background-layer-1 { z-index: 1; opacity: 0.6; }
+      .background-layer-2 { z-index: 2; opacity: 0.7; animation-duration: 50s; }
+      .background-layer-3 { z-index: 3; opacity: 0.8; animation-duration: 40s; }
+
+      @keyframes parallax-move {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(-5%, -5%); }
+      }
+
+      .weather-overlay {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 10; /* Above parallax layers */
+      }
+
+      /* --- Biome Specific Styles (Background Images & Animations) --- */
+      /* FIRE: Volcanic Wasteland */
+      .bg-fire-volcanic { background-image: url('https://via.placeholder.com/1920x1080/8B0000/FFFFFF?text=Volcanic+Wasteland'); }
+      .bg-fire-volcanic .background-layer-1 { background-image: url('https://via.placeholder.com/1920x1080/A52A2A/FFFFFF?text=Volcanic+Layer+1'); }
+      .bg-fire-volcanic .background-layer-2 { background-image: url('https://via.placeholder.com/1920x1080/CD5C5C/FFFFFF?text=Volcanic+Layer+2'); }
+      .bg-fire-volcanic .weather-overlay::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle, transparent 50%, rgba(255, 165, 0, 0.2) 100%);
+        animation: ash-fall 10s linear infinite;
+      }
+      @keyframes ash-fall {
+        0% { transform: translateY(-10%) scale(1); opacity: 0; }
+        50% { opacity: 0.5; }
+        100% { transform: translateY(100%) scale(1.2); opacity: 0; }
+      }
+
+      /* FIRE: Burning Forest */
+      .bg-fire-forest { background-image: url('https://via.placeholder.com/1920x1080/8B4513/FFFFFF?text=Burning+Forest'); }
+      .bg-fire-forest .background-layer-1 { background-image: url('https://via.placeholder.com/1920x1080/A0522D/FFFFFF?text=Forest+Layer+1'); }
+      .bg-fire-forest .background-layer-2 { background-image: url('https://via.placeholder.com/1920x1080/CD853F/FFFFFF?text=Forest+Layer+2'); }
+      .bg-fire-forest .weather-overlay::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 69, 0, 0.1);
+        animation: heat-haze 3s ease-in-out infinite alternate;
+      }
+      @keyframes heat-haze {
+        0% { filter: blur(0px) brightness(1); }
+        100% { filter: blur(2px) brightness(1.2); }
+      }
+
+      /* FIRE: Magma Cave */
+      .bg-fire-magma-cave { background-image: url('https://via.placeholder.com/1920x1080/4B0082/FFFFFF?text=Magma+Cave'); }
+      .bg-fire-magma-cave .background-layer-1 { background-image: url('https://via.placeholder.com/1920x1080/800080/FFFFFF?text=Magma+Layer+1'); }
+      .bg-fire-magma-cave .background-layer-2 { background-image: url('https://via.placeholder.com/1920x1080/FF00FF/FFFFFF?text=Magma+Layer+2'); }
+      .bg-fire-magma-cave .weather-overlay::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(255, 69, 0, 0.3) 0%, transparent 50%);
+        animation: lava-glow 4s ease-in-out infinite alternate;
+      }
+      @keyframes lava-glow {
+        0% { opacity: 0.5; }
+        100% { opacity: 0.8; }
+      }
+
+      /* EARTH: Deep Mines */
+      .bg-earth-mines { background-image: url('https://via.placeholder.com/1920x1080/36454F/FFFFFF?text=Deep+Mines'); }
+      .bg-earth-mines .background-layer-1 { background-image: url('https://via.placeholder.com/1920x1080/4F4F4F/FFFFFF?text=Mines+Layer+1'); }
+      .bg-earth-mines .background-layer-2 { background-image: url('https://via.placeholder.com/1920x1080/696969/FFFFFF?text=Mines+Layer+2'); }
+      .bg-earth-mines .weather-overlay::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.3);
+        animation: dust-motes 8s linear infinite;
+      }
+      @keyframes dust-motes {
+        0% { transform: translate(0, 0) scale(1); opacity: 0; }
+        50% { opacity: 0.4; }
+        100% { transform: translate(10%, 10%) scale(1.1); opacity: 0; }
+      }
+
+      /* EARTH: Rocky Mountains */
+      .bg-earth-mountains { background-image: url('https://via.placeholder.com/1920x1080/708090/FFFFFF?text=Rocky+Mountains'); }
+      .bg-earth-mountains .background-layer-1 { background-image: url('https://via.placeholder.com/1920x1080/808080/FFFFFF?text=Mountains+Layer+1'); }
+      .bg-earth-mountains .background-layer-2 { background-image: url('https://via.placeholder.com/1920x1080/A9A9A9/FFFFFF?text=Mountains+Layer+2'); }
+      .bg-earth-mountains .weather-overlay::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, transparent 0%, rgba(105, 105, 105, 0.1) 100%);
+        animation: cloud-drift 15s linear infinite alternate;
+      }
+      @keyframes cloud-drift {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(5%); }
+      }
+
+      /* EARTH: Lush Underground Cave */
+      .bg-earth-lush-cave { background-image: url('https://via.placeholder.com/1920x1080/006400/FFFFFF?text=Lush+Cave'); }
+      .bg-earth-lush-cave .background-layer-1 { background-image: url('https://via.placeholder.com/1920x1080/228B22/FFFFFF?text=Lush+Layer+1'); }
+      .bg-earth-lush-cave .background-layer-2 { background-image: url('https://via.placeholder.com/1920x1080/32CD32/FFFFFF?text=Lush+Layer+2'); }
+      .bg-earth-lush-cave .weather-overlay::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle, rgba(0, 255, 0, 0.1) 0%, transparent 70%);
+        animation: bioluminescence-pulse 5s ease-in-out infinite alternate;
+      }
+      @keyframes bioluminescence-pulse {
+        0% { opacity: 0.3; }
+        100% { opacity: 0.6; }
+      }
+
+      /* WIND: Floating Islands */
+      .bg-wind-floating-islands { background-image: url('https://via.placeholder.com/1920x1080/87CEEB/FFFFFF?text=Floating+Islands'); }
+      .bg-wind-floating-islands .background-layer-1 { background-image: url('https://via.placeholder.com/1920x1080/ADD8E6/FFFFFF?text=Islands+Layer+1'); }
+      .bg-wind-floating-islands .background-layer-2 { background-image: url('https://via.placeholder.com/1920x1080/B0E0E6/FFFFFF?text=Islands+Layer+2'); }
+      .bg-wind-floating-islands .weather-overlay::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom, transparent 0%, rgba(255, 255, 255, 0.2) 100%);
+        animation: cloud-flow 20s linear infinite;
+      }
+      @keyframes cloud-flow {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(-10%); }
+      }
+
+      /* WIND: Stormy Peaks */
+      .bg-wind-stormy-peaks { background-image: url('https://via.placeholder.com/1920x1080/4682B4/FFFFFF?text=Stormy+Peaks'); }
+      .bg-wind-stormy-peaks .background-layer-1 { background-image: url('https://via.placeholder.com/1920x1080/5F9EA0/FFFFFF?text=Peaks+Layer+1'); }
+      .bg-wind-stormy-peaks .background-layer-2 { background-image: url('https://via.placeholder.com/1920x1080/6A5ACD/FFFFFF?text=Peaks+Layer+2'); }
+      .bg-wind-stormy-peaks .weather-overlay::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(173, 216, 230, 0.1);
+        animation: lightning-flash 5s steps(1) infinite;
+      }
+      @keyframes lightning-flash {
+        0%, 100% { opacity: 0; }
+        50% { opacity: 0.5; }
+      }
+
+      /* WIND: Open Plains */
+      .bg-wind-plains { background-image: url('https://via.placeholder.com/1920x1080/6B8E23/FFFFFF?text=Open+Plains'); }
+      .bg-wind-plains .background-layer-1 { background-image: url('https://via.placeholder.com/1920x1080/8FBC8F/FFFFFF?text=Plains+Layer+1'); }
+      .bg-wind-plains .background-layer-2 { background-image: url('https://via.placeholder.com/1920x1080/9ACD32/FFFFFF?text=Plains+Layer+2'); }
+      .bg-wind-plains .weather-overlay::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to right, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+        animation: wind-gust 4s ease-out infinite;
+      }
+      @keyframes wind-gust {
+        0% { transform: translateX(-100%); opacity: 0; }
+        50% { opacity: 0.3; }
+        100% { transform: translateX(100%); opacity: 0; }
+      }
+
+      /* WATER: Underwater Ruins */
+      .bg-water-ruins { background-image: url('https://via.placeholder.com/1920x1080/000080/FFFFFF?text=Underwater+Ruins'); }
+      .bg-water-ruins .background-layer-1 { background-image: url('https://via.placeholder.com/1920x1080/191970/FFFFFF?text=Ruins+Layer+1'); }
+      .bg-water-ruins .background-layer-2 { background-image: url('https://via.placeholder.com/1920x1080/4169E1/FFFFFF?text=Ruins+Layer+2'); }
+      .bg-water-ruins .weather-overlay::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle, transparent 30%, rgba(0, 191, 255, 0.2) 100%);
+        animation: water-current 12s linear infinite alternate;
+      }
+      @keyframes water-current {
+        0% { transform: translateX(0) translateY(0); }
+        100% { transform: translateX(5%) translateY(5%); }
+      }
+
+      /* WATER: Swamplands */
+      .bg-water-swamp { background-image: url('https://via.placeholder.com/1920x1080/2F4F4F/FFFFFF?text=Swamplands'); }
+      .bg-water-swamp .background-layer-1 { background-image: url('https://via.placeholder.com/1920x1080/698B69/FFFFFF?text=Swamp+Layer+1'); }
+      .bg-water-swamp .background-layer-2 { background-image: url('https://via.placeholder.com/1920x1080/8B7355/FFFFFF?text=Swamp+Layer+2'); }
+      .bg-water-swamp .weather-overlay::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.2);
+        animation: fog-drift 15s linear infinite alternate;
+      }
+      @keyframes fog-drift {
+        0% { transform: translateX(0); opacity: 0.5; }
+        100% { transform: translateX(10%) opacity: 0.8; }
+      }
+
+      /* WATER: Coastline */
+      .bg-water-coast { background-image: url('https://via.placeholder.com/1920x1080/4682B4/FFFFFF?text=Coastline'); }
+      .bg-water-coast .background-layer-1 { background-image: url('https://via.placeholder.com/1920x1080/6A5ACD/FFFFFF?text=Coast+Layer+1'); }
+      .bg-water-coast .background-layer-2 { background-image: url('https://via.placeholder.com/1920x1080/87CEEB/FFFFFF?text=Coast+Layer+2'); }
+      .bg-water-coast .weather-overlay::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, transparent 0%, rgba(173, 216, 230, 0.3) 100%);
+        animation: wave-motion 8s ease-in-out infinite alternate;
+      }
+      @keyframes wave-motion {
+        0% { transform: translateY(0); }
+        100% { transform: translateY(-5%); }
+      }
+
+      /* NEUTRAL: Ancient Ruins */
+      .bg-neutral-ruins { background-image: url('https://via.placeholder.com/1920x1080/556B2F/FFFFFF?text=Ancient+Ruins'); }
+      .bg-neutral-ruins .background-layer-1 { background-image: url('https://via.placeholder.com/1920x1080/6B8E23/FFFFFF?text=Ruins+Layer+1'); }
+      .bg-neutral-ruins .background-layer-2 { background-image: url('https://via.placeholder.com/1920x1080/8B4513/FFFFFF?text=Ruins+Layer+2'); }
+      .bg-neutral-ruins .weather-overlay::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.1);
+        animation: subtle-dust 20s linear infinite alternate;
+      }
+      @keyframes subtle-dust {
+        0% { transform: translateX(0) translateY(0); opacity: 0.2; }
+        100% { transform: translateX(5%) translateY(5%); opacity: 0.3; }
+      }
+
+      /* NEUTRAL: Desert */
+      .bg-neutral-desert { background-image: url('https://via.placeholder.com/1920x1080/CD853F/FFFFFF?text=Desert'); }
+      .bg-neutral-desert .background-layer-1 { background-image: url('https://via.placeholder.com/1920x1080/D2B48C/FFFFFF?text=Desert+Layer+1'); }
+      .bg-neutral-desert .background-layer-2 { background-image: url('https://via.placeholder.com/1920x1080/F4A460/FFFFFF?text=Desert+Layer+2'); }
+      .bg-neutral-desert .weather-overlay::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(244, 164, 96, 0.1);
+        animation: sand-drift 10s linear infinite;
+      }
+      @keyframes sand-drift {
+        0% { transform: translateX(-100%); opacity: 0; }
+        50% { opacity: 0.4; }
+        100% { transform: translateX(100%); opacity: 0; }
+      }
+
+      /* NEUTRAL: Forgotten Tomb */
+      .bg-neutral-tomb { background-image: url('https://via.placeholder.com/1920x1080/2F4F4F/FFFFFF?text=Forgotten+Tomb'); }
+      .bg-neutral-tomb .background-layer-1 { background-image: url('https://via.placeholder.com/1920x1080/696969/FFFFFF?text=Tomb+Layer+1'); }
+      .bg-neutral-tomb .background-layer-2 { background-image: url('https://via.placeholder.com/1920x1080/808080/FFFFFF?text=Tomb+Layer+2'); }
+      .bg-neutral-tomb .weather-overlay::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        animation: eerie-mist 25s linear infinite alternate;
+      }
+      @keyframes eerie-mist {
+        0% { transform: translateY(0); opacity: 0.6; }
+        100% { transform: translateY(-5%); opacity: 0.8; }
+      }
     </style>
   <script type="importmap">
 {

@@ -22,7 +22,7 @@ export const Icons = {
     Poison: createIcon(["M8 1C5 1 3 3 3 6c0 1 0 1 1 2s1 2 3 3c2-1 2-2 3-3s1-1 1-2c0-3-2-5-5-5z M6 6h1v1H6V6z m3 0h1v1H9V6z M8 9c-1 0-1-1-1-1h2c0 0 0 1-1 1z"], "#84cc16"),
     // New status icons
     FullFlow: createIcon(["M8 7C6 7 5 8 5 9s1 2 3 2 3-1 3-1-1-3-3-3z M8 4l-2-2h1v2h2V2h1L8 4z"], "#22d3ee"),
-    Overheat: createIcon(["M8 9v-1h1V7h-1V6h1V5h-1V4h1V3h-1V2h-1V1H6v1H5v1h1v1h-1v1h1v1h-1v1h1v1H5v1h1v1H5v1h6v-1h-1v-1H8z m0-2h1V6H8v1z", "M7 12h2v2H7v-2z"], "#fef08a"),
+    Overheat: createIcon(["M8 9v-1h1V7h-1V6h1V5h-1V4h1V3h-1V2h-1V1H6v1H5v1h1v1h-1v1h1v1h-1v1h1v1H5v1h6v-1h-1v-1H8z m0-2h1V6H8v1z", "M7 12h2v2H7v-2z"], "#fef08a"),
     Rooted: createIcon(["M8 13v-2H7v-1h2v1h-1v2H8z M6 10H5V8h1v2z m4 0h1V8h-1v2z M8 8H7V6h2v2h-1z M10 5h-1V4H7v1H6V4H5v2h1v1h4V6h1V4h-1v1z"], "#78350f"),
     Regenerating: createIcon(["M8 4l-1 2h2L8 4z M7 6v1h2V6H7z M6 8v1h4V8H6z M5 10v1h6v-1H5z"], "#4ade80"),
     Blinded: createIcon(["M8 4c-2 0-3 2-3 4s1 4 3 4 3-2 3-4-1-4-3-4z M8 6c1 0 1 1 1 2s0 2-1 2-1-1-1-2 0-2 1-2z M5 8h6v1H5V8z"], "#9ca3af"),
@@ -170,6 +170,51 @@ export const elementThemes = {
   [Element.VOLCANIC_STORM]: 'border-red-600 bg-red-600/10 text-red-200 shadow-red-500/50',
   [Element.ELECTRIFIED_MUD]: 'border-lime-500 bg-lime-500/10 text-lime-200 shadow-lime-400/50',
   [Element.VITRIFIED_STORM]: 'border-teal-500 bg-teal-500/10 text-teal-200 shadow-teal-400/50',
+};
+
+// --- NEW: Combat Background Biomes ---
+export const BACKGROUND_BIOMES: Record<Element, { name: string; description: string; classes: string; }[]> = {
+    [Element.FIRE]: [
+        { name: "Vulkanisk Ödemark", description: "En karg, glödande slätt under en askgrå himmel.", classes: "bg-fire-volcanic" },
+        { name: "Brinnande Skog", description: "Förkolnade träd och flammande buskar i en evig brand.", classes: "bg-fire-forest" },
+        { name: "Magmagrotta", description: "En mörk grotta upplyst av strömmande lava.", classes: "bg-fire-magma-cave" },
+    ],
+    [Element.EARTH]: [
+        { name: "Djupa Gruvor", description: "Fuktiga, mörka tunnlar med glimmande malmådror.", classes: "bg-earth-mines" },
+        { name: "Steniga Bergspass", description: "Höga, grå klippväggar som sträcker sig mot en dyster himmel.", classes: "bg-earth-mountains" },
+        { name: "Frodig Underjordisk Grotta", description: "En dold grotta fylld med bioluminiscent flora och kristallformationer.", classes: "bg-earth-lush-cave" },
+    ],
+    [Element.WIND]: [
+        { name: "Flygande Öar", description: "Svävande landmassor i en vidsträckt, molnig himmel.", classes: "bg-wind-floating-islands" },
+        { name: "Stormiga Bergstoppar", description: "Piskande vindar och blixtar över taggiga bergstoppar.", classes: "bg-wind-stormy-peaks" },
+        { name: "Öppna Slätter", description: "Vidsträckta grässlätter där vinden dansar fritt.", classes: "bg-wind-plains" },
+    ],
+    [Element.WATER]: [
+        { name: "Undervattensruiner", description: "Sjunkna strukturer i ett blågrönt, tyst djup.", classes: "bg-water-ruins" },
+        { name: "Sumpmarker", description: "Dimhöljda, knotiga träd och stillastående, mörkt vatten.", classes: "bg-water-swamp" },
+        { name: "Kustlinje", description: "En mörk strand där kraftiga vågor slår in under en stormig himmel.", classes: "bg-water-coast" },
+    ],
+    [Element.NEUTRAL]: [
+        { name: "Uråldriga Ruiner", description: "Övervuxna stenstrukturer från en svunnen tid.", classes: "bg-neutral-ruins" },
+        { name: "Öken", description: "Vidsträckta sanddyner under en brännande sol.", classes: "bg-neutral-desert" },
+        { name: "Glömd Gravkammare", description: "Mörka, dammiga korridorer med ekande tystnad.", classes: "bg-neutral-tomb" },
+    ],
+    // Hybrid elements will fall back to base elements or specific definitions if needed
+    [Element.MAGMA]: [{ name: "Magmaflod", description: "En flod av smält sten som långsamt rör sig framåt.", classes: "bg-fire-magma-cave" }], // Falls back to fire-magma-cave
+    [Element.OBSIDIAN]: [{ name: "Obsidianplatå", description: "En karg platå av svart, vulkaniskt glas.", classes: "bg-earth-mountains" }], // Falls back to earth-mountains
+    [Element.FIRESTORM]: [{ name: "Eldstormshimmel", description: "En himmel fylld av virvlande eld och vind.", classes: "bg-wind-stormy-peaks" }], // Falls back to wind-stormy-peaks
+    [Element.HOT_AIR]: [{ name: "Hetluftsvirvel", description: "En öken där luften dallrar av extrem hetta.", classes: "bg-neutral-desert" }], // Falls back to neutral-desert
+    [Element.STEAM]: [{ name: "Ångande Gejserfält", description: "Ett fält av aktiva gejsrar som spyr ut skållhet ånga.", classes: "bg-water-swamp" }], // Falls back to water-swamp
+    [Element.HOT_SPRINGS]: [{ name: "Varma Källor", description: "Lugna, varma källor omgivna av frodig vegetation.", classes: "bg-water-coast" }], // Falls back to water-coast
+    [Element.SAND]: [{ name: "Sanddyner", description: "Ändlösa rullande sanddyner under en klar himmel.", classes: "bg-neutral-desert" }], // Falls back to neutral-desert
+    [Element.EROSION]: [{ name: "Eroderade Klippor", description: "Vindpinade klippformationer som vittrar sönder.", classes: "bg-earth-mountains" }], // Falls back to earth-mountains
+    [Element.MUD]: [{ name: "Djupt Kärr", description: "Ett djupt, klibbigt kärr med sjunkande mark.", classes: "bg-water-swamp" }], // Falls back to water-swamp
+    [Element.GROWTH]: [{ name: "Urskog", description: "En tät, uråldrig skog där naturen regerar.", classes: "bg-earth-lush-cave" }], // Falls back to earth-lush-cave
+    [Element.ICE]: [{ name: "Glaciärspricka", description: "En djup spricka i en glaciär med isiga väggar.", classes: "bg-water-ruins" }], // Falls back to water-ruins
+    [Element.STORM]: [{ name: "Öppet Hav", description: "Ett stormigt hav med höga vågor och mörka moln.", classes: "bg-water-coast" }], // Falls back to water-coast
+    [Element.VOLCANIC_STORM]: [{ name: "Vulkanisk Stormfront", description: "En front av eld och vind som drar fram över ett vulkaniskt landskap.", classes: "bg-fire-volcanic" }],
+    [Element.ELECTRIFIED_MUD]: [{ name: "Elektrifierat Träsk", description: "Ett träsk där blixtar slår ner i den leriga marken.", classes: "bg-water-swamp" }],
+    [Element.VITRIFIED_STORM]: [{ name: "Förglasad Öken", description: "En öken där sanden har smält till glas av extrem hetta och vind.", classes: "bg-neutral-desert" }],
 };
 
 export const ARCHETYPES: Archetype[] = [

@@ -123,20 +123,62 @@ const EventView: React.FC<{
       }
       
       let hp = actor.hp;
+      let newStatusEffects: StatusEffect[] = [...actor.statusEffects]; // Start with current effects
 
-      // Process environmental effects
-      const envDot = event.modifiers.find(m => m.effect === 'environment_dot');
-      if (envDot && envDot.value) {
-          hp = Math.max(0, hp - envDot.value);
-          addLogMessage(`${actor.name} tar ${envDot.value} skada från miljön!`);
-          addDamagePopup(envDot.value.toString(), actor.id, 'status_damage');
-          updateActorState(actorId, { hp });
-          await sleep(500);
+      // --- Process Environment Effects ---
+      if (event.environment) {
+          const env = event.environment;
+          for (const effect of env.effects) {
+              let targetIsAffected = false;
+              const actorElement = actor.type === 'PLAYER' ? character.element : event.enemies.find(e => e.id === actor.id)?.element;
+
+              switch (effect.targetScope) {
+                  case 'all':
+                      targetIsAffected = true;
+                      break;
+                  case 'player':
+                      targetIsAffected = actor.type === 'PLAYER';
+                      break;
+                  case 'enemies':
+                      targetIsAffected = actor.type === 'ENEMY';
+                      break;
+                  case 'non_elemental':
+                      targetIsAffected = actorElement !== effect.targetElement;
+                      break;
+                  case 'elemental':
+                      targetIsAffected = actorElement === effect.targetElement;
+                      break;
+              }
+
+              if (targetIsAffected) {
+                  if (effect.type === 'dot' && effect.value) {
+                      hp = Math.max(0, hp - effect.value);
+                      addLogMessage(`${actor.name} tar ${effect.value} skada från ${env.name}!`);
+                      addDamagePopup(effect.value.toString(), actor.id, 'status_damage');
+                      await sleep(200);
+                  } else if (effect.type === 'status_apply' && effect.status && effect.statusChance && Math.random() * 100 < effect.statusChance) {
+                      const existingStatus = newStatusEffects.find(s => s.type === effect.status);
+                      if (!existingStatus) {
+                          const newStatus: StatusEffect = { type: effect.status, duration: effect.statusDuration || 1 } as StatusEffect;
+                          if (effect.status === 'burning' || effect.status === 'poisoned' || effect.status === 'retaliating' || effect.status === 'steamed') {
+                              (newStatus as any).damage = effect.value; // Assuming value is damage for these
+                          }
+                          if (effect.status === 'regenerating') {
+                              (newStatus as any).heal = effect.value;
+                          }
+                          newStatusEffects.push(newStatus);
+                          addLogMessage(`${actor.name} blir påverkad av ${env.name} och får status: ${effect.status}!`);
+                          await sleep(200);
+                      }
+                  }
+                  // Stat_modifier and atb_modifier can be implemented later if needed
+              }
+          }
       }
 
-      // Process status effects
-      let newStatusEffects: StatusEffect[] = [];
-      for (const effect of actor.statusEffects) {
+      // Process actor's own status effects (after environment effects)
+      let effectsAfterTurn: StatusEffect[] = [];
+      for (const effect of newStatusEffects) { // Iterate over potentially updated effects
           if (effect.type === 'burning' && effect.damage) {
               hp = Math.max(0, hp - effect.damage);
               // soundEffects.burn();
@@ -153,51 +195,36 @@ const EventView: React.FC<{
               addLogMessage(`${actor.name} regenererar ${effect.heal} hälsa!`);
               addDamagePopup(`+${effect.heal}`, actor.id, 'heal');
           }
+          if (effect.type === 'steamed' && effect.damage) {
+              hp = Math.max(0, hp - effect.damage);
+              addLogMessage(`${actor.name} tar ${effect.damage} ångskada!`);
+              addDamagePopup(effect.damage.toString(), actor.id, 'status_damage');
+          }
+
           if (effect.duration > 1) {
-              // FIX: Spreading a discriminated union can lead to type errors.
-              // Reconstructing the object explicitly for each case ensures type safety.
               const newDuration = effect.duration - 1;
               switch (effect.type) {
-                  case 'burning':
-                      newStatusEffects.push({ type: 'burning', damage: effect.damage, duration: newDuration });
-                      break;
-                  case 'poisoned':
-                      newStatusEffects.push({ type: 'poisoned', damage: effect.damage, duration: newDuration });
-                      break;
-                  case 'retaliating':
-                      newStatusEffects.push({ type: 'retaliating', damage: effect.damage, duration: newDuration });
-                      break;
-                  case 'regenerating':
-                      newStatusEffects.push({ type: 'regenerating', heal: effect.heal, duration: newDuration });
-                      break;
-                  case 'defending':
-                      newStatusEffects.push({ type: 'defending', duration: newDuration });
-                      break;
-                  case 'hasted':
-                      newStatusEffects.push({ type: 'hasted', duration: newDuration });
-                      break;
-                  case 'slowed':
-                      newStatusEffects.push({ type: 'slowed', duration: newDuration });
-                      break;
-                  case 'blinded':
-                      newStatusEffects.push({ type: 'blinded', duration: newDuration });
-                      break;
-                  case 'full_flow':
-                      newStatusEffects.push({ type: 'full_flow', duration: newDuration });
-                      break;
-                  case 'overheated':
-                      newStatusEffects.push({ type: 'overheated', duration: newDuration });
-                      break;
-                  case 'rooted':
-                      newStatusEffects.push({ type: 'rooted', duration: newDuration });
-                      break;
+                  case 'burning': effectsAfterTurn.push({ type: 'burning', damage: effect.damage, duration: newDuration }); break;
+                  case 'poisoned': effectsAfterTurn.push({ type: 'poisoned', damage: effect.damage, duration: newDuration }); break;
+                  case 'retaliating': effectsAfterTurn.push({ type: 'retaliating', damage: effect.damage, duration: newDuration }); break;
+                  case 'regenerating': effectsAfterTurn.push({ type: 'regenerating', heal: effect.heal, duration: newDuration }); break;
+                  case 'defending': effectsAfterTurn.push({ type: 'defending', duration: newDuration }); break;
+                  case 'hasted': effectsAfterTurn.push({ type: 'hasted', duration: newDuration }); break;
+                  case 'slowed': effectsAfterTurn.push({ type: 'slowed', duration: newDuration }); break;
+                  case 'blinded': effectsAfterTurn.push({ type: 'blinded', duration: newDuration }); break;
+                  case 'full_flow': effectsAfterTurn.push({ type: 'full_flow', duration: newDuration }); break;
+                  case 'overheated': effectsAfterTurn.push({ type: 'overheated', duration: newDuration }); break;
+                  case 'rooted': effectsAfterTurn.push({ type: 'rooted', duration: newDuration }); break;
+                  case 'steamed': effectsAfterTurn.push({ type: 'steamed', duration: newDuration, damage: effect.damage, accuracyReduction: effect.accuracyReduction }); break;
               }
           } else {
              if (effect.type === 'rooted') addLogMessage(`${actor.name} är inte längre rotad.`);
+             if (effect.type === 'blinded') addLogMessage(`${actor.name} är inte längre bländad.`);
+             if (effect.type === 'steamed') addLogMessage(`${actor.name} är inte längre ångad.`);
           }
       }
       
-      updateActorState(actorId, { hp, statusEffects: newStatusEffects });
+      updateActorState(actorId, { hp, statusEffects: effectsAfterTurn });
       await sleep(500);
 
       if (hp <= 0) {
@@ -244,7 +271,7 @@ const EventView: React.FC<{
           }
       }
 
-  }, [actors, updateActorState, gameState, event.modifiers, character.archetype, playerStats.maxAether]);
+  }, [actors, updateActorState, gameState, event.environment, character.archetype, playerStats.maxAether, character.element, event.enemies]);
 
   // ATB Game Loop: Ticks the ATB bars up.
   useEffect(() => {
@@ -442,14 +469,14 @@ const EventView: React.FC<{
       setShowCommandMenu(false);
       setShowAbilityMenu(false);
       setGameState('EXECUTING');
-      const player = actors.find(a => a.type === 'PLAYER');
+      let player = actors.find(a => a.type === 'PLAYER');
       if (!player) return;
 
       const abilityInfo = abilityId ? PLAYER_ABILITIES[abilityId] : null;
       const rank = abilityId ? (unlockedSkills.get(abilityId) || 1) : 1;
       const rankData = abilityInfo ? abilityInfo.ranks[rank - 1] : null;
       
-      const target = actors.find(a => a.id === selectedTarget);
+      let target = actors.find(a => a.id === selectedTarget);
       
       const hasFullFlow = player.statusEffects.some(e => e.type === 'full_flow');
       let effectiveCost = rankData ? rankData.resourceCost : 0;
@@ -527,7 +554,23 @@ const EventView: React.FC<{
             case 'fire_3':
             case 'wind_3':
                if(target && rankData.damageMultiplier) {
-                 await performAttack(player.id, target.id, baseSkillDamage * rankData.damageMultiplier, abilityInfo.element, true);
+                 // Check for Water + Burning reaction
+                 const isBurning = target.statusEffects.some(e => e.type === 'burning');
+                 if (abilityInfo.element === Element.WATER && isBurning) {
+                     addLogMessage(`${target.name}s eld släcktes av vattnet och skapade ånga!`);
+                     updateActorState(target.id, {
+                         statusEffects: target.statusEffects.filter(e => e.type !== 'burning')
+                     });
+                     // Apply 'steamed' status
+                     const newStatus: StatusEffect = { type: 'steamed', duration: 2, damage: Math.floor(baseSkillDamage * 0.2), accuracyReduction: 20 };
+                     updateActorState(target.id, {
+                         statusEffects: [...target.statusEffects.filter(e => e.type !== 'steamed' && e.type !== 'burning'), newStatus]
+                     });
+                     addDamagePopup(newStatus.damage!.toString(), target.id, 'status_damage');
+                     await sleep(500);
+                 } else {
+                    await performAttack(player.id, target.id, baseSkillDamage * rankData.damageMultiplier, abilityInfo.element, true);
+                 }
                }
                break;
             case 'ice':
@@ -678,6 +721,18 @@ const EventView: React.FC<{
       const enemyActor = actors.find(a => a.id === enemyId);
       if (!enemyData || !enemyActor) return;
       
+      // Check if enemy is blinded
+      const isBlinded = enemyActor.statusEffects.some(e => e.type === 'blinded');
+      if (isBlinded && Math.random() < 0.5) { // 50% chance to miss if blinded
+          addLogMessage(`${enemyData.name} är bländad och missar sin attack!`);
+          updateActorState(enemyId, { atb: 0 });
+          await sleep(500);
+          if (gameState as GameState !== 'VICTORY' && gameState as GameState !== 'DEFEAT') {
+             setGameState('ACTIVE');
+          }
+          return;
+      }
+
       if (enemyData.ability === 'HASTE_SELF' && Math.random() < 0.4) { // 40% chance
           const existingEffects = enemyActor.statusEffects.filter(e => e.type !== 'hasted');
           const newEffects: StatusEffect[] = [...existingEffects, { type: 'hasted', duration: 4 }];
@@ -790,11 +845,12 @@ const EventView: React.FC<{
         'burning': { icon: Icons.Burn, title: "Burning" },
         'poisoned': { icon: Icons.Poison, title: "Poisoned" },
         'slowed': { icon: Icons.Slow, title: "Slowed" },
-        'blinded': { icon: Icons.Sand, title: "Blinded" },
+        'blinded': { icon: Icons.Blinded, title: "Blinded" }, // New
         'retaliating': { icon: Icons.Magma, title: "Retaliating" },
         'full_flow': { icon: Icons.FullFlow, title: "Full Flow" },
         'overheated': { icon: Icons.Overheat, title: "Overheated" },
-        'rooted': { icon: Icons.Rooted, title: "Rooted" },
+        'rooted': { icon: Icons.Rooted, title: "Rooted" }, // New
+        'steamed': { icon: Icons.Steamed, title: "Steamed" }, // New
         'regenerating': { icon: Icons.Regenerating, title: "Regenerating" }
     };
 
@@ -827,6 +883,7 @@ const EventView: React.FC<{
             <div className="status-vfx-overlay">
                 {actor.statusEffects.some(e => e.type === 'burning') && <div className="vfx-burning-overlay" />}
                 {actor.statusEffects.some(e => e.type === 'poisoned') && <div className="vfx-poison-overlay" />}
+                {actor.statusEffects.some(e => e.type === 'steamed') && <div className="vfx-steamed-overlay" />} {/* New VFX for steamed */}
             </div>
             {/* Status Effect Icons */}
              <div className="absolute top-0 left-0 w-full h-full">

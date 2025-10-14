@@ -264,6 +264,19 @@
       }
       .vfx-poison-overlay::before { top: 50%; left: 40%; animation-delay: 0s; }
       .vfx-poison-overlay::after { top: 60%; left: 60%; animation-delay: 0.9s; }
+
+      @keyframes vfx-haze {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.6; transform: scale(1.05); }
+      }
+      .vfx-steamed-overlay::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(circle, transparent 40%, rgba(224, 242, 244, 0.5) 80%); /* Light blue haze */
+          animation: vfx-haze 1.5s infinite alternate;
+          border-radius: 50%;
+      }
     </style>
   <script type="importmap">
 {

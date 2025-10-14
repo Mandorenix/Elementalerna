@@ -25,6 +25,8 @@ export const Icons = {
     Overheat: createIcon(["M8 9v-1h1V7h-1V6h1V5h-1V4h1V3h-1V2h-1V1H6v1H5v1h1v1h-1v1h1v1h-1v1h1v1H5v1h1v1H5v1h6v-1h-1v-1H8z m0-2h1V6H8v1z", "M7 12h2v2H7v-2z"], "#fef08a"),
     Rooted: createIcon(["M8 13v-2H7v-1h2v1h-1v2H8z M6 10H5V8h1v2z m4 0h1V8h-1v2z M8 8H7V6h2v2h-1z M10 5h-1V4H7v1H6V4H5v2h1v1h4V6h1V4h-1v1z"], "#78350f"),
     Regenerating: createIcon(["M8 4l-1 2h2L8 4z M7 6v1h2V6H7z M6 8v1h4V8H6z M5 10v1h6v-1H5z"], "#4ade80"),
+    Blinded: createIcon(["M8 4c-2 0-3 2-3 4s1 4 3 4 3-2 3-4-1-4-3-4z M8 6c1 0 1 1 1 2s0 2-1 2-1-1-1-2 0-2 1-2z M5 8h6v1H5V8z"], "#9ca3af"), // New icon for Blinded
+    Steamed: createIcon(["M4 7h2v1H4V7z M10 7h2v1h-2V7z M7 4h2v1H7V4z M5 9h6v1H5V9z M4 11h8v1H4v-1z"], "#e0f2f4"), // New icon for Steamed
     // New Tier 1.5 Icons
     Fireball: createIcon(["M8 1c-2 2-3 4-3 6s1 4 3 4 3-2 3-4-1-4-3-6zm0 2c-1 1-1 2-1 3s0 2 1 3 1-2 1-3-0-2-1-3z"], "#f87171"),
     Earthquake: createIcon(["M2 8h2V7h1v2h2V7h2v2h2V7h1v1h2v1H2z M3 10h10v-1H3v1z"], "#a16207"),
@@ -902,7 +904,25 @@ export const createCombatPayload = (playerLevel: number, element: Element, diffi
                 }
             ]
         };
+    } else if (element === Element.WATER && Math.random() < 0.25) { // New environment for Water
+        environment = {
+            name: "Dimhöljd Kust",
+            description: "En tjock dimma ligger över stranden. Alla icke-vatten-varelser har en chans att bli bländade.",
+            element: Element.WATER,
+            effects: [
+                {
+                    description: "Alla icke-vatten-varelser har 20% chans att bli bländade i 2 rundor.",
+                    type: 'status_apply',
+                    status: 'blinded',
+                    statusDuration: 2,
+                    statusChance: 20,
+                    targetScope: 'non_elemental',
+                    targetElement: Element.WATER
+                }
+            ]
+        };
     }
+
 
     return {
         title: "Strid!",

@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Character, Skill, Archetype, Item, Rarity, Enemy, GameEvent, EquipmentSlot, EventModifier, EventCard, ChoiceOption, Outcome, PlayerAbility, ItemAffix } from './types';
+import type { Character, Skill, Archetype, Item, Rarity, Enemy, GameEvent, EquipmentSlot, EventModifier, EventCard, ChoiceOption, Outcome, PlayerAbility, ItemAffix, ElementalBonus } from './types';
 import { Element } from './types';
 
 // Helper for creating simple, pixelated-style SVG icons
@@ -11,7 +11,7 @@ const createIcon = (paths: string[], color: string): React.FC => () => (
 
 export const Icons = {
     Start: createIcon(["M7 1h2v1h1v1h1v1h1v2h-1v1h-1v1h-1v1H8v-1H7v-1H6v-1H5V5h1V4h1V2h1V1z"], "#a855f7"),
-    Fire: createIcon(["M8 11v-1h1V9h-1V8h1V7h-1V5h1V4h-1V3h1V2h-1V1H7v1H6v1h1v1h-1v2h1v1h-1v1h1v1H6v1h1v1H6v1h4v-1h-1v-1H8z"], "#f97316"),
+    Fire: createIcon(["M8 11v-1h1V9h-1V8h1V7h-1V5h1V4h-1V3h1V2h-1V1H7v1H6v1h1v1h-1v2h1v1h-1v1h1v1H6v1h4v-1h-1v-1H8z"], "#f97316"),
     Burn: createIcon(["M8 9H7V8h1V9z M9 8h-1v1h1V8z M8 7h1V6H8v1z M7 6h1V5H7v1z M6 8h1V7H6v1z M10 8V7h-1v1h1z M11 6h-1v1h1V6z M5 6v1h1V6H5z M8 11v-1h1v-1H8v-1H7v1H6v1h1v1h1z"], "#ef4444"),
     Earth: createIcon(["M13 10h-1V9h-1V8H5v1H4v1H3v1h1v1h1v1h6v-1h1v-1h1v-1z M8 8h1V7h1V6H6v1h1v1h1z"], "#22c55e"),
     Shield: createIcon(["M8 1C4 1 3 4 3 8s1 7 5 7 5-3 5-7-1-7-5-7zm0 1v1h1v1h1v2H9v1H7V6H5V4h1V3h1V2h1z"], "#16a34a"),
@@ -184,6 +184,7 @@ export const INITIAL_CHARACTER_BASE: Omit<Character, 'name' | 'archetype'> = {
     current: 0,
     max: 100,
   },
+  elementalAffinities: {}, // Initialize empty elemental affinities
 };
 
 export const SKILL_TREE_DATA: Skill[] = [
@@ -414,6 +415,77 @@ export const PLAYER_ABILITIES: Record<string, PlayerAbility> = {
     ranks: [{ description: 'Ger dig regenerering i flera rundor. Kostar Styrka / Bygger Flöde.', resourceCost: 30 }]
   },
 };
+
+export const ELEMENTAL_AFFINITY_BONUSES: Record<Element, ElementalBonus[]> = {
+  [Element.FIRE]: [
+    { threshold: 1, description: "+1 Skada", effect: { type: 'STAT_BONUS', stat: 'skada', value: 1 } },
+    { threshold: 5, description: "+5% Kritisk Träff", effect: { type: 'STAT_BONUS', stat: 'kritiskTräff', value: 5, isPercentage: true } },
+    { threshold: 10, description: "+10% Eldskada", effect: { type: 'DAMAGE_BONUS', element: Element.FIRE, value: 10, isPercentage: true } },
+  ],
+  [Element.EARTH]: [
+    { threshold: 1, description: "+1 Rustning", effect: { type: 'STAT_BONUS', stat: 'rustning', value: 1 } },
+    { threshold: 5, description: "+10 Max Hälsa", effect: { type: 'STAT_BONUS', stat: 'constitution', value: 10 } }, // Constitution affects max health
+    { threshold: 10, description: "+10% Jordresistans", effect: { type: 'RESISTANCE', element: Element.EARTH, value: 10, isPercentage: true } },
+  ],
+  [Element.WIND]: [
+    { threshold: 1, description: "+1 Undvikandechans", effect: { type: 'STAT_BONUS', stat: 'undvikandechans', value: 1 } },
+    { threshold: 5, description: "+5% ATB-hastighet", effect: { type: 'RESOURCE_REGEN', stat: 'dexterity', value: 5, isPercentage: true } }, // Representing ATB speed
+    { threshold: 10, description: "+10% Vindskada", effect: { type: 'DAMAGE_BONUS', element: Element.WIND, value: 10, isPercentage: true } },
+  ],
+  [Element.WATER]: [
+    { threshold: 1, description: "+1 Intelligens", effect: { type: 'STAT_BONUS', stat: 'intelligence', value: 1 } },
+    { threshold: 5, description: "+5% Resursregeneration", effect: { type: 'RESOURCE_REGEN', stat: 'intelligence', value: 5, isPercentage: true } }, // Affects Aether regen
+    { threshold: 10, description: "+10% Vattenresistans", effect: { type: 'RESISTANCE', element: Element.WATER, value: 10, isPercentage: true } },
+  ],
+  // Hybrid elements can have bonuses too, or be unlocked by combining base elements
+  [Element.MAGMA]: [
+    { threshold: 1, description: "+2 Skada, +2 Rustning", effect: { type: 'STAT_BONUS', stat: 'skada', value: 2 } }, // Placeholder, more complex effects later
+  ],
+  [Element.OBSIDIAN]: [
+    { threshold: 1, description: "+3 Rustning, +1 Styrka", effect: { type: 'STAT_BONUS', stat: 'rustning', value: 3 } },
+  ],
+  [Element.FIRESTORM]: [
+    { threshold: 1, description: "+2 Dexteritet, +2 Intelligens", effect: { type: 'STAT_BONUS', stat: 'dexterity', value: 2 } },
+  ],
+  [Element.HOT_AIR]: [
+    { threshold: 1, description: "+10% chans att blinda fiender", effect: { type: 'DAMAGE_BONUS', stat: 'dexterity', value: 10, isPercentage: true } },
+  ],
+  [Element.STEAM]: [
+    { threshold: 1, description: "+10% chans att bränna fiender", effect: { type: 'DAMAGE_BONUS', stat: 'intelligence', value: 10, isPercentage: true } },
+  ],
+  [Element.HOT_SPRINGS]: [
+    { threshold: 1, description: "+5% helande effekt", effect: { type: 'RESOURCE_REGEN', stat: 'intelligence', value: 5, isPercentage: true } },
+  ],
+  [Element.SAND]: [
+    { threshold: 1, description: "+10% chans att sakta ner fiender", effect: { type: 'DAMAGE_BONUS', stat: 'dexterity', value: 10, isPercentage: true } },
+  ],
+  [Element.EROSION]: [
+    { threshold: 1, description: "-5% fienderustning", effect: { type: 'DAMAGE_BONUS', stat: 'armor', value: -5, isPercentage: true } },
+  ],
+  [Element.MUD]: [
+    { threshold: 1, description: "+10% chans att rota fiender", effect: { type: 'DAMAGE_BONUS', stat: 'constitution', value: 10, isPercentage: true } },
+  ],
+  [Element.GROWTH]: [
+    { threshold: 1, description: "+5% regenerering", effect: { type: 'RESOURCE_REGEN', stat: 'constitution', value: 5, isPercentage: true } },
+  ],
+  [Element.ICE]: [
+    { threshold: 1, description: "+10% chans att frysa fiender", effect: { type: 'DAMAGE_BONUS', stat: 'intelligence', value: 10, isPercentage: true } },
+  ],
+  [Element.STORM]: [
+    { threshold: 1, description: "+10% chans att förlama fiender", effect: { type: 'DAMAGE_BONUS', stat: 'dexterity', value: 10, isPercentage: true } },
+  ],
+  [Element.VOLCANIC_STORM]: [
+    { threshold: 1, description: "Massiv områdesskada", effect: { type: 'DAMAGE_BONUS', stat: 'damage', value: 10, isPercentage: true } },
+  ],
+  [Element.ELECTRIFIED_MUD]: [
+    { threshold: 1, description: "Skadar och saktar ner fiender", effect: { type: 'DAMAGE_BONUS', stat: 'damage', value: 10, isPercentage: true } },
+  ],
+  [Element.VITRIFIED_STORM]: [
+    { threshold: 1, description: "Skapar ett fält av vasst glas", effect: { type: 'DAMAGE_BONUS', stat: 'damage', value: 10, isPercentage: true } },
+  ],
+  [Element.NEUTRAL]: [], // Neutral element has no specific bonuses
+};
+
 
 // --- Item Generation ---
 const getRandom = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];

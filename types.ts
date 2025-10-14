@@ -64,6 +64,17 @@ export interface Archetype {
   resourceName: SpecialResourceName;
 }
 
+export interface ElementalBonus {
+  threshold: number; // Points needed to unlock this bonus
+  description: string;
+  effect: {
+    type: 'STAT_BONUS' | 'RESOURCE_REGEN' | 'RESISTANCE' | 'DAMAGE_BONUS';
+    stat?: keyof CharacterStats | 'skada' | 'rustning' | 'undvikandechans' | 'kritiskTräff' | 'damage' | 'armor'; // Updated to include combat stats
+    element?: Element;
+    value: number; // Flat value or percentage
+    isPercentage?: boolean;
+  };
+}
 
 export interface Character {
   name: string;
@@ -78,6 +89,7 @@ export interface Character {
     current: number;
     max: number;
   };
+  elementalAffinities: Partial<Record<Element, number>>; // New: Points in each element
 }
 
 export type View = 'skillTree' | 'characterSheet' | 'inventory' | 'event' | 'deck' | 'debug';

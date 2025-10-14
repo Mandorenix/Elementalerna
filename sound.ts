@@ -60,17 +60,17 @@ const zzfx = (volume = zzfxV, ...z) => {
 // Custom sound effects for the game
 export const soundEffects = {
   // A short, sharp noise burst for a sword slash or basic attack.
-  slash: () => zzfx(zzfxV, 0, 90, , .01, .03, 1, .1, -0.1, , , , .02, , , , .4),
+  slash: () => zzfx(zzfxV, 0, 90, undefined, .01, .03, 1, .1, -0.1, undefined, undefined, undefined, .02, undefined, undefined, undefined, .4),
   // A short, low-pitched thump, indicating a successful hit.
-  hit: () => zzfx(zzfxV, 0.01, 120, .02, .02, .01, 1, .3, -9.5, , , , , , .1, , .6, .02),
+  hit: () => zzfx(zzfxV, 0.01, 120, .02, .02, .01, 1, .3, -9.5, undefined, undefined, undefined, undefined, undefined, .1, undefined, .6, .02),
   // A descending arpeggio with noise for casting a fire spell.
-  fireball: () => zzfx(zzfxV, 0.2, 220, .02, .22, .5, 1, 1.3, -2.8, , , , .08, , .1, , .5, .02, .2),
+  fireball: () => zzfx(zzfxV, 0.2, 220, .02, .22, .5, 1, 1.3, -2.8, undefined, undefined, undefined, .08, undefined, .1, undefined, .5, .02, .2),
   // An ascending arpeggio for healing effects.
-  heal: () => zzfx(zzfxV, 0.05, 220, .03, .18, .3, 1, 1.5, 5.8, -0.1, , , .08, , .1, .1, .8, .04),
+  heal: () => zzfx(zzfxV, 0.05, 220, .03, .18, .3, 1, 1.5, 5.8, -0.1, undefined, undefined, .08, undefined, .1, .1, .8, .04),
   // A short, triumphant melodic fanfare for victory.
-  victory: () => zzfx(zzfxV * 1.5, 0.5, 440, .1, .3, .4, 3, 2.2, , , , , , .2, , .2, .1, .8, .05),
+  victory: () => zzfx(zzfxV * 1.5, 0.5, 440, .1, .3, .4, 3, 2.2, undefined, undefined, undefined, undefined, undefined, .2, undefined, .2, .1, .8, .05),
   // A crackly, repetitive noise sound for ongoing burn damage.
-  burn: () => zzfx(zzfxV * 0.5, 0, 40, .01, .01, .3, 4, , , , , , .1, , , .2, , .6, .1),
+  burn: () => zzfx(zzfxV * 0.5, 0, 40, .01, .01, .3, 4, undefined, undefined, undefined, undefined, undefined, .1, undefined, undefined, .2, undefined, .6, .1),
   // A high-pitched "zip" sound for a missed attack.
-  miss: () => zzfx(zzfxV, 0, 880, .01, , .1, 2, 2.3, 1.7),
+  miss: () => zzfx(zzfxV, 0, 880, .01, undefined, .1, 2, 2.3, 1.7),
 };

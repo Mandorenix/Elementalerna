@@ -1,6 +1,7 @@
 import React from 'react';
-import type { Character, CharacterStats, Item, EquipmentSlot, ItemStats } from '../types';
+import type { Character, CharacterStats, Item, EquipmentSlot, ItemStats, Element } from '../types';
 import ItemTooltip from './ItemTooltip';
+import ElementalAffinities from './ElementalAffinities'; // Import new component
 
 interface CharacterSheetProps {
   character: Character;
@@ -8,6 +9,9 @@ interface CharacterSheetProps {
   attributePoints: number;
   increaseStat: (stat: keyof CharacterStats) => void;
   onUnequipItem: (slot: EquipmentSlot) => void;
+  elementalPoints: number; // New prop
+  elementalAffinities: Partial<Record<Element, number>>; // New prop
+  increaseElementalAffinity: (element: Element) => void; // New prop
 }
 
 const resourceThemes: Record<string, { text: string; bg: string }> = {
@@ -77,18 +81,18 @@ const EquipmentSlotDisplay: React.FC<{ label: EquipmentSlot; item: Item | null; 
     );
 };
 
-const CharacterSheet: React.FC<CharacterSheetProps> = ({ character, equipment, attributePoints, increaseStat, onUnequipItem }) => {
+const CharacterSheet: React.FC<CharacterSheetProps> = ({ character, equipment, attributePoints, increaseStat, onUnequipItem, elementalPoints, elementalAffinities, increaseElementalAffinity }) => {
   const equipmentStats = React.useMemo(() => {
-    const totals = {
+    const totals: Required<ItemStats> = {
         strength: 0, dexterity: 0, intelligence: 0, constitution: 0,
         skada: 0, rustning: 0, undvikandechans: 0, kritiskTräff: 0
     };
     Object.values(equipment).forEach(item => {
         if (item) {
             // FIX: Use a type-safe loop to iterate over item stats and prevent 'unknown' type errors.
-            for (const key in item.stats) {
+            for (const key in (item as Item).stats) { // Explicitly cast item to Item
                 const stat = key as keyof ItemStats;
-                const value = item.stats[stat];
+                const value = (item as Item).stats[stat]; // Explicitly cast item to Item
                 if (value) {
                     totals[stat] += value;
                 }
@@ -159,14 +163,21 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ character, equipment, a
           </div>
         </div>
 
-        {/* Middle Panel: Equipment */}
-        <div className="md:col-span-1 p-4 bg-black/30 pixelated-border">
-            <h2 className="text-lg text-yellow-500 mb-4 text-center">Utrustning</h2>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-               {(Object.keys(equipment) as EquipmentSlot[]).map(slot => (
-                   <EquipmentSlotDisplay key={slot} label={slot} item={equipment[slot]} onUnequip={() => onUnequipItem(slot)} />
-               ))}
+        {/* Middle Panel: Equipment & Elemental Affinities */}
+        <div className="md:col-span-1 flex flex-col space-y-6">
+            <div className="p-4 bg-black/30 pixelated-border">
+                <h2 className="text-lg text-yellow-500 mb-4 text-center">Utrustning</h2>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                {(Object.keys(equipment) as EquipmentSlot[]).map(slot => (
+                    <EquipmentSlotDisplay key={slot} label={slot} item={equipment[slot]} onUnequip={() => onUnequipItem(slot)} />
+                ))}
+                </div>
             </div>
+            <ElementalAffinities 
+                elementalAffinities={elementalAffinities}
+                elementalPoints={elementalPoints}
+                increaseElementalAffinity={increaseElementalAffinity}
+            />
         </div>
 
         {/* Right Panel: Total Stats */}

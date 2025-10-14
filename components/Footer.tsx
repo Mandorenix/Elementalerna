@@ -5,6 +5,7 @@ import { Icons } from '../constants';
 interface FooterProps {
   skillPoints: number;
   attributePoints: number;
+  elementalPoints: number; // New prop
   character: Character;
   activeView: View;
   setView: (view: View) => void;
@@ -32,7 +33,7 @@ const FooterButton: React.FC<{
   );
 };
 
-const Footer: React.FC<FooterProps> = ({ skillPoints, attributePoints, character, activeView, setView, onResetCharacter }) => {
+const Footer: React.FC<FooterProps> = ({ skillPoints, attributePoints, elementalPoints, character, activeView, setView, onResetCharacter }) => {
   const expPercentage = (character.experience.current / character.experience.max) * 100;
 
   return (
@@ -66,6 +67,10 @@ const Footer: React.FC<FooterProps> = ({ skillPoints, attributePoints, character
         <div className="text-cyan-400 text-center">
             <span className="text-xs">Attributpoäng</span>
             <div className="font-bold text-lg">{attributePoints}</div>
+        </div>
+        <div className="text-orange-400 text-center"> {/* New: Elemental Points */}
+            <span className="text-xs">Elementpoäng</span>
+            <div className="font-bold text-lg">{elementalPoints}</div>
         </div>
        </div>
 

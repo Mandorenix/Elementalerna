@@ -7,7 +7,7 @@ import CharacterSelection from './components/CharacterSelection';
 import EventView from './components/EventView';
 import DeckView from './components/DeckView';
 import DebugView from './components/DebugView';
-import type { View, Character, CharacterStats, Item, EquipmentSlot, Archetype, GameEvent, EventCard, Outcome, PlayerAbility, ItemStats } from './types';
+import type { View, Character, CharacterStats, Item, EquipmentSlot, Archetype, GameEvent, EventCard, Outcome, PlayerAbility, ItemStats, Element } from './types';
 import { INITIAL_CHARACTER_BASE, SKILL_TREE_DATA, Icons, PLAYER_ABILITIES, ItemVisuals, generateRandomItem } from './constants';
 import { generateRandomCard, generateBossCard } from './utils/cardGenerator';
 
@@ -36,6 +36,7 @@ function App() {
   const [character, setCharacter] = useState<Character | null>(null);
   const [skillPoints, setSkillPoints] = useState(0);
   const [attributePoints, setAttributePoints] = useState(0);
+  const [elementalPoints, setElementalPoints] = useState(0); // New state for elemental points
   const [unlockedSkills, setUnlockedSkills] = useState<Map<string, number>>(new Map());
   const [equipment, setEquipment] = useState<Record<EquipmentSlot, Item | null>>(initialEquipment);
   const [inventory, setInventory] = useState<Item[]>([]);
@@ -76,12 +77,14 @@ function App() {
           max: maxAether,
           current: isEnergyArchetype ? maxAether : 0,
         }
-      }
+      },
+      elementalAffinities: {}, // Initialize empty elemental affinities
     };
     
     setCharacter(newCharacter);
     setSkillPoints(1);
     setAttributePoints(0);
+    setElementalPoints(0); // Reset elemental points
     
     const initialSkills = new Map([['start', 1]]);
     if (archetype.startingSkill) {
@@ -127,11 +130,13 @@ function App() {
         let newMaxExp = prevChar.experience.max;
         let spGained = 0;
         let apGained = 0;
+        let epGained = 0; // New: Elemental points gained
 
         while (newExp >= newMaxExp) {
             newLevel++;
             spGained++;
             apGained += 3;
+            epGained++; // Gain 1 elemental point per level
             newExp -= newMaxExp;
             newMaxExp = Math.floor(newMaxExp * 1.5);
         }
@@ -139,6 +144,7 @@ function App() {
         if (newLevel > prevChar.level) {
             setSkillPoints(sp => sp + spGained);
             setAttributePoints(ap => ap + apGained);
+            setElementalPoints(ep => ep + epGained); // Update elemental points
         }
         
         return {
@@ -211,6 +217,21 @@ function App() {
     }
   }, [attributePoints, character]);
 
+  const increaseElementalAffinity = useCallback((element: Element) => {
+    if (elementalPoints > 0 && character) {
+        setElementalPoints(ep => ep - 1);
+        setCharacter(prevChar => {
+            if (!prevChar) return null;
+            const currentAffinity = prevChar.elementalAffinities[element] || 0;
+            const newElementalAffinities = {
+                ...prevChar.elementalAffinities,
+                [element]: currentAffinity + 1,
+            };
+            return { ...prevChar, elementalAffinities: newElementalAffinities };
+        });
+    }
+  }, [elementalPoints, character]);
+
   const handleCombatCompletion = useCallback((rewards: GameEvent['rewards']) => {
     if (drawnCard) {
         setDiscardPile(prev => [...prev, drawnCard]);
@@ -271,11 +292,11 @@ function App() {
   const playerCombatStats = useMemo(() => {
       if (!character) return null;
       // FIX: Use a type-safe loop to iterate over item stats and prevent 'unknown' type errors. The initial value is also typed.
-      const equipmentStats = Object.values(equipment).reduce((acc, item) => {
+      const equipmentStats: Required<ItemStats> = Object.values(equipment).reduce((acc, item) => {
           if (item) {
-              for (const key in item.stats) {
+              for (const key in (item as Item).stats) { // Explicitly cast item to Item
                   const stat = key as keyof ItemStats;
-                  const value = item.stats[stat];
+                  const value = (item as Item).stats[stat]; // Explicitly cast item to Item
                   if (value) {
                       acc[stat] = (acc[stat] || 0) + value;
                   }
@@ -310,6 +331,7 @@ function App() {
   const debugAddXP = () => gainExperience(100);
   const debugAddSkillPoint = () => setSkillPoints(p => p + 1);
   const debugAddAttrPoint = () => setAttributePoints(p => p + 1);
+  const debugAddElementalPoint = () => setElementalPoints(p => p + 1); // New debug function
   const debugAddItem = () => {
       if (character) {
           setInventory(inv => [...inv, generateRandomItem(character.level)]);
@@ -345,7 +367,16 @@ function App() {
       case 'skillTree':
         return <SkillTree unlockedSkills={unlockedSkills} skillPoints={skillPoints} unlockSkill={unlockSkill} />;
       case 'characterSheet':
-        return <CharacterSheet character={character} equipment={equipment as Record<EquipmentSlot, Item | null>} attributePoints={attributePoints} increaseStat={increaseStat} onUnequipItem={unequipItem} />;
+        return <CharacterSheet 
+            character={character} 
+            equipment={equipment as Record<EquipmentSlot, Item | null>} 
+            attributePoints={attributePoints} 
+            increaseStat={increaseStat} 
+            onUnequipItem={unequipItem}
+            elementalPoints={elementalPoints} // Pass elemental points
+            elementalAffinities={character.elementalAffinities} // Pass elemental affinities
+            increaseElementalAffinity={increaseElementalAffinity} // Pass function
+        />;
       case 'inventory':
         return <Inventory items={inventory} onEquipItem={equipItem} />;
       case 'deck':
@@ -358,6 +389,7 @@ function App() {
           addDebugItem={debugAddItem}
           debugHealPlayer={debugHealPlayer}
           resetCharacter={handleResetCharacter}
+          addDebugElementalPoint={debugAddElementalPoint} // New debug button
         />;
       default:
         return <SkillTree unlockedSkills={unlockedSkills} skillPoints={skillPoints} unlockSkill={unlockSkill} />;
@@ -370,6 +402,7 @@ function App() {
         <Footer 
             skillPoints={skillPoints} 
             attributePoints={attributePoints}
+            elementalPoints={elementalPoints} // Pass elemental points to footer
             character={character}
             activeView={activeView} 
             setView={setActiveView}

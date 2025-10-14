@@ -747,7 +747,7 @@ const EventView: React.FC<{
       setActors(prev => prev.filter(a => a.id !== actorId));
   }
 
-  const abilitiesByElement = playerStats.abilities.reduce((acc, ability) => {
+  const abilitiesByElement = playerStats.abilities.reduce((acc: Record<string, { element: Element, abilities: PlayerAbility[] }>, ability) => {
     const elementName = Element[ability.element];
     if (!acc[elementName]) {
         acc[elementName] = { element: ability.element, abilities: [] };
@@ -923,7 +923,7 @@ const EventView: React.FC<{
             {showAbilityMenu && (
                 <div className="ff-panel w-64 text-xs">
                     <ul className="h-full overflow-y-auto">
-                      {sortedAbilities.map(([elementName, { abilities }]) => (
+                      {sortedAbilities.map(([elementName, { abilities }]: [string, { element: Element, abilities: PlayerAbility[] }]) => (
                           <React.Fragment key={elementName}>
                               <li className="p-1 pt-2 font-bold text-yellow-400 capitalize">{elementName.toLowerCase().replace('_', ' ')}</li>
                               {abilities.map(ability => {

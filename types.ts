@@ -64,15 +64,50 @@ export interface Archetype {
   resourceName: SpecialResourceName;
 }
 
+export interface PassiveTalent {
+  id: string;
+  name: string;
+  description: string;
+  element: Element;
+  icon: React.FC;
+  effect: {
+    type: 'COUNTER_ATTACK' | 'HEAL_BONUS' | 'RESOURCE_GAIN';
+    element?: Element; // For counter-attack element
+    damage?: number;
+    chance?: number; // For counter-attack chance
+    value?: number; // For heal bonus percentage or resource gain
+    isPercentage?: boolean;
+  };
+}
+
+export interface UltimateAbility {
+  id: string;
+  name: string;
+  description: string;
+  element: Element;
+  icon: React.FC;
+  cooldown: number; // In turns
+  effect: {
+    type: 'AOE_DAMAGE' | 'MASS_HEAL' | 'GLOBAL_BUFF';
+    damage?: number;
+    heal?: number;
+    buff?: StatusEffect['type'];
+    duration?: number;
+    value?: number; // For buff value
+  };
+}
+
 export interface ElementalBonus {
   threshold: number; // Points needed to unlock this bonus
   description: string;
   effect: {
-    type: 'STAT_BONUS' | 'RESOURCE_REGEN' | 'RESISTANCE' | 'DAMAGE_BONUS';
-    stat?: keyof CharacterStats | 'skada' | 'rustning' | 'undvikandechans' | 'kritiskTräff' | 'damage' | 'armor'; // Updated to include combat stats
+    type: 'STAT_BONUS' | 'RESOURCE_REGEN' | 'RESISTANCE' | 'DAMAGE_BONUS' | 'PASSIVE_TALENT' | 'ULTIMATE_ABILITY';
+    stat?: keyof CharacterStats | 'skada' | 'rustning' | 'undvikandechans' | 'kritiskTräff' | 'damage' | 'armor';
     element?: Element;
-    value: number; // Flat value or percentage
+    value?: number; // Flat value or percentage
     isPercentage?: boolean;
+    talentId?: string; // For PASSIVE_TALENT
+    abilityId?: string; // For ULTIMATE_ABILITY
   };
 }
 
@@ -90,6 +125,8 @@ export interface Character {
     max: number;
   };
   elementalAffinities: Partial<Record<Element, number>>; // New: Points in each element
+  unlockedPassiveTalents: string[]; // New: IDs of unlocked passive talents
+  unlockedUltimateAbilities: string[]; // New: IDs of unlocked ultimate abilities
 }
 
 export type View = 'skillTree' | 'characterSheet' | 'inventory' | 'event' | 'deck' | 'debug';
@@ -156,6 +193,8 @@ export interface PlayerAbility {
   isAoe?: boolean; // Flag for area-of-effect abilities
   category?: 'damage' | 'heal' | 'buff' | 'cc';
   ranks: AbilityRankData[];
+  cooldown?: number; // NEW: Cooldown in turns
+  currentCooldown?: number; // NEW: Current cooldown
 }
 
 export interface Enemy {

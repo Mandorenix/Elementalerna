@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Character, Skill, Archetype, Item, Rarity, Enemy, GameEvent, EquipmentSlot, EventModifier, EventCard, ChoiceOption, Outcome, PlayerAbility, ItemAffix, ElementalBonus, Environment } from './types';
+import type { Character, Skill, Archetype, Item, Rarity, Enemy, GameEvent, EquipmentSlot, EventModifier, EventCard, ChoiceOption, Outcome, PlayerAbility, ItemAffix, ElementalBonus, Environment, PassiveTalent, UltimateAbility } from './types';
 import { Element } from './types';
 
 // Helper for creating simple, pixelated-style SVG icons
@@ -66,6 +66,12 @@ export const Icons = {
     Choice: createIcon(["M7 1v1h1v1h1V2h1V1H9V0H7v1z M4 5h2v2H4V5z m6 0h2v2h-2V5z M4 9h8v2H4V9z"], "#9333ea"),
     Boon: createIcon(["M8 1l1 2h2l-2 1 1 2-2-1-2 1 1-2-2-1h2l1-2z M4 8h8v1H4V8z m0 2h8v1H4v-1z m0 2h8v1H4v-1z"], "#10b981"),
     Curse: createIcon(["M8 1C5 1 3 3 3 6c0 1 0 1 1 2s1 2 3 3c2-1 2-2 3-3s1-1 1-2c0-3-2-5-5-5z m0 2c1 0 1 1 1 2s-1 2-1 2-1-1-1-2 0-2 1-2z"], "#be123c"),
+    // Passive Talent Icons
+    Counter: createIcon(["M8 1l-3 3h2v2h2V4h2L8 1z M4 8h8v1H4V8z"], "#f97316"), // Eldens Vrede
+    HealBonus: createIcon(["M8 1l-1 2h2L8 1z M7 3v1h2V3H7z M6 5v1h4V5H6z M5 7v1h6V7H5z"], "#4ade80"), // Jordens Resonans
+    // Ultimate Ability Icons
+    Meteor: createIcon(["M8 1c-2 2-3 4-3 6s1 4 3 4 3-2 3-4-1-4-3-6zm0 2c-1 1-1 2-1 3s0 2 1 3 1-2 1-3-0-2-1-3z M4 10h8v1H4v-1z M3 12h10v1H3v-1z"], "#ef4444"),
+    EarthquakeUltimate: createIcon(["M2 8h2V7h1v2h2V7h2v2h2V7h1v1h2v1H2z M3 10h10v-1H3v1z M1 12h14v1H1v-1z"], "#a16207"),
 };
 
 export const ItemVisuals = {
@@ -170,7 +176,7 @@ export const ARCHETYPES: Archetype[] = [
   },
 ];
 
-export const INITIAL_CHARACTER_BASE: Omit<Character, 'name' | 'archetype'> = {
+export const INITIAL_CHARACTER_BASE: Omit<Character, 'name' | 'archetype' | 'unlockedPassiveTalents' | 'unlockedUltimateAbilities'> = {
   level: 1,
   stats: {
     strength: 5,
@@ -418,16 +424,65 @@ export const PLAYER_ABILITIES: Record<string, PlayerAbility> = {
   },
 };
 
+// --- NEW: Passive Talents ---
+export const PASSIVE_TALENTS: Record<string, PassiveTalent> = {
+  'fire_vengeance': {
+    id: 'fire_vengeance',
+    name: 'Eldens Vrede',
+    description: '15% chans att kontra med 5 eldskada när du tar eldskada.',
+    element: Element.FIRE,
+    icon: Icons.Counter,
+    effect: { type: 'COUNTER_ATTACK', element: Element.FIRE, damage: 5, chance: 15 },
+  },
+  'earth_resonance': {
+    id: 'earth_resonance',
+    name: 'Jordens Resonans',
+    description: 'Ökar all självläkning med 10%.',
+    element: Element.EARTH,
+    icon: Icons.HealBonus,
+    effect: { type: 'HEAL_BONUS', value: 10, isPercentage: true },
+  },
+  // Add more passive talents here
+};
+
+// --- NEW: Ultimate Abilities ---
+export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
+  'fire_meteor': {
+    id: 'fire_meteor',
+    name: 'Meteorregn',
+    description: 'Kallar ner ett meteorregn som skadar alla fiender massivt.',
+    element: Element.FIRE,
+    icon: Icons.Meteor,
+    cooldown: 10, // 10 turns cooldown
+    effect: { type: 'AOE_DAMAGE', damage: 50 }, // Base damage, scaled by player stats
+  },
+  'earth_quake_ultimate': {
+    id: 'earth_quake_ultimate',
+    name: 'Jordens Vrede',
+    description: 'Ett massivt jordskalv som skadar och rotar alla fiender.',
+    element: Element.EARTH,
+    icon: Icons.EarthquakeUltimate,
+    cooldown: 12,
+    effect: { type: 'AOE_DAMAGE', damage: 30, buff: 'rooted', duration: 2 },
+  },
+  // Add more ultimate abilities here
+};
+
+
 export const ELEMENTAL_AFFINITY_BONUSES: Record<Element, ElementalBonus[]> = {
   [Element.FIRE]: [
     { threshold: 1, description: "+1 Skada", effect: { type: 'STAT_BONUS', stat: 'skada', value: 1 } },
     { threshold: 5, description: "+5% Kritisk Träff", effect: { type: 'STAT_BONUS', stat: 'kritiskTräff', value: 5, isPercentage: true } },
     { threshold: 10, description: "+10% Eldskada", effect: { type: 'DAMAGE_BONUS', element: Element.FIRE, value: 10, isPercentage: true } },
+    { threshold: 15, description: "Låser upp passiv talang: Eldens Vrede", effect: { type: 'PASSIVE_TALENT', talentId: 'fire_vengeance' } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Meteorregn", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'fire_meteor' } },
   ],
   [Element.EARTH]: [
     { threshold: 1, description: "+1 Rustning", effect: { type: 'STAT_BONUS', stat: 'rustning', value: 1 } },
     { threshold: 5, description: "+10 Max Hälsa", effect: { type: 'STAT_BONUS', stat: 'constitution', value: 10 } }, // Constitution affects max health
     { threshold: 10, description: "+10% Jordresistans", effect: { type: 'RESISTANCE', element: Element.EARTH, value: 10, isPercentage: true } },
+    { threshold: 15, description: "Låser upp passiv talang: Jordens Resonans", effect: { type: 'PASSIVE_TALENT', talentId: 'earth_resonance' } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Jordens Vrede", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'earth_quake_ultimate' } },
   ],
   [Element.WIND]: [
     { threshold: 1, description: "+1 Undvikandechans", effect: { type: 'STAT_BONUS', stat: 'undvikandechans', value: 1 } },

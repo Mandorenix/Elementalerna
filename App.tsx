@@ -79,6 +79,8 @@ function App() {
         }
       },
       elementalAffinities: {}, // Initialize empty elemental affinities
+      unlockedPassiveTalents: [], // Initialize new property
+      unlockedUltimateAbilities: [], // Initialize new property
     };
     
     setCharacter(newCharacter);

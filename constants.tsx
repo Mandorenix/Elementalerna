@@ -11,13 +11,57 @@ const createIcon = (paths: string[], color: string): React.FC => () => (
 
 export const Icons = {
     Start: createIcon(["M7 1h2v1h1v1h1v1h1v2h-1v1h-1v1h-1v1H8v-1H7v-1H6v-1H5V5h1V4h1V2h1V1z"], "#a855f7"),
-    Fire: createIcon(["M8 11v-1h1V9h-1V8h1V7h-1V5h1V4h-1V3h1V2h-1V1H7v1H6v1h1v1h-1v2h1v1h-1v1h1v1H6v1h4v-1h-1v-1H8z"], "#f97316"),
+    // Uppdaterad Eld-ikon
+    Fire: createIcon([
+        "M7 1h2v1h1v1h1v1h1v2h-1v1h-1v1h-1v1H8v-1H7v-1H6v-1H5V5h1V4h1V2h1V1z", // Basflamma
+        "M8 2h1v1H8V2z", // Ljusare topp
+        "M7 3h1v1H7V3z", // Ljusare mitt
+        "M6 5h1v1H6V5z", // Ljusare vänster
+        "M9 5h1v1H9V5z", // Ljusare höger
+        "M7 7h2v1H7V7z", // Ljusare bas
+        "M8 9h1v1H8V9z" // Ljusaste kärna
+    ], "#f97316"),
     Burn: createIcon(["M8 9H7V8h1V9z M9 8h-1v1h1V8z M8 7h1V6H8v1z M7 6h1V5H7v1z M6 8h1V7H6v1z M10 8V7h-1v1h1z M11 6h-1v1h1V6z M5 6v1h1V6H5z M8 11v-1h1v-1H8v-1H7v1H6v1h1v1h1z"], "#ef4444"),
-    Earth: createIcon(["M13 10h-1V9h-1V8H5v1H4v1H3v1h1v1h1v1h6v-1h1v-1h1v-1z M8 8h1V7h1V6H6v1h1v1h1z"], "#22c55e"),
-    Shield: createIcon(["M8 1C4 1 3 4 3 8s1 7 5 7 5-3 5-7-1-7-5-7zm0 1v1h1v1h1v2H9v1H7V6H5V4h1V3h1V2h1z"], "#16a34a"),
-    Wind: createIcon(["M3 5h1V4h8v1h1v2h-1v1h-1v1H5V8H4V7H3V5z M10 8h1V7h-1v1z M5 7h1V6H5v1z"], "#0ea5e9"),
+    // Uppdaterad Jord-ikon
+    Earth: createIcon([
+        "M3 10h1V9h1V8h6v1h1v1h1v1h-1v1h-1v1H5v-1H4v-1H3v-1z", // Basberg
+        "M4 9h1v1H4V9z", // Skuggning vänster
+        "M11 9h1v1h-1V9z", // Skuggning höger
+        "M6 7h1v1H6V7z", // Toppdetalj
+        "M9 7h1v1H9V7z", // Toppdetalj
+        "M7 6h2v1H7V6z", // Topplatå
+        "M8 5h1v1H8V5z" // Ljusaste topp
+    ], "#22c55e"),
+    // Uppdaterad Sköld-ikon
+    Shield: createIcon([
+        "M8 1C4 1 3 4 3 8s1 7 5 7 5-3 5-7-1-7-5-7zm0 1v1h1v1h1v2H9v1H7V6H5V4h1V3h1V2h1z", // Basform
+        "M8 2h1v1H8V2z", // Ljusare topp
+        "M7 3h1v1H7V3z", // Ljusare mitt
+        "M6 5h1v1H6V5z", // Ljusare vänster
+        "M9 5h1v1H9V5z", // Ljusare höger
+        "M7 7h2v1H7V7z", // Ljusare bas
+        "M8 9h1v1H8V9z" // Ljusaste kärna
+    ], "#16a34a"),
+    // Uppdaterad Vind-ikon
+    Wind: createIcon([
+        "M3 5h1V4h8v1h1v2h-1v1h-1v1H5V8H4V7H3V5z", // Basmoln
+        "M4 6h1v1H4V6z", // Ljusare vänster
+        "M11 6h1v1h-1V6z", // Ljusare höger
+        "M6 5h1v1H6V5z", // Ljusare topp vänster
+        "M9 5h1v1H9V5z", // Ljusare topp höger
+        "M7 8h2v1H7V8z", // Ljusare mitt
+        "M8 7h1v1H8V7z" // Ljusaste kärna
+    ], "#0ea5e9"),
     Push: createIcon(["M4 7h1v2H4V7z M6 7h1v2H6V7z M8 7h1v2H8V7z M10 7h1v2h-1V7z M12 6h-1v4h1V6z"], "#38bdf8"),
-    Water: createIcon(["M8 7C6 7 5 8 5 9s1 2 3 2 3-1 3-1-1-3-3-3z M8 13c-2 0-3-1-3-2s1-2 3-2v1c-1 0-1 0-1 1s0 1 1 1 1 0 1-1v-1c2 0 3 1 3 2s-1 2-3 2z"], "#3b82f6"),
+    // Uppdaterad Vatten-ikon
+    Water: createIcon([
+        "M8 7C6 7 5 8 5 9s1 2 3 2 3-1 3-1-1-3-3-3z", // Basvåg
+        "M8 13c-2 0-3-1-3-2s1-2 3-2v1c-1 0-1 0-1 1s0 1 1 1 1 0 1-1v-1c2 0 3 1 3 2s-1 2-3 2z", // Vågor under
+        "M7 8h2v1H7V8z", // Ljusare mitt
+        "M6 9h1v1H6V9z", // Ljusare vänster
+        "M9 9h1v1H9V9z", // Ljusare höger
+        "M8 10h1v1H8V10z" // Ljusaste kärna
+    ], "#3b82f6"),
     Slow: createIcon(["M8 15l-3-3h2V9h2v3h2l-3 3z M8 1l3 3h-2V7H7V4H5l3-3z"], "#60a5fa"),
     Poison: createIcon(["M8 1C5 1 3 3 3 6c0 1 0 1 1 2s1 2 3 3c2-1 2-2 3-3s1-1 1-2c0-3-2-5-5-5z M6 6h1v1H6V6z m3 0h1v1H9V6z M8 9c-1 0-1-1-1-1h2c0 0 0 1-1 1z"], "#84cc16"),
     // New status icons
@@ -50,7 +94,16 @@ export const Icons = {
     VolcanicStorm: createIcon(["M8 1C4 1 3 4 3 8s1 7 5 7 5-3 5-7-1-7-5-7zm-2 4h1v1H6V5z m3 0h1v1H9V5z m-2 3h2v1H7V8z m-1 3h4v1H6v-1z"], "#dc2626"),
     ElectrifiedMud: createIcon(["M7 1v1h1v1h1v2H8v1H6V5h1V4h1V3H7V2H6V1h1z M10 10h-1v-1h-1v-1h-1v2h1v1h1v1h1v1h-1v-1h-1v-1h-1v-2h1V9h1v1h1v1h-1z"], "#a3e635"),
     VitrifiedStorm: createIcon(["M8 1l-3 4h2v3h2V5h2L8 1z m0 14l-3-4h2v-3h2v3h2l-3 4z"], "#2dd4bf"),
-    EnemyGoblin: createIcon(["M7 5h2v1h1v3H9v1H7v-1H6V6h1V5z M7 10h2v1H7v-1z"], "#ef4444"),
+    // Uppdaterad EnemyGoblin-ikon
+    EnemyGoblin: createIcon([
+        "M7 5h2v1h1v3H9v1H7v-1H6V6h1V5z", // Kropp och huvud
+        "M7 10h2v1H7v-1z", // Mun
+        "M6 6h1v1H6V6z", // Öga vänster
+        "M9 6h1v1H9V6z", // Öga höger
+        "M5 7h1v1H5V7z", // Öra vänster
+        "M10 7h1v1h-1V7z", // Öra höger
+        "M7 4h2v1H7V4z" // Hår/topp
+    ], "#ef4444"),
     EnemyGolem: createIcon(["M4 12h8v-1h1V8h-1V5h-1V4H5v1H4v3H3v3h1v1z"], "#78716c"),
     EnemySprite: createIcon(["M8 4l-1 2h2L8 4z M6 7h4v1H6V7z M7 9h2v2H7V9z"], "#38bdf8"),
     EnemySlime: createIcon(["M4 12v-1h1v-1h1v-1h4v1h1v1h1v1H4z"], "#3b82f6"),

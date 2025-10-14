@@ -68,7 +68,7 @@ const Footer: React.FC<FooterProps> = ({ skillPoints, attributePoints, elemental
             <span className="text-xs">Attributpoäng</span>
             <div className="font-bold text-lg">{attributePoints}</div>
         </div>
-        <div className="text-orange-400 text-center"> {/* New: Elemental Points */}
+        <div className="text-orange-400 text-center">
             <span className="text-xs">Elementpoäng</span>
             <div className="font-bold text-lg">{elementalPoints}</div>
         </div>
@@ -84,25 +84,25 @@ const Footer: React.FC<FooterProps> = ({ skillPoints, attributePoints, elemental
         />
          <FooterButton
           label="Färdighetsträd"
-          icon={<Icons.Start />} {/* Using Start icon as a generic skill tree icon */}
+          icon={<Icons.Start />}
           isActive={activeView === 'skillTree'}
           onClick={() => setView('skillTree')}
         />
         <FooterButton
           label="Karaktärsblad"
-          icon={<Icons.Earth />} {/* Using Earth icon as a generic character icon */}
+          icon={<Icons.Earth />}
           isActive={activeView === 'characterSheet'}
           onClick={() => setView('characterSheet')}
         />
         <FooterButton
           label="Lager"
-          icon={<Icons.Shield />} {/* Using Shield icon as a generic inventory icon */}
+          icon={<Icons.Shield />}
           isActive={activeView === 'inventory'}
           onClick={() => setView('inventory')}
         />
         <FooterButton
           label="Debug"
-          icon={<Icons.Choice />} {/* Using Choice icon as a generic debug icon */}
+          icon={<Icons.Choice />}
           isActive={activeView === 'debug'}
           onClick={() => setView('debug')}
         />

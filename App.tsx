@@ -291,19 +291,30 @@ function App() {
 
   const playerCombatStats = useMemo(() => {
       if (!character) return null;
-      // FIX: Use a type-safe loop to iterate over item stats and prevent 'unknown' type errors. The initial value is also typed.
-      const equipmentStats: Required<ItemStats> = Object.values(equipment).reduce((acc: Required<ItemStats>, item: Item | null) => {
+
+      const initialEquipmentStats: Required<ItemStats> = {
+          strength: 0, 
+          dexterity: 0, 
+          intelligence: 0, 
+          constitution: 0, 
+          skada: 0, 
+          rustning: 0, 
+          undvikandechans: 0, 
+          kritiskTräff: 0 
+      };
+
+      const equipmentStats: Required<ItemStats> = Object.values(equipment).reduce((acc, item: Item | null) => {
           if (item) {
-              for (const key in (item as Item).stats) { // Explicitly cast item to Item
+              for (const key in (item as Item).stats) {
                   const stat = key as keyof ItemStats;
-                  const value = (item as Item).stats[stat]; // Explicitly cast item to Item
+                  const value = (item as Item).stats[stat];
                   if (value) {
                       acc[stat] = (acc[stat] || 0) + value;
                   }
               }
           }
           return acc;
-      }, { strength: 0, dexterity: 0, intelligence: 0, constitution: 0, skada: 0, rustning: 0, undvikandechans: 0, kritiskTräff: 0 });
+      }, initialEquipmentStats);
 
       const totalStats = {
           strength: character.stats.strength + equipmentStats.strength,

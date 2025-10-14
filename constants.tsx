@@ -98,6 +98,15 @@ export const Icons = {
     Spike: createIcon(["M8 1l-2 2h1v3h2V3h1L8 1z M4 7l-2 2h1v3h2V9h1L4 7z m8 0l-2 2h1v3h2V9h1l-2-2z M1 13h14v1H1v-1z"], "#bae6fd"), // Glacial Spike
     Lightning: createIcon(["M7 1v1h1v1h1v2H8v1H6V5h1V4h1V3H7V2H6V1h1z M10 10h-1v-1h-1v-1h-1v2h1v1h1v1h1v1h-1v-1h-1v-1h-1v-2h1V9h1v1h1v1h-1z"], "#0284c7"), // Static Charge
     Thunder: createIcon(["M7 1v1h1v1h1v2H8v1H6V5h1V4h1V3H7V2H6V1h1z M10 10h-1v-1h-1v-1h-1v2h1v1h1v1h1v1h-1v-1h-1v-1h-1v-2h1V9h1v1h1v1h-1z M1 13h14v1H1v-1z"], "#38bdf8"), // Thunderclap
+    // New icons for base element passive/ultimate
+    FireAura: createIcon(["M8 11v-1h1V9h-1V8h1V7h-1V5h1V4h-1V3h1V2h-1V1H7v1H6v1h1v1h-1v2h1v1h-1v1h1v1H6v1h4v-1h-1v-1H8z M4 7h1v1H4V7z M11 7h1v1h-1V7z"], "#f97316"), // Fire Aura
+    EarthShield: createIcon(["M8 1C4 1 3 4 3 8s1 7 5 7 5-3 5-7-1-7-5-7zm0 1v1h1v1h1v2H9v1H7V6H5V4h1V3h1V2h1z M7 10h2v1H7v-1z"], "#22c55e"), // Earth Shield
+    WindDodge: createIcon(["M3 5h1V4h8v1h1v2h-1v1h-1v1H5V8H4V7H3V5z M10 8h1V7h-1v1z M5 7h1V6H5v1z M7 10h2v1H7v-1z"], "#0ea5e9"), // Wind Dodge
+    WaterRegen: createIcon(["M8 7C6 7 5 8 5 9s1 2 3 2 3-1 3-1-1-3-3-3z M8 13c-2 0-3-1-3-2s1-2 3-2v1c-1 0-1 0-1 1s0 1 1 1 1 0 1-1v-1c2 0 3 1 3 2s-1 2-3 2z M7 4h2v1H7V4z"], "#3b82f6"), // Water Regeneration
+    FireNova: createIcon(["M8 1c-2 2-3 4-3 6s1 4 3 4 3-2 3-4-1-4-3-6zm0 2c-1 1-1 2-1 3s0 2 1 3 1-2 1-3-0-2-1-3z M4 10h8v1H4v-1z M3 12h10v1H3v-1z M2 14h12v1H2v-1z"], "#ef4444"), // Fire Nova
+    EarthWall: createIcon(["M2 10h12v1H2v-1z M3 8h10v1H3V8z M4 6h8v1H4V6z M5 4h6v1H5V4z"], "#a16207"), // Earth Wall
+    WindBurst: createIcon(["M8 1c-2 0-4 2-4 4h2c0-1 1-2 2-2s2 1 2 2h2c0 2-2 4-4 4z m0 8c2 0 4-2 4-4h-2c0 1-1 2-2 2s-2-1-2-2H4c0 2 2 4 4 4z M7 13h2v1H7v-1z M6 14h4v1H6v-1z"], "#38bdf8"), // Wind Burst
+    WaterBless: createIcon(["M8 7C6 7 5 8 5 9s1 2 3 2 3-1 3-1-1-3-3-3z M8 13c-2 0-3-1-3-2s1-2 3-2v1c-1 0-1 0-1 1s0 1 1 1 1 0 1-1v-1c2 0 3 1 3 2s-1 2-3 2z M7 4h2v1H7V4z M6 2h4v1H6V2z"], "#60a5fa"), // Water Bless
 };
 
 export const ItemVisuals = {
@@ -564,7 +573,39 @@ export const PASSIVE_TALENTS: Record<string, PassiveTalent> = {
     icon: Icons.Lightning,
     effect: { type: 'APPLY_STATUS', status: { type: 'stunned', duration: 1 }, chance: 5 }, // Placeholder status type
   },
-  // Add more passive talents here
+  // New base element passive talents
+  'fire_aura': {
+    id: 'fire_aura',
+    name: 'Eldig Aura',
+    description: 'Alla fiender tar 2 eldskada varje runda.',
+    element: Element.FIRE,
+    icon: Icons.FireAura,
+    effect: { type: 'DEAL_ELEMENTAL_DAMAGE', element: Element.FIRE, damage: 2, chance: 100 }, // Passive, always active
+  },
+  'earth_guard': {
+    id: 'earth_guard',
+    name: 'Jordens Vakt',
+    description: '10% chans att få +5 rustning i 1 runda när du tar skada.',
+    element: Element.EARTH,
+    icon: Icons.EarthShield,
+    effect: { type: 'APPLY_STATUS', status: { type: 'defending', duration: 1, value: 5 }, chance: 10 }, // Placeholder for temp armor
+  },
+  'wind_evasion': {
+    id: 'wind_evasion',
+    name: 'Vindens Undanflykt',
+    description: '5% ökad undvikandechans.',
+    element: Element.WIND,
+    icon: Icons.WindDodge,
+    effect: { type: 'STAT_BONUS', stat: 'undvikandechans', value: 5, isPercentage: true },
+  },
+  'water_flow': {
+    id: 'water_flow',
+    name: 'Vattenflöde',
+    description: 'Regenererar 5% av din maxhälsa varje runda.',
+    element: Element.WATER,
+    icon: Icons.WaterRegen,
+    effect: { type: 'HEAL_BONUS', value: 5, isPercentage: true }, // Represents passive regen
+  },
 };
 
 // --- NEW: Ultimate Abilities ---
@@ -722,6 +763,43 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
     cooldown: 20,
     effect: { type: 'AOE_DAMAGE', damage: 70, buff: 'armor_reduction', duration: 4, value: 10 },
   },
+  // New base element ultimate abilities
+  'fire_nova': {
+    id: 'fire_nova',
+    name: 'Eldnova',
+    description: 'En explosion av eld som skadar alla fiender runt dig.',
+    element: Element.FIRE,
+    icon: Icons.FireNova,
+    cooldown: 15,
+    effect: { type: 'AOE_DAMAGE', damage: 60 },
+  },
+  'earth_wall': {
+    id: 'earth_wall',
+    name: 'Jordvägg',
+    description: 'Skapar en jordvägg som absorberar inkommande skada för dig och dina allierade.',
+    element: Element.EARTH,
+    icon: Icons.EarthWall,
+    cooldown: 18,
+    effect: { type: 'GLOBAL_BUFF', buff: 'damage_reduction', duration: 3, value: 30, isPercentage: true }, // 30% damage reduction
+  },
+  'wind_burst': {
+    id: 'wind_burst',
+    name: 'Vindstöt',
+    description: 'En kraftig vindstöt som knuffar tillbaka och saktar ner alla fiender.',
+    element: Element.WIND,
+    icon: Icons.WindBurst,
+    cooldown: 16,
+    effect: { type: 'AOE_DAMAGE', damage: 20, buff: 'slowed', duration: 2 }, // Small damage, primary CC
+  },
+  'water_blessing': {
+    id: 'water_blessing',
+    name: 'Vattenvälsignelse',
+    description: 'Läker alla allierade och tar bort alla negativa statusar.',
+    element: Element.WATER,
+    icon: Icons.WaterBless,
+    cooldown: 20,
+    effect: { type: 'MASS_HEAL', heal: 80, buff: 'cleanse_all_debuffs' }, // Heals and cleanses
+  },
 };
 
 
@@ -733,6 +811,11 @@ export const ELEMENTAL_AFFINITY_BONUSES: Record<Element, ElementalBonus[]> = {
     { threshold: 15, description: "Låser upp passiv talang: Eldens Vrede", effect: { type: 'PASSIVE_TALENT', talentId: 'fire_vengeance' } },
     { threshold: 20, description: "+15% Eldskada", effect: { type: 'DAMAGE_BONUS', element: Element.FIRE, value: 15, isPercentage: true } },
     { threshold: 25, description: "Låser upp ultimat förmåga: Meteorregn", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'fire_meteor' } },
+    { threshold: 30, description: "+2 Intelligens", effect: { type: 'STAT_BONUS', stat: 'intelligence', value: 2 } },
+    { threshold: 35, description: "+10% Eldresistans", effect: { type: 'RESISTANCE', element: Element.FIRE, value: 10, isPercentage: true } },
+    { threshold: 40, description: "Låser upp passiv talang: Eldig Aura", effect: { type: 'PASSIVE_TALENT', talentId: 'fire_aura' } },
+    { threshold: 45, description: "+20% Kritisk Skada", effect: { type: 'STAT_BONUS', stat: 'kritiskTräff', value: 20, isPercentage: true } },
+    { threshold: 50, description: "Låser upp ultimat förmåga: Eldnova", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'fire_nova' } },
   ],
   [Element.EARTH]: [
     { threshold: 1, description: "+1 Rustning", effect: { type: 'STAT_BONUS', stat: 'rustning', value: 1 } },
@@ -741,6 +824,11 @@ export const ELEMENTAL_AFFINITY_BONUSES: Record<Element, ElementalBonus[]> = {
     { threshold: 15, description: "Låser upp passiv talang: Jordens Resonans", effect: { type: 'PASSIVE_TALENT', talentId: 'earth_resonance' } },
     { threshold: 20, description: "+15% Max Hälsa", effect: { type: 'STAT_BONUS', stat: 'constitution', value: 15, isPercentage: true } },
     { threshold: 25, description: "Låser upp ultimat förmåga: Jordens Vrede", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'earth_quake_ultimate' } },
+    { threshold: 30, description: "+2 Styrka", effect: { type: 'STAT_BONUS', stat: 'strength', value: 2 } },
+    { threshold: 35, description: "+15% Rustning", effect: { type: 'STAT_BONUS', stat: 'rustning', value: 15, isPercentage: true } },
+    { threshold: 40, description: "Låser upp passiv talang: Jordens Vakt", effect: { type: 'PASSIVE_TALENT', talentId: 'earth_guard' } },
+    { threshold: 45, description: "+20 Max Hälsa", effect: { type: 'STAT_BONUS', stat: 'constitution', value: 20 } },
+    { threshold: 50, description: "Låser upp ultimat förmåga: Jordvägg", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'earth_wall' } },
   ],
   [Element.WIND]: [
     { threshold: 1, description: "+1 Undvikandechans", effect: { type: 'STAT_BONUS', stat: 'undvikandechans', value: 1 } },
@@ -749,6 +837,11 @@ export const ELEMENTAL_AFFINITY_BONUSES: Record<Element, ElementalBonus[]> = {
     { threshold: 15, description: "+10% Undvikandechans", effect: { type: 'STAT_BONUS', stat: 'undvikandechans', value: 10, isPercentage: true } },
     { threshold: 20, description: "+10% ATB-hastighet", effect: { type: 'RESOURCE_REGEN', stat: 'dexterity', value: 10, isPercentage: true } },
     { threshold: 25, description: "Låser upp ultimat förmåga: Rasande Cyklon", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'raging_cyclone' } },
+    { threshold: 30, description: "+2 Dexteritet", effect: { type: 'STAT_BONUS', stat: 'dexterity', value: 2 } },
+    { threshold: 35, description: "+10% Vindresistans", effect: { type: 'RESISTANCE', element: Element.WIND, value: 10, isPercentage: true } },
+    { threshold: 40, description: "Låser upp passiv talang: Vindens Undanflykt", effect: { type: 'PASSIVE_TALENT', talentId: 'wind_evasion' } },
+    { threshold: 45, description: "+15% ATB-hastighet", effect: { type: 'RESOURCE_REGEN', stat: 'dexterity', value: 15, isPercentage: true } },
+    { threshold: 50, description: "Låser upp ultimat förmåga: Vindstöt", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'wind_burst' } },
   ],
   [Element.WATER]: [
     { threshold: 1, description: "+1 Intelligens", effect: { type: 'STAT_BONUS', stat: 'intelligence', value: 1 } },
@@ -757,6 +850,11 @@ export const ELEMENTAL_AFFINITY_BONUSES: Record<Element, ElementalBonus[]> = {
     { threshold: 15, description: "+10% Helande effekt", effect: { type: 'HEAL_BONUS', value: 10, isPercentage: true } },
     { threshold: 20, description: "+10% Resursregeneration", effect: { type: 'RESOURCE_REGEN', stat: 'intelligence', value: 10, isPercentage: true } },
     { threshold: 25, description: "Låser upp ultimat förmåga: Gejserutbrott", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'geyser_burst' } },
+    { threshold: 30, description: "+2 Konstitution", effect: { type: 'STAT_BONUS', stat: 'constitution', value: 2 } },
+    { threshold: 35, description: "+15% Vattenresistans", effect: { type: 'RESISTANCE', element: Element.WATER, value: 15, isPercentage: true } },
+    { threshold: 40, description: "Låser upp passiv talang: Vattenflöde", effect: { type: 'PASSIVE_TALENT', talentId: 'water_flow' } },
+    { threshold: 45, description: "+15% Helande effekt", effect: { type: 'HEAL_BONUS', value: 15, isPercentage: true } },
+    { threshold: 50, description: "Låser upp ultimat förmåga: Vattenvälsignelse", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'water_blessing' } },
   ],
   // Hybrid elements
   [Element.MAGMA]: [

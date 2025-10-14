@@ -299,7 +299,7 @@ export const createBossCombatPayload = (playerLevel: number, round: number): Gam
             [bossElement]: 50, // Bosses are highly resistant to their own element
             [Element.NEUTRAL]: -25, // But maybe weak to neutral attacks?
         },
-        ability: Math.random() > 0.5 ? 'HASTE_SELF' : undefined, // Boss might have a special ability
+        specialAbility: Math.random() > 0.5 ? 'HASTE_SELF' : undefined, // Boss might have a special ability
         onHitEffect: Math.random() > 0.5 ? { type: 'burning', duration: 2, damage: 5 } : undefined, // Example on-hit effect
     };
 

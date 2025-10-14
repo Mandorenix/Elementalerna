@@ -86,6 +86,7 @@ export interface UltimateAbility {
   element: Element;
   icon: React.FC;
   cooldown: number; // In turns
+  targetType?: 'SINGLE_ENEMY' | 'ALL_ENEMIES' | 'LINE_AOE' | 'CIRCLE_AOE' | 'LOWEST_HP_ENEMY' | 'HIGHEST_HP_ENEMY' | 'SELF' | 'ALL_ALLIES'; // New
   effect:
     | { type: 'AOE_DAMAGE'; damage?: number; buff?: StatusEffect['type'] | 'pushed_back' | 'armor_reduction_buff' | 'stunned_buff' | 'frozen_buff' | 'cleanse_debuffs_action' | 'cleanse_all_debuffs_action'; duration?: number; value?: number; isPercentage?: boolean; }
     | { type: 'MASS_HEAL'; heal?: number; buff?: StatusEffect['type'] | 'cleanse_debuffs_action' | 'cleanse_all_debuffs_action'; duration?: number; value?: number; isPercentage?: boolean; }
@@ -185,6 +186,7 @@ export interface AbilityRankData {
   healMultiplier?: number;
   duration?: number;
   chance?: number;
+  statusEffectsToApply?: StatusEffect['type'][]; // New
 }
 
 export interface PlayerAbility {
@@ -193,9 +195,36 @@ export interface PlayerAbility {
   element: Element;
   isAoe?: boolean;
   category?: 'damage' | 'heal' | 'buff' | 'cc';
+  targetType?: 'SINGLE_ENEMY' | 'ALL_ENEMIES' | 'LINE_AOE' | 'CIRCLE_AOE' | 'LOWEST_HP_ENEMY' | 'HIGHEST_HP_ENEMY' | 'SELF' | 'ALL_ALLIES'; // New
   ranks: AbilityRankData[];
   cooldown?: number;
   currentCooldown?: number;
+}
+
+export type EnemyBehavior = 'ATTACK_PLAYER' | 'ATTACK_LOWEST_HP' | 'APPLY_DEBUFF_TO_PLAYER' | 'BUFF_SELF' | 'BUFF_ALLIES' | 'ATTACK_HIGHEST_DAMAGE_PLAYER'; // New behaviors
+
+export interface EnemyAbility {
+  id: string;
+  name: string;
+  element: Element;
+  category: 'damage' | 'heal' | 'buff' | 'cc';
+  targetType: 'SINGLE_PLAYER' | 'ALL_PLAYERS' | 'SELF' | 'ALL_ENEMIES'; // Simplified for enemies
+  damageMultiplier?: number;
+  healMultiplier?: number;
+  statusEffectsToApply?: StatusEffect['type'][];
+  duration?: number;
+  value?: number; // For buffs/debuffs
+  cooldown: number;
+  currentCooldown?: number;
+}
+
+export interface EnemyPhase {
+  name: string;
+  threshold: number; // e.g., HP percentage
+  newBehavior?: EnemyBehavior;
+  newAbilities?: EnemyAbility[];
+  statusEffectsToApplyToSelf?: StatusEffect['type'][];
+  description?: string;
 }
 
 export interface Enemy {
@@ -211,8 +240,11 @@ export interface Enemy {
   };
   resistances?: Partial<Record<Element, number>>;
   icon: React.FC;
-  ability?: 'HASTE_SELF';
-  onHitEffect?: 
+  behavior?: EnemyBehavior; // New
+  abilities?: EnemyAbility[]; // New
+  phases?: EnemyPhase[]; // New for bosses
+  specialAbility?: 'HASTE_SELF'; // New: For simple, hardcoded enemy abilities
+  onHitEffect?:
     | { type: 'burning'; duration: number; damage: number }
     | { type: 'poison'; duration: number; damage: number }
     | { type: 'slow'; duration: number };
@@ -258,7 +290,7 @@ export interface GameEvent {
   };
 }
 
-export type StatusEffect = 
+export type StatusEffect =
   | { type: 'defending'; duration: number; value?: number; }
   | { type: 'hasted'; duration: number }
   | { type: 'burning'; duration: number; damage: number }
@@ -274,7 +306,12 @@ export type StatusEffect =
   | { type: 'armor_reduction'; duration: number; value: number; }
   | { type: 'stunned'; duration: number; }
   | { type: 'frozen'; duration: number; }
-  | { type: 'damage_reduction'; duration: number; value: number; isPercentage?: boolean; };
+  | { type: 'damage_reduction'; duration: number; value: number; isPercentage?: boolean; }
+  | { type: 'paralyzed'; duration: number; } // New
+  | { type: 'bleeding'; duration: number; damage: number; } // New
+  | { type: 'frightened'; duration: number; chanceToMissTurn: number; chanceToAttackRandom: number; } // New
+  | { type: 'reflecting'; duration: number; element: Element; value: number; } // New
+  | { type: 'absorbing'; duration: number; element: Element; value: number; }; // New
 
 export interface CombatLogMessage {
   id: number;

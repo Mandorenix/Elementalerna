@@ -37,7 +37,7 @@ function App() {
   const [skillPoints, setSkillPoints] = useState(0);
   const [attributePoints, setAttributePoints] = useState(0);
   const [elementalPoints, setElementalPoints] = useState(0);
-  const [unlockedSkills, setUnlockedSkills] = new Map<string, number>([]);
+  const [unlockedSkills, setUnlockedSkills] = useState<Map<string, number>>(new Map()); // Corrected useState initialization
   const [equipment, setEquipment] = useState<Record<EquipmentSlot, Item | null>>(initialEquipment);
   const [inventory, setInventory] = useState<Item[]>([]);
   const [activeView, setActiveView] = useState<View>('skillTree');
@@ -92,7 +92,7 @@ function App() {
     if (archetype.startingSkill) {
       initialSkills.set(archetype.startingSkill, 1);
     }
-    setUnlockedSkills(initialSkills);
+    setUnlockedSkills(initialSkills); // Corrected usage
     
     setEquipment(initialEquipment);
     setInventory([]);
@@ -115,7 +115,7 @@ function App() {
     const currentRank = unlockedSkills.get(skillId) || 0;
     if (skillPoints > 0 && currentRank < skillData.maxRank) {
         setSkillPoints(sp => sp - 1);
-        setUnlockedSkills(prevSkills => {
+        setUnlockedSkills(prevSkills => { // Corrected usage
             const newSkills = new Map(prevSkills);
             newSkills.set(skillId, currentRank + 1);
             return newSkills;
@@ -307,7 +307,7 @@ function App() {
   const playerAbilities = useMemo(() => {
     const abilities: PlayerAbility[] = [];
     unlockedSkills.forEach((rank, skillId) => {
-        if (rank > 0 && PLAYER_ABILITIES[skillId]) {
+        if (rank > 0 && PLAYER_ABILITIES[skillId]) { // 'rank' is now correctly typed as number
             abilities.push(PLAYER_ABILITIES[skillId]);
         }
     });

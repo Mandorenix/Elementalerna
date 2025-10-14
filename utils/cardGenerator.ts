@@ -1,4 +1,5 @@
-import type { EventCard, GameEvent, Outcome, Element, Item, ItemStats, ItemAffix, EquipmentSlot, Rarity, Enemy } from '../types';
+import React from 'react'; // Added React import
+import { Element, type EventCard, type GameEvent, type Outcome, type Item, type ItemStats, type ItemAffix, type EquipmentSlot, type Rarity, type Enemy } from '../types'; // Changed Element to be imported as a value
 import { ELEMENT_ICONS, Icons, ItemVisuals } from '../constants';
 
 // Re-map the enum to a plain object for easier iteration if needed, and to avoid circular dependencies
@@ -11,30 +12,30 @@ const ElementMap = {
 
 // --- Core Data for Generation ---
 const HYBRID_ELEMENT_MAP: Partial<Record<Element, Partial<Record<Element, Element>>>> = {
-    [ElementMap.FIRE]: { [ElementMap.EARTH]: ElementMap.MAGMA, [ElementMap.WIND]: ElementMap.FIRESTORM, [ElementMap.WATER]: ElementMap.STEAM, },
-    [ElementMap.EARTH]: { [ElementMap.FIRE]: ElementMap.MAGMA, [ElementMap.WIND]: ElementMap.SAND, [ElementMap.WATER]: ElementMap.MUD, },
-    [ElementMap.WIND]: { [ElementMap.FIRE]: ElementMap.FIRESTORM, [ElementMap.EARTH]: ElementMap.SAND, [ElementMap.WATER]: ElementMap.STORM, },
-    [ElementMap.WATER]: { [ElementMap.FIRE]: ElementMap.STEAM, [ElementMap.EARTH]: ElementMap.MUD, [ElementMap.WIND]: ElementMap.STORM, }
+    [Element.FIRE]: { [Element.EARTH]: Element.MAGMA, [Element.WIND]: Element.FIRESTORM, [Element.WATER]: Element.STEAM, },
+    [Element.EARTH]: { [Element.FIRE]: Element.MAGMA, [Element.WIND]: Element.SAND, [Element.WATER]: Element.MUD, },
+    [Element.WIND]: { [Element.FIRE]: Element.FIRESTORM, [Element.EARTH]: Element.SAND, [Element.WATER]: Element.STORM, },
+    [Element.WATER]: { [Element.FIRE]: Element.STEAM, [Element.EARTH]: Element.MUD, [Element.WIND]: Element.STORM, }
 };
 
 const ELEMENT_FLAVOR_TEXT: Record<number, { nouns: string[], adjs: string[] }> = {
-    [ElementMap.FIRE]: { nouns: ["Inferno", "Låga", "Aska", "Glöd"], adjs: ["Brinnande", "Svedd", "Pyroklastisk"] },
-    [ElementMap.EARTH]: { nouns: ["Skälvning", "Klippa", "Rot", "Grotta"], adjs: ["Stenig", "Jordbunden", "Orubblig"] },
-    [ElementMap.WIND]: { nouns: ["Orkan", "Vindpust", "Virvel", "Tornado"], adjs: ["Piskande", "Svepande", "Luftig"] },
-    [ElementMap.WATER]: { nouns: ["Tsunami", "Ström", "Källa", "Gejser"], adjs: ["Översvämmad", "Våt", "Flytande"] },
-    [ElementMap.MAGMA]: { nouns: ["Vulkan", "Magmaflod", "Utbrott"], adjs: ["Smältande", "Vulkanisk", "Flytande sten"] },
-    [ElementMap.FIRESTORM]: { nouns: ["Eldstorm", "Hett oväder", "Glödande vind"], adjs: ["Brännhet", "Rasande", "Cyklonisk"] },
-    [ElementMap.STEAM]: { nouns: ["Ångexplosion", "Tryckvåg", "Skållhet dimma"], adjs: ["Skållande", "Trycksatt", "Gaser"] },
-    [ElementMap.SAND]: { nouns: ["Sandstorm", "Ökenvåg", "Kvicksand"], adjs: ["Begravande", "Slipande", "Torr"] },
-    [ElementMap.MUD]: { nouns: ["Lerskred", "Träsk", "Gyttja"], adjs: ["Sugande", "Geggig", "Trög"] },
-    [ElementMap.STORM]: { nouns: ["Monsun", "Åskväder", "Orkan"], adjs: ["Elektrisk", "Regnig", "Stormig"] },
-    [ElementMap.NEUTRAL]: { nouns: ["Prövning", "Möte", "Öde"], adjs: ["Bortglömd", "Uråldrig", "Mystisk"] },
+    [Element.FIRE]: { nouns: ["Inferno", "Låga", "Aska", "Glöd"], adjs: ["Brinnande", "Svedd", "Pyroklastisk"] },
+    [Element.EARTH]: { nouns: ["Skälvning", "Klippa", "Rot", "Grotta"], adjs: ["Stenig", "Jordbunden", "Orubblig"] },
+    [Element.WIND]: { nouns: ["Orkan", "Vindpust", "Virvel", "Tornado"], adjs: ["Piskande", "Svepande", "Luftig"] },
+    [Element.WATER]: { nouns: ["Tsunami", "Ström", "Källa", "Gejser"], adjs: ["Översvämmad", "Våt", "Flytande"] },
+    [Element.MAGMA]: { nouns: ["Vulkan", "Magmaflod", "Utbrott"], adjs: ["Smältande", "Vulkanisk", "Flytande sten"] },
+    [Element.FIRESTORM]: { nouns: ["Eldstorm", "Hett oväder", "Glödande vind"], adjs: ["Brännhet", "Rasande", "Cyklonisk"] },
+    [Element.STEAM]: { nouns: ["Ångexplosion", "Tryckvåg", "Skållhet dimma"], adjs: ["Skållande", "Trycksatt", "Gaser"] },
+    [Element.SAND]: { nouns: ["Sandstorm", "Ökenvåg", "Kvicksand"], adjs: ["Begravande", "Slipande", "Torr"] },
+    [Element.MUD]: { nouns: ["Lerskred", "Träsk", "Gyttja"], adjs: ["Sugande", "Geggig", "Trög"] },
+    [Element.STORM]: { nouns: ["Monsun", "Åskväder", "Orkan"], adjs: ["Elektrisk", "Regnig", "Stormig"] },
+    [Element.NEUTRAL]: { nouns: ["Prövning", "Möte", "Öde"], adjs: ["Bortglömd", "Uråldrig", "Mystisk"] },
 };
 // Add fallbacks for complex elements to ensure flavor text always exists.
 const allElements = Object.values(ElementMap).filter(v => typeof v === 'number') as Element[];
 allElements.forEach(el => {
     if (!ELEMENT_FLAVOR_TEXT[el]) {
-        ELEMENT_FLAVOR_TEXT[el] = ELEMENT_FLAVOR_TEXT[ElementMap.NEUTRAL];
+        ELEMENT_FLAVOR_TEXT[el] = ELEMENT_FLAVOR_TEXT[Element.NEUTRAL];
     }
 });
 
@@ -93,7 +94,7 @@ const CHOICE_SCENARIOS = [
     // Scenario 3: The Fountain of Elements
     (playerLevel: number, round: number, element: Element) => ({
         title: `Elementär källa`,
-        description: `Du hittar en liten fontän som bubblar med ren ${Object.keys(ElementMap).find(key => ElementMap[key as keyof typeof ElementMap] === element)}-energi. Vattnet skimrar inbjudande.`,
+        description: `Du hittar en liten fontän som bubblar med ren ${Element[element]}-energi. Vattnet skimrar inbjudande.`,
         payload: {
             options: [
                  {
@@ -117,7 +118,7 @@ const CHOICE_SCENARIOS = [
 
 export const generateRandomCard = (playerLevel: number, round: number = 1): EventCard => {
     // 1. Determine Element
-    const baseElements = [ElementMap.FIRE, ElementMap.EARTH, ElementMap.WIND, ElementMap.WATER];
+    const baseElements = [Element.FIRE, Element.EARTH, Element.WIND, Element.WATER];
     const e1 = getRandom(baseElements);
     const e2 = getRandom(baseElements.filter(e => e !== e1)); // Ensure two different elements
     const primaryElement = HYBRID_ELEMENT_MAP[e1]?.[e2] || e1;
@@ -134,7 +135,7 @@ export const generateRandomCard = (playerLevel: number, round: number = 1): Even
     let title: string;
     let description: string;
 
-    const flavor = ELEMENT_FLAVOR_TEXT[primaryElement] || ELEMENT_FLAVOR_TEXT[ElementMap.NEUTRAL];
+    const flavor = ELEMENT_FLAVOR_TEXT[primaryElement] || ELEMENT_FLAVOR_TEXT[Element.NEUTRAL];
 
     switch (type) {
         case 'COMBAT':
@@ -149,18 +150,18 @@ export const generateRandomCard = (playerLevel: number, round: number = 1): Even
                 description = "En oväntad belöning.";
                 title = "Gömda rikedomar";
             } else if (boonRoll > 0.3) {
-                payload = { log: `Du hittar en källa av ren ${Object.keys(ElementMap).find(key => ElementMap[key as keyof typeof ElementMap] === primaryElement)}-energi. Full hälsa återställd!`, healthChange: 9999, xp: 20 * round };
+                payload = { log: `Du hittar en källa av ren ${Element[primaryElement]}-energi. Full hälsa återställd!`, healthChange: 9999, xp: 20 * round };
                 description = "En oväntad välsignelse."
                 title = "Helande källa";
             } else {
-                payload = { log: `En viskning från ${Object.keys(ElementMap).find(key => ElementMap[key as keyof typeof ElementMap] === primaryElement)}-planet ger dig insikt.`, xp: (50 + 10 * playerLevel) * round };
+                payload = { log: `En viskning från ${Element[primaryElement]}-planet ger dig insikt.`, xp: (50 + 10 * playerLevel) * round };
                 description = "Du känner dig visare.";
                 title = "Uråldrig insikt";
             }
             break;
         case 'CURSE':
              title = `${getRandom(flavor.adjs)} förbannelse`;
-             payload = { log: `En fientlig ${Object.keys(ElementMap).find(key => ElementMap[key as keyof typeof ElementMap] === primaryElement)}-manifestation dränerar din energi.`, healthChange: -(15 + playerLevel * 2 + round * 5), xp: 0 };
+             payload = { log: `En fientlig ${Element[primaryElement]}-manifestation dränerar din energi.`, healthChange: -(15 + playerLevel * 2 + round * 5), xp: 0 };
              description = "En plötslig känsla av svaghet.";
             break;
         case 'CHOICE':

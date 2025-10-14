@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Character, Skill, Archetype, Item, Rarity, Enemy, GameEvent, EquipmentSlot, EventModifier, EventCard, ChoiceOption, Outcome, PlayerAbility, ItemAffix, ElementalBonus } from './types';
+import type { Character, Skill, Archetype, Item, Rarity, Enemy, GameEvent, EquipmentSlot, EventModifier, EventCard, ChoiceOption, Outcome, PlayerAbility, ItemAffix, ElementalBonus, Environment } from './types';
 import { Element } from './types';
 
 // Helper for creating simple, pixelated-style SVG icons
@@ -883,13 +883,25 @@ export const createCombatPayload = (playerLevel: number, element: Element, diffi
         }
     }));
     
-    const modifiers: EventModifier[] = [];
+    const modifiers: EventModifier[] = []; // Keep modifiers array for other types of modifiers
+    let environment: Environment | undefined; // Declare environment variable
+
     if (element === Element.MAGMA && Math.random() < 0.25) {
-        modifiers.push({
+        environment = {
+            name: "Brinnande Askafält",
             description: "Luften är tjock av aska och glöd. Alla tar 2 eldskada varje runda.",
-            effect: 'environment_dot',
-            value: 2,
-        });
+            element: Element.MAGMA,
+            effects: [
+                {
+                    description: "Alla icke-eld-varelser tar 2 eldskada varje runda.",
+                    type: 'dot',
+                    element: Element.FIRE,
+                    value: 2,
+                    targetScope: 'non_elemental',
+                    targetElement: Element.FIRE
+                }
+            ]
+        };
     }
 
     return {
@@ -898,6 +910,7 @@ export const createCombatPayload = (playerLevel: number, element: Element, diffi
         element: template.element,
         enemies,
         modifiers,
+        environment, // Assign the new environment
         rewards: {
             xp: Math.floor(50 * enemyCount * difficultyMultiplier * levelMultiplier),
             items: Math.random() < (0.2 * difficultyMultiplier) ? [generateRandomItem(playerLevel)] : [],

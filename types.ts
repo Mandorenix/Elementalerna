@@ -178,9 +178,29 @@ export interface Enemy {
     | { type: 'slow'; duration: number };
 }
 
+// NEW: Environment effects
+export interface EnvironmentEffect {
+  description: string;
+  type: 'dot' | 'status_apply' | 'stat_modifier' | 'atb_modifier';
+  element?: Element; // Element associated with the effect (e.g., fire for burning ground)
+  value?: number; // Damage for dot, stat change for stat_modifier, ATB change (percentage)
+  status?: StatusEffect['type']; // For status_apply
+  statusDuration?: number;
+  statusChance?: number; // Chance to apply status
+  targetScope: 'all' | 'player' | 'enemies' | 'non_elemental' | 'elemental';
+  targetElement?: Element; // If scope is non_elemental/elemental
+}
+
+export interface Environment {
+  name: string;
+  description: string;
+  element: Element; // Primary element of the environment
+  effects: EnvironmentEffect[];
+}
+
 export interface EventModifier {
   description: string;
-  effect: 'player_stat' | 'enemy_stat' | 'reward_bonus' | 'environment_dot';
+  effect: 'player_stat' | 'enemy_stat' | 'reward_bonus'; // Environment effects are now handled by the Environment interface
   stat?: 'damage' | 'health' | 'armor' | 'crit' | 'dodge';
   value?: number;
   isPercentage?: boolean;
@@ -191,6 +211,7 @@ export interface GameEvent {
   description: string;
   element: Element;
   modifiers: EventModifier[];
+  environment?: Environment; // NEW: Optional environment for the combat
   enemies: Enemy[];
   rewards: {
     xp: number;
@@ -205,10 +226,11 @@ export type StatusEffect =
   | { type: 'poisoned'; duration: number; damage: number }
   | { type: 'slowed'; duration: number }
   | { type: 'retaliating'; duration: number; damage: number }
-  | { type: 'blinded'; duration: number }
+  | { type: 'blinded'; duration: number } // NEW
   | { type: 'full_flow'; duration: number }
   | { type: 'overheated'; duration: number }
-  | { type: 'rooted'; duration: number }
+  | { type: 'rooted'; duration: number } // NEW
+  | { type: 'steamed'; duration: number; damage?: number; accuracyReduction?: number } // NEW: for ångmoln
   | { type: 'regenerating'; duration: number; heal: number };
 
 

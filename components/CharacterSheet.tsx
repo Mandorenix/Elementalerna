@@ -2,6 +2,7 @@ import React from 'react';
 import type { Character, CharacterStats, Item, EquipmentSlot, ItemStats, Element } from '../types';
 import ItemTooltip from './ItemTooltip';
 import ElementalAffinities from './ElementalAffinities'; // Import new component
+import { ELEMENT_ICONS, PASSIVE_TALENTS, ULTIMATE_ABILITIES } from '../constants'; // Add these imports
 
 interface CharacterSheetProps {
   character: Character;
@@ -12,6 +13,8 @@ interface CharacterSheetProps {
   elementalPoints: number; // New prop
   elementalAffinities: Partial<Record<Element, number>>; // New prop
   increaseElementalAffinity: (element: Element) => void; // New prop
+  unlockedPassiveTalents: string[]; // New prop
+  unlockedUltimateAbilities: string[]; // New prop
 }
 
 const resourceThemes: Record<string, { text: string; bg: string }> = {
@@ -81,7 +84,7 @@ const EquipmentSlotDisplay: React.FC<{ label: EquipmentSlot; item: Item | null; 
     );
 };
 
-const CharacterSheet: React.FC<CharacterSheetProps> = ({ character, equipment, attributePoints, increaseStat, onUnequipItem, elementalPoints, elementalAffinities, increaseElementalAffinity }) => {
+const CharacterSheet: React.FC<CharacterSheetProps> = ({ character, equipment, attributePoints, increaseStat, onUnequipItem, elementalPoints, elementalAffinities, increaseElementalAffinity, unlockedPassiveTalents, unlockedUltimateAbilities }) => {
   const equipmentStats = React.useMemo(() => {
     const totals: Required<ItemStats> = {
         strength: 0, dexterity: 0, intelligence: 0, constitution: 0,
@@ -178,6 +181,57 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ character, equipment, a
                 elementalPoints={elementalPoints}
                 increaseElementalAffinity={increaseElementalAffinity}
             />
+
+            {/* New: Passive Talents */}
+            <div className="p-4 bg-black/30 pixelated-border">
+                <h2 className="text-lg text-yellow-500 mb-4 text-center">Passiva Talanger</h2>
+                {unlockedPassiveTalents.length > 0 ? (
+                    <div className="space-y-3">
+                        {unlockedPassiveTalents.map(talentId => {
+                            const talent = PASSIVE_TALENTS[talentId];
+                            if (!talent) return null;
+                            const Icon = talent.icon;
+                            return (
+                                <div key={talent.id} className="flex items-center space-x-3">
+                                    <div className="w-8 h-8 flex items-center justify-center border border-gray-600 text-yellow-300"><Icon /></div>
+                                    <div>
+                                        <h4 className="text-sm text-white">{talent.name}</h4>
+                                        <p className="text-[10px] text-gray-400">{talent.description}</p>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <p className="text-xs text-gray-500 text-center">Inga passiva talanger upplåsta ännu.</p>
+                )}
+            </div>
+
+            {/* New: Ultimate Abilities */}
+            <div className="p-4 bg-black/30 pixelated-border">
+                <h2 className="text-lg text-yellow-500 mb-4 text-center">Ultimata Förmågor</h2>
+                {unlockedUltimateAbilities.length > 0 ? (
+                    <div className="space-y-3">
+                        {unlockedUltimateAbilities.map(abilityId => {
+                            const ability = ULTIMATE_ABILITIES[abilityId];
+                            if (!ability) return null;
+                            const Icon = ability.icon;
+                            return (
+                                <div key={ability.id} className="flex items-center space-x-3">
+                                    <div className="w-8 h-8 flex items-center justify-center border border-gray-600 text-orange-400"><Icon /></div>
+                                    <div>
+                                        <h4 className="text-sm text-white">{ability.name}</h4>
+                                        <p className="text-[10px] text-gray-400">{ability.description}</p>
+                                        <p className="text-[10px] text-gray-500">Nedkylning: {ability.cooldown} rundor</p>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <p className="text-xs text-gray-500 text-center">Inga ultimata förmågor upplåsta ännu.</p>
+                )}
+            </div>
         </div>
 
         {/* Right Panel: Total Stats */}

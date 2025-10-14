@@ -8,7 +8,7 @@ import EventView from './components/EventView';
 import DeckView from './components/DeckView';
 import DebugView from './components/DebugView';
 import type { View, Character, CharacterStats, Item, EquipmentSlot, Archetype, GameEvent, EventCard, Outcome, PlayerAbility, ItemStats, Element } from './types';
-import { INITIAL_CHARACTER_BASE, SKILL_TREE_DATA, Icons, PLAYER_ABILITIES, ItemVisuals, generateRandomItem } from './constants';
+import { INITIAL_CHARACTER_BASE, SKILL_TREE_DATA, Icons, PLAYER_ABILITIES, ItemVisuals, generateRandomItem, ELEMENTAL_AFFINITY_BONUSES, PASSIVE_TALENTS, ULTIMATE_ABILITIES } from './constants';
 import { generateRandomCard, generateBossCard } from './utils/cardGenerator';
 
 const initialEquipment: Record<EquipmentSlot, Item | null> = {
@@ -161,7 +161,7 @@ function App() {
     if (outcome.xp) gainExperience(outcome.xp);
     if (outcome.items) setInventory(prev => [...prev, ...outcome.items]);
     if (outcome.healthChange && character) {
-        setCharacter(c => c ? { ...c, resources: { ...c.resources, health: { ...c.resources.health, current: Math.max(0, Math.min(c.resources.health.max, c.resources.health.current + outcome.healthChange)) }}} : null);
+        setCharacter(c => c ? { ...c.resources, health: { ...c.resources.health, current: Math.max(0, Math.min(c.resources.health.max, c.resources.health.current + outcome.healthChange)) }}} : null);
     }
     // TODO: Add log message to a future game log panel
   }, [character, gainExperience]);
@@ -225,11 +225,40 @@ function App() {
         setCharacter(prevChar => {
             if (!prevChar) return null;
             const currentAffinity = prevChar.elementalAffinities[element] || 0;
+            const newAffinity = currentAffinity + 1;
+
             const newElementalAffinities = {
                 ...prevChar.elementalAffinities,
-                [element]: currentAffinity + 1,
+                [element]: newAffinity,
             };
-            return { ...prevChar, elementalAffinities: newElementalAffinities };
+
+            let newUnlockedPassiveTalents = [...prevChar.unlockedPassiveTalents];
+            let newUnlockedUltimateAbilities = [...prevChar.unlockedUltimateAbilities];
+
+            // Check for new bonuses unlocked at this new affinity level
+            const bonusesForElement = ELEMENTAL_AFFINITY_BONUSES[element] || [];
+            for (const bonus of bonusesForElement) {
+                if (newAffinity >= bonus.threshold) {
+                    if (bonus.effect.type === 'PASSIVE_TALENT' && bonus.effect.talentId) {
+                        if (!newUnlockedPassiveTalents.includes(bonus.effect.talentId)) {
+                            newUnlockedPassiveTalents.push(bonus.effect.talentId);
+                            console.log(`Unlocked passive talent: ${PASSIVE_TALENTS[bonus.effect.talentId].name}`);
+                        }
+                    } else if (bonus.effect.type === 'ULTIMATE_ABILITY' && bonus.effect.abilityId) {
+                        if (!newUnlockedUltimateAbilities.includes(bonus.effect.abilityId)) {
+                            newUnlockedUltimateAbilities.push(bonus.effect.abilityId);
+                            console.log(`Unlocked ultimate ability: ${ULTIMATE_ABILITIES[bonus.effect.abilityId].name}`);
+                        }
+                    }
+                }
+            }
+
+            return {
+                ...prevChar,
+                elementalAffinities: newElementalAffinities,
+                unlockedPassiveTalents: newUnlockedPassiveTalents,
+                unlockedUltimateAbilities: newUnlockedUltimateAbilities,
+            };
         });
     }
   }, [elementalPoints, character]);
@@ -394,6 +423,8 @@ function App() {
             elementalPoints={elementalPoints} // Pass elemental points
             elementalAffinities={character.elementalAffinities} // Pass elemental affinities
             increaseElementalAffinity={increaseElementalAffinity} // Pass function
+            unlockedPassiveTalents={character.unlockedPassiveTalents} // Pass new prop
+            unlockedUltimateAbilities={character.unlockedUltimateAbilities} // Pass new prop
         />;
       case 'inventory':
         return <Inventory items={inventory} onEquipItem={equipItem} />;

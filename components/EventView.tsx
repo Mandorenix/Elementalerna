@@ -765,7 +765,10 @@ const EventView: React.FC<{
       Element.NEUTRAL
   ];
 
-  const sortedAbilities = Object.entries(abilitiesByElement).sort(([, a], [, b]) => {
+  const sortedAbilities = Object.entries(abilitiesByElement).sort((
+    [, a]: [string, { element: Element, abilities: PlayerAbility[] }],
+    [, b]: [string, { element: Element, abilities: PlayerAbility[] }]
+  ) => {
       return elementSortOrder.indexOf(a.element) - elementSortOrder.indexOf(b.element);
   });
 

@@ -1,11 +1,11 @@
 import React from 'react';
 import type { View, Character } from '../types';
-import { Icons } from '../constants';
+import { Icons } from '../constants'; // Import Icons from constants
 
 interface FooterProps {
   skillPoints: number;
   attributePoints: number;
-  elementalPoints: number; // New prop
+  elementalPoints: number;
   character: Character;
   activeView: View;
   setView: (view: View) => void;
@@ -78,31 +78,31 @@ const Footer: React.FC<FooterProps> = ({ skillPoints, attributePoints, elemental
       <div className="flex space-x-2">
         <FooterButton
           label="Däck"
-          icon={<CardDrawIcon />}
+          icon={<Icons.CardDraw />}
           isActive={activeView === 'deck'}
           onClick={() => setView('deck')}
         />
          <FooterButton
           label="Färdighetsträd"
-          icon={<SkillTreeIcon />}
+          icon={<Icons.Start />} {/* Using Start icon as a generic skill tree icon */}
           isActive={activeView === 'skillTree'}
           onClick={() => setView('skillTree')}
         />
         <FooterButton
           label="Karaktärsblad"
-          icon={<CharacterSheetIcon />}
+          icon={<Icons.Earth />} {/* Using Earth icon as a generic character icon */}
           isActive={activeView === 'characterSheet'}
           onClick={() => setView('characterSheet')}
         />
         <FooterButton
           label="Lager"
-          icon={<InventoryIcon />}
+          icon={<Icons.Shield />} {/* Using Shield icon as a generic inventory icon */}
           isActive={activeView === 'inventory'}
           onClick={() => setView('inventory')}
         />
         <FooterButton
           label="Debug"
-          icon={<DebugIcon />}
+          icon={<Icons.Choice />} {/* Using Choice icon as a generic debug icon */}
           isActive={activeView === 'debug'}
           onClick={() => setView('debug')}
         />
@@ -110,11 +110,5 @@ const Footer: React.FC<FooterProps> = ({ skillPoints, attributePoints, elemental
     </footer>
   );
 };
-
-const SkillTreeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z" /></svg>;
-const CharacterSheetIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>;
-const InventoryIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M5 8a1 1 0 011-1h1V6a1 1 0 012 0v1h2V6a1 1 0 112 0v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H6a1 1 0 01-1-1z" /><path d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h14a1 1 0 001-1V4a1 1 0 00-1-1H3zm14 2H3v10h14V5z" /></svg>;
-const CardDrawIcon = () => <div className="w-4 h-4"><Icons.CardDraw/></div>;
-const DebugIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm-.707 10.607a1 1 0 011.414 0l.707-.707a1 1 0 11-1.414-1.414l-.707.707a1 1 0 010 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" /></svg>;
 
 export default Footer;

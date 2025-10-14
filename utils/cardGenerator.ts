@@ -1,6 +1,5 @@
-import type { EventCard, GameEvent, Outcome, Element, Item } from '../types';
-import { ELEMENT_ICONS, Icons } from '../constants';
-import { createCombatPayload, createBossCombatPayload, generateRandomItem } from '../constants'; // Import from constants
+import type { EventCard, GameEvent, Outcome, Element, Item, ItemStats, ItemAffix, EquipmentSlot, Rarity, Enemy } from '../types';
+import { ELEMENT_ICONS, Icons, ItemVisuals } from '../constants';
 
 // Re-map the enum to a plain object for easier iteration if needed, and to avoid circular dependencies
 const ElementMap = {
@@ -195,5 +194,204 @@ export const generateBossCard = (playerLevel: number, round: number = 1): EventC
         type: 'COMBAT',
         isBoss: true,
         payload
+    };
+};
+
+export const createCombatPayload = (playerLevel: number, element: Element, difficulty: 'easy' | 'medium' | 'hard' | 'boss', round: number): GameEvent => {
+    const baseHealth = 50 + (playerLevel * 10);
+    const baseDamage = 5 + (playerLevel * 2);
+    const baseArmor = 2 + Math.floor(playerLevel / 2);
+
+    let healthMultiplier = 1;
+    let damageMultiplier = 1;
+    let armorMultiplier = 1;
+    let enemyCount = 1;
+    let description = "Du möter en fiende!";
+
+    switch (difficulty) {
+        case 'easy':
+            healthMultiplier = 0.8;
+            damageMultiplier = 0.8;
+            armorMultiplier = 0.8;
+            enemyCount = 1;
+            break;
+        case 'medium':
+            healthMultiplier = 1.0;
+            damageMultiplier = 1.0;
+            armorMultiplier = 1.0;
+            enemyCount = Math.random() > 0.7 ? 2 : 1;
+            break;
+        case 'hard':
+            healthMultiplier = 1.2;
+            damageMultiplier = 1.2;
+            armorMultiplier = 1.2;
+            enemyCount = Math.random() > 0.5 ? 2 : 1;
+            description = "En farlig fiende står i din väg!";
+            break;
+        case 'boss':
+            healthMultiplier = 2.5;
+            damageMultiplier = 1.8;
+            armorMultiplier = 1.5;
+            enemyCount = 1;
+            description = "En mäktig boss blockerar din väg!";
+            break;
+    }
+
+    const enemies: Enemy[] = Array.from({ length: enemyCount }).map((_, i) => {
+        const enemyElement = element; // For now, enemies match card element
+        const enemyName = `${Element[enemyElement]} Fiende ${i + 1}`;
+        const enemyIcon = ELEMENT_ICONS[enemyElement] || Icons.EnemyGoblin;
+
+        return {
+            id: `enemy-${Date.now()}-${i}`,
+            name: enemyName,
+            level: playerLevel,
+            element: enemyElement,
+            stats: {
+                health: Math.floor(baseHealth * healthMultiplier),
+                maxHealth: Math.floor(baseHealth * healthMultiplier),
+                damage: Math.floor(baseDamage * damageMultiplier),
+                armor: Math.floor(baseArmor * armorMultiplier),
+            },
+            icon: enemyIcon,
+            resistances: {
+                [enemyElement]: 25, // 25% resistance to its own element
+            },
+        };
+    });
+
+    return {
+        title: `${Element[element]} Konfrontation`,
+        description: description,
+        element: element,
+        modifiers: [],
+        enemies: enemies,
+        rewards: {
+            xp: (50 * round) * enemyCount * (difficulty === 'boss' ? 3 : 1),
+            items: Array.from({ length: enemyCount }, () => generateRandomItem(playerLevel)),
+        },
+    };
+};
+
+export const createBossCombatPayload = (playerLevel: number, round: number): GameEvent => {
+    const bossElement = [Element.FIRE, Element.EARTH, Element.WIND, Element.WATER][Math.floor(Math.random() * 4)];
+    const bossName = `Den Uråldriga ${Element[bossElement]} Bossen`;
+    const bossIcon = ELEMENT_ICONS[bossElement] || Icons.EnemyGolem;
+
+    const baseHealth = 200 + (playerLevel * 50);
+    const baseDamage = 15 + (playerLevel * 5);
+    const baseArmor = 10 + (playerLevel * 2);
+
+    const boss: Enemy = {
+        id: `boss-${Date.now()}`,
+        name: bossName,
+        level: playerLevel,
+        element: bossElement,
+        stats: {
+            health: baseHealth,
+            maxHealth: baseHealth,
+            damage: baseDamage,
+            armor: baseArmor,
+        },
+        icon: bossIcon,
+        resistances: {
+            [bossElement]: 50, // Bosses are highly resistant to their own element
+            [Element.NEUTRAL]: -25, // But maybe weak to neutral attacks?
+        },
+        ability: Math.random() > 0.5 ? 'HASTE_SELF' : undefined, // Boss might have a special ability
+        onHitEffect: Math.random() > 0.5 ? { type: 'burning', duration: 2, damage: 5 } : undefined, // Example on-hit effect
+    };
+
+    return {
+        title: `Bossstrid: ${bossName}`,
+        description: `En uråldriga och mäktig ${Element[bossElement]} varelse blockerar din väg.`,
+        element: bossElement,
+        modifiers: [],
+        enemies: [boss],
+        rewards: {
+            xp: (200 * round) + (playerLevel * 50),
+            items: [generateRandomItem(playerLevel, 'Legendarisk')], // Bosses drop legendary items
+        },
+    };
+};
+
+export const generateRandomItem = (playerLevel: number, rarity: Rarity = 'Vanlig'): Item => {
+    const itemTypes: { slot: EquipmentSlot | 'Föremål'; name: string[]; icon: React.FC; visual?: React.FC; }[] = [
+        { slot: 'Hjälm', name: ['Läderhuva', 'Järnhjälm', 'Magisk Hatt'], icon: Icons.Shield, visual: ItemVisuals.LeatherHelm },
+        { slot: 'Vapen 1', name: ['Rostigt Svärd', 'Stålsvärd', 'Magisk Stav'], icon: Icons.Fire, visual: ItemVisuals.RustySword },
+        { slot: 'Bröst', name: ['Läderbrynja', 'Järnharnesk'], icon: Icons.Earth, visual: ItemVisuals.LeatherArmor },
+        { slot: 'Stövlar', name: ['Läderstövlar', 'Järnstövlar'], icon: Icons.Wind, visual: ItemVisuals.LeatherHelm }, // Reusing helm visual for now
+    ];
+
+    const randomType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+    const randomName = randomType.name[Math.floor(Math.random() * randomType.name.length)];
+
+    let stats: ItemStats = {};
+    let affix: ItemAffix | undefined = undefined;
+
+    const baseValue = Math.floor(playerLevel * 0.5) + 1;
+
+    switch (randomType.slot) {
+        case 'Hjälm':
+            stats.rustning = baseValue + Math.floor(Math.random() * playerLevel);
+            break;
+        case 'Vapen 1':
+            stats.skada = baseValue + Math.floor(Math.random() * playerLevel);
+            if (Math.random() < 0.3) { // 30% chance for an affix
+                affix = {
+                    trigger: 'ON_HIT',
+                    effect: { type: 'DEAL_ELEMENTAL_DAMAGE', element: Element.FIRE, damage: Math.floor(baseValue * 0.5), chance: 20 },
+                    description: "Har en chans att bränna fienden vid träff."
+                };
+            }
+            break;
+        case 'Bröst':
+            stats.rustning = baseValue * 2 + Math.floor(Math.random() * playerLevel);
+            break;
+        case 'Stövlar':
+            stats.undvikandechans = Math.floor(baseValue * 0.2) + Math.floor(Math.random() * playerLevel * 0.1);
+            break;
+    }
+
+    const rarities: Rarity[] = ['Vanlig', 'Magisk', 'Sällsynt', 'Legendarisk'];
+    let finalRarity: Rarity = rarity;
+    if (rarity === 'Vanlig') { // Only randomize if not specified as legendary (for bosses)
+        const rarityRoll = Math.random();
+        if (rarityRoll > 0.95) finalRarity = 'Legendarisk';
+        else if (rarityRoll > 0.8) finalRarity = 'Sällsynt';
+        else if (rarityRoll > 0.5) finalRarity = 'Magisk';
+    }
+
+    // Apply rarity bonuses
+    if (finalRarity === 'Magisk') {
+        Object.keys(stats).forEach(key => (stats as any)[key] = Math.floor(((stats as any)[key] || 0) * 1.2));
+    } else if (finalRarity === 'Sällsynt') {
+        Object.keys(stats).forEach(key => (stats as any)[key] = Math.floor(((stats as any)[key] || 0) * 1.5));
+        if (!affix && Math.random() < 0.5) { // Higher chance for affix if rare and no affix yet
+             affix = {
+                trigger: 'ON_TAKE_DAMAGE',
+                effect: { type: 'APPLY_STATUS', status: 'retaliating', duration: 2, damage: Math.floor(baseValue * 0.8), chance: 30 },
+                description: "Har en chans att skada anfallare när du tar skada."
+            };
+        }
+    } else if (finalRarity === 'Legendarisk') {
+        Object.keys(stats).forEach(key => (stats as any)[key] = Math.floor(((stats as any)[key] || 0) * 2.0));
+        // Ensure legendary items always have a powerful affix
+        affix = {
+            trigger: 'PASSIVE',
+            effect: { type: 'APPLY_STATUS', status: 'hasted', duration: 99, chance: 100 }, // Permanent haste
+            description: "Ger dig permanent Haste."
+        };
+    }
+
+    return {
+        id: `item-${Date.now()}-${Math.random()}`,
+        name: randomName,
+        rarity: finalRarity,
+        slot: randomType.slot,
+        stats: stats,
+        icon: randomType.icon,
+        visual: randomType.visual,
+        affix: affix,
     };
 };

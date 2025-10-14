@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { GameEvent, Enemy, CombatLogMessage, Character, StatusEffect, PlayerAbility, EquipmentSlot, Item, ArchetypeName, ItemAffix, AbilityRankData } from '../types';
 import { Element } from '../types';
 import { Icons, ARCHETYPES, PLAYER_ABILITIES } from '../constants';
-// import { soundEffects } from '../sound';
+import { soundEffects } from '../sound'; // Aktiverar importen av ljudeffekter
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
@@ -181,7 +181,7 @@ const EventView: React.FC<{
       for (const effect of newStatusEffects) { // Iterate over potentially updated effects
           if (effect.type === 'burning' && effect.damage) {
               hp = Math.max(0, hp - effect.damage);
-              // soundEffects.burn();
+              soundEffects.burn(); // Aktiverad ljudeffekt
               addLogMessage(`${actor.name} tar ${effect.damage} brännskada!`);
               addDamagePopup(effect.damage.toString(), actor.id, 'status_damage');
           }
@@ -350,7 +350,7 @@ const EventView: React.FC<{
       }
       const totalBaseDamage = baseDamage + hettaBonus;
 
-      // if (!isSkill) soundEffects.slash();
+      if (!isSkill) soundEffects.slash(); // Aktiverad ljudeffekt
       updateActorState(attackerId, { animationState: 'attacking', atb: 0, statusEffects: attacker.statusEffects.filter(e => e.type !== 'defending') });
       await sleep(300);
 
@@ -359,11 +359,11 @@ const EventView: React.FC<{
       const isDodge = isBlinded ? dodgeRoll < 50 : dodgeRoll < (defender.type === 'PLAYER' ? playerStats.dodge : 0);
 
       if(isDodge) {
-          // soundEffects.miss();
+          soundEffects.miss(); // Aktiverad ljudeffekt
           addDamagePopup("MISS", defenderId, 'miss');
           addLogMessage(`${attacker.name} attackerade ${defender.name}, men missade!`);
       } else {
-          // soundEffects.hit();
+          soundEffects.hit(); // Aktiverad ljudeffekt
           addVisualEffect(isSkill ? 'fireball' : 'slash', attackerId, defenderId);
           await sleep(200);
 
@@ -678,6 +678,7 @@ const EventView: React.FC<{
               if (rankData.healMultiplier) {
                 healAmount = Math.floor(player.maxHp * rankData.healMultiplier + playerStats.intelligence);
                 if(hasFullFlow) healAmount = Math.floor(healAmount * 1.5);
+                soundEffects.heal(); // Aktiverad ljudeffekt
                 const newHp = Math.min(player.maxHp, player.hp + healAmount);
                 addVisualEffect('heal', player.id, player.id);
                 await sleep(300);
@@ -855,7 +856,7 @@ const EventView: React.FC<{
       if (actors.length > 1 && player && player.isDefeated) {
           setGameState('DEFEAT');
       } else if (actors.length > 1 && activeEnemies.length === 0) {
-          // soundEffects.victory();
+          soundEffects.victory(); // Aktiverad ljudeffekt
           setGameState('VICTORY');
       }
   }, [actors, gameState]);

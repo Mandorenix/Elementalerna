@@ -9,8 +9,7 @@ import DeckView from './components/DeckView';
 import DebugView from './components/DebugView';
 import type { View, Character, CharacterStats, Item, EquipmentSlot, Archetype, GameEvent, EventCard, Outcome, PlayerAbility, ItemStats, Element } from './types';
 import { INITIAL_CHARACTER_BASE, SKILL_TREE_DATA, Icons, PLAYER_ABILITIES, ItemVisuals, ELEMENTAL_AFFINITY_BONUSES, PASSIVE_TALENTS, ULTIMATE_ABILITIES } from './constants';
-import { generateRandomCard, generateBossCard } from './utils/cardGenerator';
-import { generateRandomItem } from './constants'; // Import generateRandomItem from constants
+import { generateRandomCard, generateBossCard, generateRandomItem } from './utils/cardGenerator'; // Corrected import for generateRandomItem
 
 const initialEquipment: Record<EquipmentSlot, Item | null> = {
     'Hjälm': { id: 'start_helmet', name: 'Läderhuva', slot: 'Hjälm', rarity: 'Vanlig', stats: { rustning: 2 }, icon: Icons.Shield, visual: ItemVisuals.LeatherHelm },
@@ -38,7 +37,7 @@ function App() {
   const [skillPoints, setSkillPoints] = useState(0);
   const [attributePoints, setAttributePoints] = useState(0);
   const [elementalPoints, setElementalPoints] = useState(0);
-  const [unlockedSkills, setUnlockedSkills] = useState<Map<string, number>>(new Map());
+  const [unlockedSkills, setUnlockedSkills] = new Map<string, number>([]);
   const [equipment, setEquipment] = useState<Record<EquipmentSlot, Item | null>>(initialEquipment);
   const [inventory, setInventory] = useState<Item[]>([]);
   const [activeView, setActiveView] = useState<View>('skillTree');

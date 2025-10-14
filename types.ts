@@ -68,14 +68,14 @@ export interface Archetype {
 export interface PassiveTalent {
   id: string;
   name: string;
-  description: string;
+  description?: string; // Gjort valfri
   element: Element;
   icon: React.FC;
   effect:
     | { type: 'COUNTER_ATTACK'; element?: Element; damage?: number; chance?: number; }
     | { type: 'HEAL_BONUS'; value?: number; isPercentage?: boolean; }
     | { type: 'RESOURCE_GAIN'; stat?: keyof CharacterStats | 'aether' | 'undvikandechans' | 'kritiskTräff' | 'skada' | 'rustning'; value?: number; isPercentage?: boolean; }
-    | { type: 'APPLY_STATUS'; status: StatusEffect['type']; chance: number; duration?: number; value?: number; isPercentage?: boolean; } // Added duration, value, isPercentage for status
+    | { type: 'APPLY_STATUS'; status: StatusEffect['type']; chance: number; duration?: number; value?: number; isPercentage?: boolean; damage?: number; accuracyReduction?: number; }
     | { type: 'DEAL_ELEMENTAL_DAMAGE'; element: Element; damage: number; chance: number; }
     | { type: 'STAT_BONUS'; stat: keyof CharacterStats | 'skada' | 'rustning' | 'undvikandechans' | 'kritiskTräff'; value: number; isPercentage?: boolean; };
 }
@@ -84,7 +84,7 @@ export interface PassiveTalent {
 export interface UltimateAbility {
   id: string;
   name: string;
-  description: string;
+  description?: string; // Gjort valfri
   element: Element;
   icon: React.FC;
   cooldown: number; // In turns
@@ -98,7 +98,7 @@ export interface UltimateAbility {
 // --- UPDATERAD ElementalBonus interface ---
 export interface ElementalBonus {
   threshold: number; // Points needed to unlock this bonus
-  description: string;
+  description?: string; // Gjort valfri
   effect: {
     type: 'STAT_BONUS' | 'RESOURCE_REGEN' | 'RESISTANCE' | 'DAMAGE_BONUS' | 'PASSIVE_TALENT' | 'ULTIMATE_ABILITY' | 'HEAL_BONUS';
     stat?: keyof CharacterStats | 'skada' | 'rustning' | 'undvikandechans' | 'kritiskTräff' | 'damage' | 'armor' | 'aether';
@@ -156,10 +156,12 @@ export interface ItemAffix {
     chance: number;
   } | {
     type: 'APPLY_STATUS';
-    status: StatusEffect['type']; // Changed to StatusEffect['type']
+    status: StatusEffect['type'];
     chance: number;
-    duration?: number; // Added duration
-    value?: number; // Added value for statuses like armor_reduction
+    duration?: number;
+    value?: number;
+    damage?: number; // Added for burning/poisoned
+    accuracyReduction?: number; // Added for steamed
   };
   description: string;
 }

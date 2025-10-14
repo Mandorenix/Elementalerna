@@ -74,9 +74,9 @@ export interface PassiveTalent {
     | { type: 'COUNTER_ATTACK'; element?: Element; damage?: number; chance?: number; }
     | { type: 'HEAL_BONUS'; value?: number; isPercentage?: boolean; }
     | { type: 'RESOURCE_GAIN'; stat?: keyof CharacterStats | 'aether' | 'undvikandechans' | 'kritiskTräff' | 'skada' | 'rustning'; value?: number; isPercentage?: boolean; }
-    | { type: 'APPLY_STATUS'; status: StatusEffect['type']; chance: number; duration?: number; value?: number; isPercentage?: boolean; damage?: number; accuracyReduction?: number; element?: Element; } // Added element
+    | { type: 'APPLY_STATUS'; status: StatusEffect['type']; chance: number; duration?: number; value?: number; isPercentage?: boolean; damage?: number; accuracyReduction?: number; element?: Element; }
     | { type: 'DEAL_ELEMENTAL_DAMAGE'; element: Element; damage: number; chance: number; }
-    | { type: 'STAT_BONUS'; stat: keyof CharacterStats | 'skada' | 'rustning' | 'undvikandechans' | 'kritiskTräff'; value: number; isPercentage?: boolean; element?: Element; }; // Added element
+    | { type: 'STAT_BONUS'; stat: keyof CharacterStats | 'skada' | 'rustning' | 'undvikandechans' | 'kritiskTräff'; value: number; isPercentage?: boolean; element?: Element; };
 }
 
 export interface UltimateAbility {
@@ -87,7 +87,7 @@ export interface UltimateAbility {
   icon: React.FC;
   cooldown: number; // In turns
   currentCooldown?: number; // New: Track current cooldown
-  targetType?: 'SINGLE_ENEMY' | 'ALL_ENEMIES' | 'LINE_AOE' | 'CIRCLE_AOE' | 'LOWEST_HP_ENEMY' | 'HIGHEST_HP_ENEMY' | 'SELF' | 'ALL_ALLIES'; // New
+  targetType?: 'SINGLE_ENEMY' | 'ALL_ENEMIES' | 'LINE_AOE' | 'CIRCLE_AOE' | 'LOWEST_HP_ENEMY' | 'HIGHEST_HP_ENEMY' | 'SELF' | 'ALL_ALLIES';
   effect:
     | { type: 'AOE_DAMAGE'; damage?: number; buff?: StatusEffect['type'] | 'pushed_back' | 'armor_reduction_buff' | 'stunned_buff' | 'frozen_buff' | 'cleanse_debuffs_action' | 'cleanse_all_debuffs_action'; duration?: number; value?: number; isPercentage?: boolean; }
     | { type: 'MASS_HEAL'; heal?: number; buff?: StatusEffect['type'] | 'cleanse_debuffs_action' | 'cleanse_all_debuffs_action'; duration?: number; value?: number; isPercentage?: boolean; }
@@ -99,23 +99,23 @@ export interface ElementalBonus {
   threshold: number; // Points needed to unlock this bonus
   description?: string;
   effect: {
-    type: 'STAT_BONUS' | 'RESOURCE_REGEN' | 'RESISTANCE' | 'DAMAGE_BONUS' | 'PASSIVE_TALENT' | 'ULTIMATE_ABILITY' | 'HEAL_BONUS' | 'APPLY_STATUS'; // Added APPLY_STATUS
+    type: 'STAT_BONUS' | 'RESOURCE_REGEN' | 'RESISTANCE' | 'DAMAGE_BONUS' | 'PASSIVE_TALENT' | 'ULTIMATE_ABILITY' | 'HEAL_BONUS' | 'APPLY_STATUS';
     stat?: keyof CharacterStats | 'skada' | 'rustning' | 'undvikandechans' | 'kritiskTräff' | 'damage' | 'armor' | 'aether';
     element?: Element;
     value?: number; // Flat value or percentage
     isPercentage?: boolean;
     talentId?: string; // For PASSIVE_TALENT
     abilityId?: string; // For ULTIMATE_ABILITY
-    status?: StatusEffect['type']; // Added for APPLY_STATUS
-    duration?: number; // Added for APPLY_STATUS
-    chance?: number; // Added for APPLY_STATUS
-    damage?: number; // Added for APPLY_STATUS (e.g., burning)
-    accuracyReduction?: number; // Added for APPLY_STATUS (e.g., steamed)
+    status?: StatusEffect['type'];
+    duration?: number;
+    chance?: number;
+    damage?: number;
+    accuracyReduction?: number;
   };
 }
 
 export interface Character {
-  id: string; // Added id to Character
+  id: string;
   name: string;
   archetype: ArchetypeName;
   level: number;
@@ -130,10 +130,10 @@ export interface Character {
   };
   elementalAffinities: Partial<Record<Element, number>>;
   unlockedPassiveTalents: string[];
-  unlockedUltimateAbilities: UltimateAbility[]; // Changed to store full UltimateAbility objects
-  activeAbilities: PlayerAbility[]; // New: Store active player abilities with cooldowns
-  equippedItems: Item[]; // New: Track equipped items
-  statusEffects?: StatusEffect[]; // New: Track status effects on character
+  unlockedUltimateAbilities: UltimateAbility[];
+  activeAbilities: PlayerAbility[];
+  equippedItems: Item[];
+  statusEffects?: StatusEffect[];
 }
 
 export type View = 'skillTree' | 'characterSheet' | 'inventory' | 'event' | 'deck' | 'debug';
@@ -191,9 +191,9 @@ export interface AbilityRankData {
   healMultiplier?: number;
   duration?: number;
   chance?: number;
-  statusEffectsToApply?: StatusEffect['type'][]; // New
-  value?: number; // Added for buffs/debuffs
-  isPercentage?: boolean; // Added for buffs/debuffs
+  statusEffectsToApply?: StatusEffect['type'][];
+  value?: number;
+  isPercentage?: boolean;
 }
 
 export interface PlayerAbility {
@@ -202,25 +202,25 @@ export interface PlayerAbility {
   element: Element;
   isAoe?: boolean;
   category?: 'damage' | 'heal' | 'buff' | 'cc';
-  targetType?: 'SINGLE_ENEMY' | 'ALL_ENEMIES' | 'LINE_AOE' | 'CIRCLE_AOE' | 'LOWEST_HP_ENEMY' | 'HIGHEST_HP_ENEMY' | 'SELF' | 'ALL_ALLIES'; // New
+  targetType?: 'SINGLE_ENEMY' | 'ALL_ENEMIES' | 'LINE_AOE' | 'CIRCLE_AOE' | 'LOWEST_HP_ENEMY' | 'HIGHEST_HP_ENEMY' | 'SELF' | 'ALL_ALLIES';
   ranks: AbilityRankData[];
   cooldown?: number;
   currentCooldown?: number;
 }
 
-export type EnemyBehavior = 'ATTACK_PLAYER' | 'ATTACK_LOWEST_HP' | 'APPLY_DEBUFF_TO_PLAYER' | 'BUFF_SELF' | 'BUFF_ALLIES' | 'ATTACK_HIGHEST_DAMAGE_PLAYER'; // New behaviors
+export type EnemyBehavior = 'ATTACK_PLAYER' | 'ATTACK_LOWEST_HP' | 'APPLY_DEBUFF_TO_PLAYER' | 'BUFF_SELF' | 'BUFF_ALLIES' | 'ATTACK_HIGHEST_DAMAGE_PLAYER';
 
 export interface EnemyAbility {
   id: string;
   name: string;
   element: Element;
   category: 'damage' | 'heal' | 'buff' | 'cc';
-  targetType: 'SINGLE_PLAYER' | 'ALL_PLAYERS' | 'SELF' | 'ALL_ENEMIES'; // Simplified for enemies
+  targetType: 'SINGLE_PLAYER' | 'ALL_PLAYERS' | 'SELF' | 'ALL_ENEMIES';
   damageMultiplier?: number;
   healMultiplier?: number;
   statusEffectsToApply?: StatusEffect['type'][];
   duration?: number;
-  value?: number; // For buffs/debuffs
+  value?: number;
   cooldown: number;
   currentCooldown?: number;
 }
@@ -247,15 +247,15 @@ export interface Enemy {
   };
   resistances?: Partial<Record<Element, number>>;
   icon: React.FC;
-  behavior?: EnemyBehavior; // New
-  abilities?: EnemyAbility[]; // New
-  phases?: EnemyPhase[]; // New for bosses
-  specialAbility?: 'HASTE_SELF'; // New: For simple, hardcoded enemy abilities
+  behavior?: EnemyBehavior;
+  abilities?: EnemyAbility[];
+  phases?: EnemyPhase[];
+  specialAbility?: 'HASTE_SELF';
   onHitEffect?:
     | { type: 'burning'; duration: number; damage: number }
     | { type: 'poison'; duration: number; damage: number }
     | { type: 'slow'; duration: number };
-  statusEffects?: StatusEffect[]; // New: Track status effects on enemy
+  statusEffects?: StatusEffect[];
 }
 
 export interface EnvironmentEffect {
@@ -315,11 +315,11 @@ export type StatusEffect =
   | { type: 'stunned'; duration: number; }
   | { type: 'frozen'; duration: number; }
   | { type: 'damage_reduction'; duration: number; value: number; isPercentage?: boolean; }
-  | { type: 'paralyzed'; duration: number; } // New
-  | { type: 'bleeding'; duration: number; damage: number; } // New
-  | { type: 'frightened'; duration: number; chanceToMissTurn: number; chanceToAttackRandom: number; } // New
-  | { type: 'reflecting'; duration: number; element: Element; value: number; } // New
-  | { type: 'absorbing'; duration: number; element: Element; value: number; }; // New
+  | { type: 'paralyzed'; duration: number; }
+  | { type: 'bleeding'; duration: number; damage: number; }
+  | { type: 'frightened'; duration: number; chanceToMissTurn: number; chanceToAttackRandom: number; }
+  | { type: 'reflecting'; duration: number; element: Element; value: number; }
+  | { type: 'absorbing'; duration: number; element: Element; value: number; };
 
 export interface CombatLogMessage {
   id: number;

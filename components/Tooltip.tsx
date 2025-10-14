@@ -57,6 +57,7 @@ function Tooltip({ skill, currentRank, isUnlocked, canUnlock }: TooltipProps) {
   const isMaxed = currentRank === skill.maxRank;
   const abilityData = PLAYER_ABILITIES[skill.id];
 
+
   const getStatus = () => {
     if (isMaxed) return { text: "Max Rank", color: "text-purple-400" };
     if (isUnlocked) return { text: "Uppgraderbar", color: "text-yellow-400" };

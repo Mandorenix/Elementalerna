@@ -9,7 +9,7 @@ import DeckView from './components/DeckView';
 import DebugView from './components/DebugView';
 import type { View, Character, CharacterStats, Item, EquipmentSlot, Archetype, GameEvent, EventCard, Outcome, PlayerAbility, ItemStats, Element, UltimateAbility } from './types';
 import { INITIAL_CHARACTER_BASE, SKILL_TREE_DATA, Icons, PLAYER_ABILITIES, ItemVisuals, ELEMENTAL_AFFINITY_BONUSES, PASSIVE_TALENTS, ULTIMATE_ABILITIES, ARCHETYPES } from './constants';
-import { generateRandomCard, generateBossCard, generateRandomItem } from './utils/cardGenerator'; // Corrected import for generateRandomItem
+import { generateRandomCard, generateBossCard, generateRandomItem } from './utils/cardGenerator';
 
 const initialEquipment: Record<EquipmentSlot, Item | null> = {
     'Hjälm': { id: 'start_helmet', name: 'Läderhuva', slot: 'Hjälm', rarity: 'Vanlig', stats: { rustning: 2 }, icon: Icons.Shield, visual: ItemVisuals.LeatherHelm },
@@ -27,7 +27,6 @@ const CARDS_PER_ROUND = 8;
 const generateNewRoundDeck = (playerLevel: number, round: number): EventCard[] => {
     const regularCards = Array.from({ length: CARDS_PER_ROUND - 1 }, () => generateRandomCard(playerLevel, round));
     const bossCard = generateBossCard(playerLevel, round);
-    // The boss card is the last one in the deck array, so it will be the last one drawn.
     return [...regularCards, bossCard];
 };
 
@@ -37,12 +36,11 @@ function App() {
   const [skillPoints, setSkillPoints] = useState(0);
   const [attributePoints, setAttributePoints] = useState(0);
   const [elementalPoints, setElementalPoints] = useState(0);
-  const [unlockedSkills, setUnlockedSkills] = useState<Map<string, number>>(new Map()); // Corrected useState initialization
+  const [unlockedSkills, setUnlockedSkills] = useState<Map<string, number>>(new Map());
   const [equipment, setEquipment] = useState<Record<EquipmentSlot, Item | null>>(initialEquipment);
   const [inventory, setInventory] = useState<Item[]>([]);
   const [activeView, setActiveView] = useState<View>('skillTree');
   
-  // New Deck State
   const [deck, setDeck] = useState<EventCard[]>([]);
   const [discardPile, setDiscardPile] = useState<EventCard[]>([]);
   const [drawnCard, setDrawnCard] = useState<EventCard | null>(null);
@@ -64,7 +62,7 @@ function App() {
 
     const newCharacter: Character = {
       ...INITIAL_CHARACTER_BASE,
-      id: `char-${Date.now()}`, // Generate a unique ID
+      id: `char-${Date.now()}`,
       name: archetype.name,
       archetype: archetype.name,
       stats: newStats,
@@ -82,9 +80,9 @@ function App() {
       elementalAffinities: {},
       unlockedPassiveTalents: [],
       unlockedUltimateAbilities: [],
-      activeAbilities: [], // Initialize active abilities
-      equippedItems: Object.values(initialEquipment).filter(Boolean) as Item[], // Initialize equipped items
-      statusEffects: [], // Initialize status effects
+      activeAbilities: [],
+      equippedItems: Object.values(initialEquipment).filter(Boolean) as Item[],
+      statusEffects: [],
     };
     
     setCharacter(newCharacter);
@@ -96,7 +94,7 @@ function App() {
     if (archetype.startingSkill) {
       initialSkills.set(archetype.startingSkill, 1);
     }
-    setUnlockedSkills(initialSkills); // Corrected usage
+    setUnlockedSkills(initialSkills);
     
     setEquipment(initialEquipment);
     setInventory([]);
@@ -106,26 +104,48 @@ function App() {
     setDeck(generateNewRoundDeck(1, 1));
     setDiscardPile([]);
     setActiveView('deck');
-  }, [INITIAL_CHARACTER_BASE, setCharacter, setSkillPoints, setAttributePoints, setElementalPoints, setUnlockedSkills, setEquipment, setInventory, setCurrentEvent, setDrawnCard, setRoundLevel, setDeck, setDiscardPile, setActiveView]);
+  }, []);
 
   const handleResetCharacter = useCallback(() => {
     setCharacter(null);
-  }, [setCharacter]);
+  }, []);
 
   const unlockSkill = useCallback((skillId: string) => {
-    const skillData = SKILL_TREE_DATA[skillId]; // Access as object property
+    const skillData = SKILL_TREE_DATA[skillId];
     if (!skillData) return;
 
     const currentRank = unlockedSkills.get(skillId) || 0;
     if (skillPoints > 0 && currentRank < skillData.maxRank) {
         setSkillPoints(sp => sp - 1);
-        setUnlockedSkills(prevSkills => { // Corrected usage
+        setUnlockedSkills(prevSkills => {
             const newSkills = new Map(prevSkills);
             newSkills.set(skillId, currentRank + 1);
             return newSkills;
         });
+        // Add the ability to activeAbilities if it's a player ability
+        if (character && PLAYER_ABILITIES[skillId]) {
+            setCharacter(prevChar => {
+                if (!prevChar) return null;
+                const existingAbilityIndex = prevChar.activeAbilities.findIndex(ab => ab.id === skillId);
+                if (existingAbilityIndex !== -1) {
+                    // Update rank of existing ability
+                    const updatedAbilities = [...prevChar.activeAbilities];
+                    updatedAbilities[existingAbilityIndex] = {
+                        ...updatedAbilities[existingAbilityIndex],
+                        ranks: PLAYER_ABILITIES[skillId].ranks, // Ensure ranks are up-to-date
+                    };
+                    return { ...prevChar, activeAbilities: updatedAbilities };
+                } else {
+                    // Add new ability
+                    return {
+                        ...prevChar,
+                        activeAbilities: [...prevChar.activeAbilities, { ...PLAYER_ABILITIES[skillId], currentCooldown: 0 }],
+                    };
+                }
+            });
+        }
     }
-  }, [skillPoints, unlockedSkills, setSkillPoints, setUnlockedSkills, SKILL_TREE_DATA]);
+  }, [skillPoints, unlockedSkills, setSkillPoints, setUnlockedSkills, SKILL_TREE_DATA, character, setCharacter]);
   
   const gainExperience = useCallback((amount: number) => {
     if (!character) return;
@@ -312,12 +332,12 @@ function App() {
   const playerAbilities = useMemo(() => {
     const abilities: PlayerAbility[] = [];
     unlockedSkills.forEach((rank, skillId) => {
-        if (rank > 0 && PLAYER_ABILITIES[skillId]) { // 'rank' is now correctly typed as number
+        if (rank > 0 && PLAYER_ABILITIES[skillId]) {
             abilities.push(PLAYER_ABILITIES[skillId]);
         }
     });
     return abilities;
-  }, [unlockedSkills, PLAYER_ABILITIES]);
+  }, [unlockedSkills]);
 
   const playerCombatStats = useMemo(() => {
       if (!character) return null;
@@ -418,7 +438,7 @@ function App() {
             elementalAffinities={character.elementalAffinities}
             increaseElementalAffinity={increaseElementalAffinity}
             unlockedPassiveTalents={character.unlockedPassiveTalents}
-            unlockedUltimateAbilities={character.unlockedUltimateAbilities.map(ua => ua.id)} // Pass only IDs for now
+            unlockedUltimateAbilities={character.unlockedUltimateAbilities.map(ua => ua.id)}
         />;
       case 'inventory':
         return <Inventory items={inventory} onEquipItem={equipItem} />;

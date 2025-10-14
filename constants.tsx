@@ -57,11 +57,11 @@ export const Icons = {
   StatusStunned: createIcon('💫'),
   StatusFrozen: createIcon('🥶'),
   StatusDamageReduction: createIcon('🛡️⬇️'),
-  StatusParalyzed: createIcon(' paralysed'), // New
-  StatusBleeding: createIcon('🩸'), // New
-  StatusFrightened: createIcon('😱'), // New
-  StatusReflecting: createIcon('🪞'), // New
-  StatusAbsorbing: createIcon(' absorbing'), // New
+  StatusParalyzed: createIcon(' paralysed'),
+  StatusBleeding: createIcon('🩸'),
+  StatusFrightened: createIcon('😱'),
+  StatusReflecting: createIcon('🪞'),
+  StatusAbsorbing: createIcon(' absorbing'),
   EnemyGoblin: createIcon('👹'),
   EnemyGolem: createIcon('🗿'),
   Choice: createIcon('❓'),
@@ -134,15 +134,15 @@ export const STATUS_EFFECT_ICONS: Record<StatusEffect['type'], React.FC> = {
   stunned: Icons.StatusStunned,
   frozen: Icons.StatusFrozen,
   damage_reduction: Icons.StatusDamageReduction,
-  paralyzed: Icons.StatusParalyzed, // New
-  bleeding: Icons.StatusBleeding, // New
-  frightened: Icons.StatusFrightened, // New
-  reflecting: Icons.StatusReflecting, // New
-  absorbing: Icons.StatusAbsorbing, // New
+  paralyzed: Icons.StatusParalyzed,
+  bleeding: Icons.StatusBleeding,
+  frightened: Icons.StatusFrightened,
+  reflecting: Icons.StatusReflecting,
+  absorbing: Icons.StatusAbsorbing,
 };
 
 // --- Archetypes ---
-export const ARCHETYPES: Record<ArchetypeName, Archetype> = { // Changed to Record
+export const ARCHETYPES: Record<ArchetypeName, Archetype> = {
   Pyromanten: {
     name: 'Pyromanten',
     description: 'En mästare på eldmagi, specialiserad på att bränna fiender över tid.',
@@ -181,8 +181,8 @@ export const ARCHETYPES: Record<ArchetypeName, Archetype> = { // Changed to Reco
   },
 };
 
-// --- Skills ---
-export const SKILL_TREE_DATA: Record<string, Skill> = { // Changed to Record
+// --- Skill Tree Data (Nodes only) ---
+export const SKILL_TREE_DATA: Record<string, Skill> = {
   // Fire Skills
   fireball: {
     id: 'fireball',
@@ -236,6 +236,147 @@ export const SKILL_TREE_DATA: Record<string, Skill> = { // Changed to Record
   harden_skin: {
     id: 'harden_skin',
     name: 'Härda Hud',
+    description: 'Ökar din rustning under en kort period.',
+    dependencies: ['rock_throw'],
+    element: Element.EARTH,
+    icon: Icons.Earth,
+    x: 0, y: 1,
+    maxRank: 3,
+  },
+  // Wind Skills
+  gust: {
+    id: 'gust',
+    name: 'Vindstöt',
+    description: 'Gör vindskada och har en chans att sakta ner fienden.',
+    element: Element.WIND,
+    icon: Icons.Wind,
+    x: 0, y: 0,
+    maxRank: 3,
+  },
+  cyclone: {
+    id: 'cyclone',
+    name: 'Cyklon',
+    description: 'Gör vindskada till alla fiender i ett område och har en chans att förlama dem.',
+    dependencies: ['gust'],
+    element: Element.WIND,
+    icon: Icons.Wind,
+    x: 1, y: 0,
+    maxRank: 3,
+  },
+  evasive_maneuver: {
+    id: 'evasive_maneuver',
+    name: 'Undvikande Manöver',
+    description: 'Ökar din undvikandechans under en kort period.',
+    dependencies: ['gust'],
+    element: Element.WIND,
+    icon: Icons.Wind,
+    x: 0, y: 1,
+    maxRank: 3,
+  },
+  // Water Skills
+  water_bolt: {
+    id: 'water_bolt',
+    name: 'Vattenprojektil',
+    description: 'Kastar en vattenprojektil som gör vattenskada.',
+    element: Element.WATER,
+    icon: Icons.Water,
+    x: 0, y: 0,
+    maxRank: 3,
+  },
+  healing_wave: {
+    id: 'healing_wave',
+    name: 'Helande Våg',
+    description: 'Läker dig själv eller en allierad.',
+    dependencies: ['water_bolt'],
+    element: Element.WATER,
+    icon: Icons.Water,
+    x: 1, y: 0,
+    maxRank: 3,
+  },
+  freeze: {
+    id: 'freeze',
+    name: 'Frysning',
+    description: 'Fryser en fiende och hindrar dem från att agera.',
+    dependencies: ['water_bolt'],
+    element: Element.WATER,
+    icon: Icons.Water,
+    x: 0, y: 1,
+    maxRank: 3,
+  },
+};
+
+// --- Player Abilities (Combat Actions) ---
+export const PLAYER_ABILITIES: Record<string, PlayerAbility> = {
+  // Fire Abilities
+  fireball: {
+    id: 'fireball',
+    name: 'Eldklot',
+    element: Element.FIRE,
+    category: 'damage',
+    targetType: 'SINGLE_ENEMY',
+    ranks: [
+      { description: 'Gör 10 eldskada. 20% chans att bränna i 2 rundor (5 skada/runda).', resourceCost: 10, damageMultiplier: 1.0, chance: 20, duration: 2, dotDamage: 5, statusEffectsToApply: ['burning'] },
+      { description: 'Gör 15 eldskada. 30% chans att bränna i 2 rundor (7 skada/runda).', resourceCost: 12, damageMultiplier: 1.5, chance: 30, duration: 2, dotDamage: 7, statusEffectsToApply: ['burning'] },
+      { description: 'Gör 20 eldskada. 40% chans att bränna i 3 rundor (10 skada/runda).', resourceCost: 15, damageMultiplier: 2.0, chance: 40, duration: 3, dotDamage: 10, statusEffectsToApply: ['burning'] },
+    ],
+    cooldown: 0,
+  },
+  incinerate: {
+    id: 'incinerate',
+    name: 'Förbränna',
+    element: Element.FIRE,
+    category: 'damage',
+    targetType: 'SINGLE_ENEMY',
+    ranks: [
+      { description: 'Gör 30 eldskada.', resourceCost: 25, damageMultiplier: 3.0 },
+      { description: 'Gör 45 eldskada.', resourceCost: 30, damageMultiplier: 4.5 },
+      { description: 'Gör 60 eldskada.', resourceCost: 35, damageMultiplier: 6.0 },
+    ],
+    cooldown: 4,
+  },
+  fire_shield: {
+    id: 'fire_shield',
+    name: 'Eldsköld',
+    element: Element.FIRE,
+    category: 'buff',
+    targetType: 'SELF',
+    ranks: [
+      { description: 'Omger dig med en sköld som skadar anfallare (5 skada) i 3 rundor.', resourceCost: 20, duration: 3, value: 5, statusEffectsToApply: ['retaliating'] },
+      { description: 'Omger dig med en sköld som skadar anfallare (8 skada) i 4 rundor.', resourceCost: 25, duration: 4, value: 8, statusEffectsToApply: ['retaliating'] },
+      { description: 'Omger dig med en sköld som skadar anfallare (12 skada) i 5 rundor.', resourceCost: 30, duration: 5, value: 12, statusEffectsToApply: ['retaliating'] },
+    ],
+    cooldown: 6,
+  },
+  // Earth Abilities
+  rock_throw: {
+    id: 'rock_throw',
+    name: 'Stenkast',
+    element: Element.EARTH,
+    category: 'damage',
+    targetType: 'SINGLE_ENEMY',
+    ranks: [
+      { description: 'Gör 12 fysisk skada.', resourceCost: 8, damageMultiplier: 1.2 },
+      { description: 'Gör 18 fysisk skada.', resourceCost: 10, damageMultiplier: 1.8 },
+      { description: 'Gör 24 fysisk skada.', resourceCost: 13, damageMultiplier: 2.4 },
+    ],
+    cooldown: 0,
+  },
+  earthquake: {
+    id: 'earthquake',
+    name: 'Jordbävning',
+    element: Element.EARTH,
+    category: 'damage',
+    targetType: 'ALL_ENEMIES',
+    ranks: [
+      { description: 'Gör 15 jordskada till alla fiender.', resourceCost: 30, damageMultiplier: 1.5 },
+      { description: 'Gör 25 jordskada till alla fiender.', resourceCost: 35, damageMultiplier: 2.5 },
+      { description: 'Gör 35 jordskada till alla fiender.', resourceCost: 40, damageMultiplier: 3.5 },
+    ],
+    cooldown: 6,
+  },
+  harden_skin: {
+    id: 'harden_skin',
+    name: 'Härda Hud',
     element: Element.EARTH,
     category: 'buff',
     targetType: 'SELF',
@@ -246,6 +387,7 @@ export const SKILL_TREE_DATA: Record<string, Skill> = { // Changed to Record
     ],
     cooldown: 5,
   },
+  // Wind Abilities
   gust: {
     id: 'gust',
     name: 'Vindstöt',
@@ -264,7 +406,7 @@ export const SKILL_TREE_DATA: Record<string, Skill> = { // Changed to Record
     name: 'Cyklon',
     element: Element.WIND,
     category: 'cc',
-    targetType: 'CIRCLE_AOE', // New AOE type
+    targetType: 'ALL_ENEMIES', // Changed to ALL_ENEMIES for simplicity in current combat system
     ranks: [
       { description: 'Gör 10 vindskada till alla fiender i ett område. 20% chans att förlama i 1 runda.', resourceCost: 28, damageMultiplier: 1.0, chance: 20, duration: 1, statusEffectsToApply: ['paralyzed'] },
       { description: 'Gör 15 vindskada till alla fiender i ett område. 30% chans att förlama i 1 runda.', resourceCost: 32, damageMultiplier: 1.5, chance: 30, duration: 1, statusEffectsToApply: ['paralyzed'] },
@@ -285,6 +427,7 @@ export const SKILL_TREE_DATA: Record<string, Skill> = { // Changed to Record
     ],
     cooldown: 4,
   },
+  // Water Abilities
   water_bolt: {
     id: 'water_bolt',
     name: 'Vattenprojektil',
@@ -303,7 +446,7 @@ export const SKILL_TREE_DATA: Record<string, Skill> = { // Changed to Record
     name: 'Helande Våg',
     element: Element.WATER,
     category: 'heal',
-    targetType: 'SINGLE_ENEMY', // Can target self or ally in future, for now single enemy is placeholder
+    targetType: 'SELF', // Changed to SELF for simplicity in current combat system
     ranks: [
       { description: 'Läker 20 hälsa.', resourceCost: 15, healMultiplier: 2.0 },
       { description: 'Läker 30 hälsa.', resourceCost: 18, healMultiplier: 3.0 },
@@ -447,7 +590,7 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
 };
 
 // --- Elemental Bonuses ---
-export const ELEMENTAL_AFFINITY_BONUSES = { // Renamed to ELEMENTAL_AFFINITY_BONUSES
+export const ELEMENTAL_AFFINITY_BONUSES = {
   [Element.FIRE]: [
     { threshold: 5, description: 'Ökad eldskada.', effect: { type: 'STAT_BONUS', stat: 'skada', value: 5, isPercentage: true, element: Element.FIRE } },
     { threshold: 10, description: 'Låser upp passiv talang: Pyroman.', effect: { type: 'PASSIVE_TALENT', talentId: 'pyromaniac' } },
@@ -475,7 +618,7 @@ export const ELEMENTAL_AFFINITY_BONUSES = { // Renamed to ELEMENTAL_AFFINITY_BON
 };
 
 // --- Initial Player State ---
-export const INITIAL_CHARACTER_BASE = { // Renamed to INITIAL_CHARACTER_BASE
+export const INITIAL_CHARACTER_BASE = {
   stats: {
     strength: 10,
     dexterity: 10,

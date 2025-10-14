@@ -13,7 +13,7 @@ interface FooterProps {
 }
 
 const FooterButton: React.FC<{
-  label: string;
+  label: string; // Behåll label för title-attributet för tillgänglighet
   icon: React.ReactElement;
   isActive: boolean;
   onClick: () => void;
@@ -25,10 +25,10 @@ const FooterButton: React.FC<{
     <button
       onClick={onClick}
       className={`flex flex-col items-center justify-center w-16 h-16 border-2 text-xs transition-colors ${isActive ? activeClasses : inactiveClasses}`}
-      title={label} // Add title for accessibility
+      title={label} // Använd label för title-attributet för tillgänglighet
     >
       <div className="mb-1">{icon}</div>
-      <span className="text-[10px]">{label}</span>
+      {/* Textetiketten är borttagen härifrån */}
     </button>
   );
 };
@@ -58,23 +58,23 @@ const Footer: React.FC<FooterProps> = ({ skillPoints, attributePoints, elemental
         </div>
       </div>
 
-      {/* Center: Points */}
+      {/* Center: Points (nu med ikoner istället för text) */}
        <div className="flex space-x-4 px-4">
-        <div className="text-yellow-400 text-center">
-            <span className="text-xs">Färdighetspoäng</span>
+        <div className="text-yellow-400 text-center flex flex-col items-center">
+            <div className="w-6 h-6 flex items-center justify-center mb-1"><Icons.Boon /></div>
             <div className="font-bold text-lg">{skillPoints}</div>
         </div>
-        <div className="text-cyan-400 text-center">
-            <span className="text-xs">Attributpoäng</span>
+        <div className="text-cyan-400 text-center flex flex-col items-center">
+            <div className="w-6 h-6 flex items-center justify-center mb-1"><Icons.Push /></div>
             <div className="font-bold text-lg">{attributePoints}</div>
         </div>
-        <div className="text-orange-400 text-center">
-            <span className="text-xs">Elementpoäng</span>
+        <div className="text-orange-400 text-center flex flex-col items-center">
+            <div className="w-6 h-6 flex items-center justify-center mb-1"><Icons.Water /></div>
             <div className="font-bold text-lg">{elementalPoints}</div>
         </div>
        </div>
 
-      {/* Right Side: Navigation */}
+      {/* Right Side: Navigation (nu med bara ikoner) */}
       <div className="flex space-x-2">
         <FooterButton
           label="Däck"

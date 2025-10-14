@@ -568,7 +568,7 @@ const EventView: React.FC<{
                      addDamagePopup(newStatus.damage!.toString(), target.id, 'status_damage');
                      await sleep(500);
                  } 
-                 // Reaction: Fire + Slowed = Steamed (NEW)
+                 // Reaction: Fire + Slowed = Steamed (already implemented)
                  else if (abilityInfo.element === Element.FIRE && target.statusEffects.some(e => e.type === 'slowed')) {
                      addLogMessage(`${target.name}s kyla förångades av elden!`);
                      updateActorState(target.id, {
@@ -605,7 +605,7 @@ const EventView: React.FC<{
               break;
             case 'earth_1': // Stenhud
               if (rankData.duration) {
-                // Reaction: Earth + Poisoned = Cleansed (NEW)
+                // Reaction: Earth + Poisoned = Cleansed (already implemented)
                 if (player.statusEffects.some(e => e.type === 'poisoned')) {
                     addLogMessage(`Jordens kraft renar dig från giftet!`);
                     updateActorState(player.id, {
@@ -636,7 +636,7 @@ const EventView: React.FC<{
               break;
             case 'wind_3': // Cyklon
                 if (target && rankData.damageMultiplier) {
-                    // Reaction: Wind + Rooted/Slowed (from Mud) = Blinded (NEW)
+                    // Reaction: Wind + Rooted/Slowed (from Mud) = Blinded (already implemented)
                     const isRootedOrSlowedByMud = target.statusEffects.some(e => e.type === 'rooted' || (e.type === 'slowed' && event.element === Element.MUD)); // Assuming Mud environment for slowed
                     if (isRootedOrSlowedByMud) {
                         addLogMessage(`Vinden torkar ut leran och bländar ${target.name}!`);
@@ -998,6 +998,14 @@ const EventView: React.FC<{
 
   return (
     <div className="flex-grow w-full h-full p-2 text-white flex flex-col items-center justify-center bg-black/80 relative overflow-hidden">
+        {/* Environment Display */}
+        {event.environment && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 pixelated-border p-3 text-center z-10 max-w-md">
+                <h3 className="text-lg text-yellow-400 mb-1">{event.environment.name}</h3>
+                <p className="text-xs text-gray-300">{event.environment.description}</p>
+            </div>
+        )}
+
         {/* Battle Scene */}
         <div className="w-full flex justify-between items-end px-16 absolute bottom-64 z-10">
              <div className="flex space-x-8">

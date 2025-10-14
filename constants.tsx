@@ -938,6 +938,39 @@ export const createCombatPayload = (playerLevel: number, element: Element, diffi
                 }
             ]
         };
+    } else if (element === Element.WIND && Math.random() < 0.25) { // New environment for Wind
+        environment = {
+            name: "Virvlande Vindar",
+            description: "Starka vindar sveper över slagfältet. Alla icke-vind-varelser har en chans att bli saktade.",
+            element: Element.WIND,
+            effects: [
+                {
+                    description: "Alla icke-vind-varelser har 20% chans att bli saktade i 2 rundor.",
+                    type: 'status_apply',
+                    status: 'slowed',
+                    statusDuration: 2,
+                    statusChance: 20,
+                    targetScope: 'non_elemental',
+                    targetElement: Element.WIND
+                }
+            ]
+        };
+    } else if (element === Element.FIRE && Math.random() < 0.25) { // New environment for Fire
+        environment = {
+            name: "Glödande Mark",
+            description: "Marken glöder av hetta. Alla icke-eld-varelser tar 3 eldskada varje runda.",
+            element: Element.FIRE,
+            effects: [
+                {
+                    description: "Alla icke-eld-varelser tar 3 eldskada varje runda.",
+                    type: 'dot',
+                    element: Element.FIRE,
+                    value: 3,
+                    targetScope: 'non_elemental',
+                    targetElement: Element.FIRE
+                }
+            ]
+        };
     }
 
 

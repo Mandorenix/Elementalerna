@@ -1,5 +1,5 @@
 import React from 'react';
-import { Element, type EventCard, type GameEvent, type Outcome, type Item, type ItemStats, type ItemAffix, type EquipmentSlot, type Rarity, type Enemy, type PuzzleChallenge, type MerchantOffer, type CharacterStats } from '../types';
+import { Element, type EventCard, type GameEvent, type Outcome, type Item, type ItemStats, type ItemAffix, type EquipmentSlot, type Rarity, type Enemy, type PuzzleChallenge, type MerchantOffer, type CharacterStats, type ChoiceOption, type EnvironmentEffect } from '../types';
 import { ELEMENT_ICONS, Icons, ItemVisuals } from '../constants';
 
 // Re-map the enum to a plain object for easier iteration if needed, and to avoid circular dependencies
@@ -123,8 +123,8 @@ const PUZZLE_SCENARIOS = [
         successOutcome: { log: "Du löste gåtan! Vägen öppnas och du känner dig stärkt.", xp: 50 * round, healthChange: 10 },
         failureOutcome: { log: "Gåtan var för svår. Du tar skada när du försöker tvinga dig förbi.", healthChange: -20 - (round * 5) },
         options: [
-            { buttonText: "Försök lösa gåtan (Intelligens)", description: "Använd din visdom för att tyda runan." },
-            { buttonText: "Försök tvinga dig förbi (Styrka)", description: "Använd råstyrka för att bryta igenom." },
+            { buttonText: "Försök lösa gåtan (Intelligens)", description: "Använd din visdom för att tyda runan.", outcome: { log: "Du försöker lösa gåtan." } },
+            { buttonText: "Försök tvinga dig förbi (Styrka)", description: "Använd råstyrka för att bryta igenom.", outcome: { log: "Du försöker tvinga dig förbi." } },
         ]
     }),
     (playerLevel: number, round: number, element: Element): PuzzleChallenge => ({
@@ -134,8 +134,8 @@ const PUZZLE_SCENARIOS = [
         successOutcome: { log: `Du kanaliserar din ${Element[element]}-affinitet och barriären upplöses!`, xp: 75 * round, items: [generateRandomItem(playerLevel)] },
         failureOutcome: { log: `Barriären slår tillbaka! Du tar skada och måste hitta en annan väg.`, healthChange: -30 - (round * 10) },
         options: [
-            { buttonText: `Använd ${Element[element]}-affinitet`, description: `Försök att matcha barriärens energi.` },
-            { buttonText: "Sök efter en omväg", description: "Undvik konfrontation med barriären." },
+            { buttonText: `Använd ${Element[element]}-affinitet`, description: `Försök att matcha barriärens energi.`, outcome: { log: `Du försöker använda din ${Element[element]}-affinitet.` } },
+            { buttonText: "Sök efter en omväg", description: "Undvik konfrontation med barriären.", outcome: { log: "Du söker efter en omväg." } },
         ]
     }),
 ];
@@ -321,7 +321,7 @@ export const createCombatPayload = (playerLevel: number, element: Element, diffi
     });
 
     // Add dynamic environment effects based on element and round
-    const environment = Math.random() > 0.6 ? { // 40% chance for an environment effect
+    const environment: Environment | undefined = Math.random() > 0.6 ? { // 40% chance for an environment effect
         name: `${Element[element]}s Aura`,
         description: `En aura av ${Element[element]}-energi genomsyrar striden.`,
         element: element,
@@ -332,7 +332,7 @@ export const createCombatPayload = (playerLevel: number, element: Element, diffi
                 element: element,
                 value: 2 + Math.floor(round / 2),
                 targetScope: 'all',
-            },
+            } as EnvironmentEffect, // Explicitly cast to EnvironmentEffect
             {
                 description: `Fiender har en chans att bli förlamade.`,
                 type: 'status_apply',
@@ -340,7 +340,7 @@ export const createCombatPayload = (playerLevel: number, element: Element, diffi
                 statusDuration: 1,
                 statusChance: 10 + (round * 2),
                 targetScope: 'enemies',
-            }
+            } as EnvironmentEffect // Explicitly cast to EnvironmentEffect
         ]
     } : undefined;
 

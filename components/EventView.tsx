@@ -27,7 +27,7 @@ type Actor = {
 
 type DamagePopupType = 'damage' | 'crit' | 'heal' | 'miss' | 'status_damage';
 type DamagePopup = { id: number; text: string; x: number; y: number; type: DamagePopupType; };
-type VisualEffect = { id: number; type: 'slash' | 'fireball' | 'heal' | 'haste'; targetId: string; originId: string; };
+type VisualEffect = { id: number; type: 'slash' | 'fireball' | 'heal' | 'haste' | 'frozen' | 'paralyzed'; targetId: string; originId: string; };
 
 const resourceThemes: Record<string, { text: string; bg: string }> = {
     'Hetta': { text: 'text-orange-400', bg: 'bg-orange-500' },
@@ -161,11 +161,14 @@ const EventView: React.FC<{
                       const existingStatus = newStatusEffects.find(s => s.type === effect.status);
                       if (!existingStatus) {
                           const newStatus: StatusEffect = { type: effect.status, duration: effect.statusDuration || 1 } as StatusEffect;
-                          if (effect.status === 'burning' || effect.status === 'poisoned' || effect.status === 'retaliating' || effect.status === 'steamed') {
+                          if (effect.status === 'burning' || effect.status === 'poisoned' || effect.status === 'retaliating' || effect.status === 'steamed' || effect.status === 'bleeding') {
                               (newStatus as any).damage = effect.value; // Assuming value is damage for these
                           }
                           if (effect.status === 'regenerating') {
                               (newStatus as any).heal = effect.value;
+                          }
+                          if (effect.status === 'paralyzed' || effect.status === 'frightened') {
+                              (newStatus as any).chanceToMissTurn = effect.value;
                           }
                           newStatusEffects.push(newStatus);
                           addLogMessage(`${actor.name} blir påverkad av ${env.name} och får status: ${effect.status}!`);
@@ -179,6 +182,8 @@ const EventView: React.FC<{
 
       // Process actor's own status effects (after environment effects)
       let effectsAfterTurn: StatusEffect[] = [];
+      let skipTurn = false;
+
       for (const effect of newStatusEffects) { // Iterate over potentially updated effects
           if (effect.type === 'burning' && effect.damage) {
               hp = Math.max(0, hp - effect.damage);
@@ -201,6 +206,26 @@ const EventView: React.FC<{
               addLogMessage(`${actor.name} tar ${effect.damage} ångskada!`);
               addDamagePopup(effect.damage.toString(), actor.id, 'status_damage');
           }
+          if (effect.type === 'bleeding' && effect.damage) {
+              hp = Math.max(0, hp - effect.damage);
+              addLogMessage(`${actor.name} blöder och tar ${effect.damage} skada!`);
+              addDamagePopup(effect.damage.toString(), actor.id, 'status_damage');
+          }
+          if (effect.type === 'frozen') {
+              skipTurn = true;
+              addLogMessage(`${actor.name} är frusen och kan inte agera!`);
+              addVisualEffect('frozen', actor.id, actor.id);
+          }
+          if (effect.type === 'paralyzed' && Math.random() * 100 < effect.chanceToMissTurn) {
+              skipTurn = true;
+              addLogMessage(`${actor.name} är förlamad och kan inte agera!`);
+              addVisualEffect('paralyzed', actor.id, actor.id);
+          }
+          if (effect.type === 'stunned') {
+              skipTurn = true;
+              addLogMessage(`${actor.name} är bedövad och kan inte agera!`);
+          }
+
 
           if (effect.duration > 1) {
               const newDuration = effect.duration - 1;
@@ -217,11 +242,23 @@ const EventView: React.FC<{
                   case 'overheated': effectsAfterTurn.push({ type: 'overheated', duration: newDuration }); break;
                   case 'rooted': effectsAfterTurn.push({ type: 'rooted', duration: newDuration }); break;
                   case 'steamed': effectsAfterTurn.push({ type: 'steamed', duration: newDuration, damage: effect.damage, accuracyReduction: effect.accuracyReduction }); break;
+                  case 'armor_reduction': effectsAfterTurn.push({ type: 'armor_reduction', duration: newDuration, value: effect.value }); break;
+                  case 'stunned': effectsAfterTurn.push({ type: 'stunned', duration: newDuration }); break;
+                  case 'frozen': effectsAfterTurn.push({ type: 'frozen', duration: newDuration }); break;
+                  case 'paralyzed': effectsAfterTurn.push({ type: 'paralyzed', duration: newDuration, chanceToMissTurn: effect.chanceToMissTurn }); break;
+                  case 'damage_reduction': effectsAfterTurn.push({ type: 'damage_reduction', duration: newDuration, value: effect.value, isPercentage: effect.isPercentage }); break;
+                  case 'bleeding': effectsAfterTurn.push({ type: 'bleeding', duration: newDuration, damage: effect.damage }); break;
+                  case 'frightened': effectsAfterTurn.push({ type: 'frightened', duration: newDuration, chanceToMissTurn: effect.chanceToMissTurn, chanceToAttackRandom: effect.chanceToAttackRandom }); break;
+                  case 'reflecting': effectsAfterTurn.push({ type: 'reflecting', duration: newDuration, element: effect.element, value: effect.value }); break;
+                  case 'absorbing': effectsAfterTurn.push({ type: 'absorbing', duration: newDuration, element: effect.element, value: effect.value }); break;
               }
           } else {
              if (effect.type === 'rooted') addLogMessage(`${actor.name} är inte längre rotad.`);
              if (effect.type === 'blinded') addLogMessage(`${actor.name} är inte längre bländad.`);
              if (effect.type === 'steamed') addLogMessage(`${actor.name} är inte längre ångad.`);
+             if (effect.type === 'frozen') addLogMessage(`${actor.name} är inte längre frusen.`);
+             if (effect.type === 'paralyzed') addLogMessage(`${actor.name} är inte längre förlamad.`);
+             if (effect.type === 'stunned') addLogMessage(`${actor.name} är inte längre bedövad.`);
           }
       }
       
@@ -241,8 +278,11 @@ const EventView: React.FC<{
 
       // Actor takes their action
       const isRooted = actor.statusEffects.some(e => e.type === 'rooted');
-      if (isRooted) {
-        addLogMessage(`${actor.name} är rotad och kan inte agera!`);
+      const isFrozen = actor.statusEffects.some(e => e.type === 'frozen');
+      const isStunned = actor.statusEffects.some(e => e.type === 'stunned');
+      const isParalyzed = actor.statusEffects.some(e => e.type === 'paralyzed' && Math.random() * 100 < e.chanceToMissTurn);
+
+      if (skipTurn || isRooted || isFrozen || isStunned || isParalyzed) {
         updateActorState(actorId, { atb: 0 });
         await sleep(500);
         if (gameState as GameState !== 'VICTORY' && gameState as GameState !== 'DEFEAT') {
@@ -649,8 +689,8 @@ const EventView: React.FC<{
             case 'ice':
                if(target && rankData.damageMultiplier) await performAttack(player.id, target.id, baseSkillDamage * rankData.damageMultiplier, abilityInfo.element, true, () => {
                  if (rankData.duration) {
-                    updateActorState(target.id, { statusEffects: [...target.statusEffects.filter(e => e.type !== 'slowed'), { type: 'slowed', duration: rankData.duration }] });
-                    addLogMessage(`${target.name} saktas ner av isen!`);
+                    updateActorState(target.id, { statusEffects: [...target.statusEffects.filter(e => e.type !== 'slowed' && e.type !== 'frozen'), { type: 'frozen', duration: rankData.duration }] });
+                    addLogMessage(`${target.name} fryses av isen!`);
                  }
                });
                break;
@@ -934,7 +974,9 @@ const EventView: React.FC<{
         'overheated': { icon: Icons.Overheat, title: "Overheated" },
         'rooted': { icon: Icons.Rooted, title: "Rooted" }, // New
         'steamed': { icon: Icons.Steamed, title: "Steamed" }, // New
-        'regenerating': { icon: Icons.Regenerating, title: "Regenerating" }
+        'regenerating': { icon: Icons.Regenerating, title: "Regenerating" },
+        'frozen': { icon: Icons.Frozen, title: "Frozen" }, // New
+        'paralyzed': { icon: Icons.Paralyzed, title: "Paralyzed" }, // New
     };
 
 
@@ -1032,6 +1074,12 @@ const EventView: React.FC<{
             }
              if (vfx.type === 'haste') {
                 return <div key={vfx.id} className="absolute w-16 h-16 border-2 border-dashed border-sky-400 rounded-full animate-spin" style={{ left: targetRect.left, top: targetRect.top }} />
+            }
+            if (vfx.type === 'frozen') {
+                return <div key={vfx.id} className="absolute w-16 h-16 bg-blue-300/50 rounded-full animate-pulse" style={{ left: targetRect.left, top: targetRect.top }} />
+            }
+            if (vfx.type === 'paralyzed') {
+                return <div key={vfx.id} className="absolute w-16 h-16 border-4 border-yellow-400 rounded-full animate-pulse" style={{ left: targetRect.left, top: targetRect.top }} />
             }
             return null;
         })}

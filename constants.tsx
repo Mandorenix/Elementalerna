@@ -108,8 +108,23 @@ export const Icons = {
     EnemySprite: createIcon(["M8 4l-1 2h2L8 4z M6 7h4v1H6V7z M7 9h2v2H7V9z"], "#38bdf8"),
     EnemySlime: createIcon(["M4 12v-1h1v-1h1v-1h4v1h1v1h1v1H4z"], "#3b82f6"),
     // New Enemy Icons
-    EnemyFireElemental: createIcon(["M8 1c-2 2-3 4-3 6s1 4 3 4 3-2 3-4-1-4-3-6zm0 1a2 2 0 011 2v1h-1v1H8V6H7V5a2 2 0 011-1z M6 13h4v1H6v-1z M5 15h6v1H5v-1z"], "#f87171"),
-    EnemyRockTitan: createIcon(["M4 14h8v-1H4v1z M5 12h6v-1H5v1z M3 10h10V7h1V5h-1V4H4v1H3v2h1v3z M6 6h4v1H6V6z"], "#a8a29e"),
+    EnemyFireElemental: createIcon([
+        "M8 1c-2 2-3 4-3 6s1 4 3 4 3-2 3-4-1-4-3-6zm0 1a2 2 0 011 2v1h-1v1H8V6H7V5a2 2 0 011-1z", // Body
+        "M6 13h4v1H6v-1z", // Base glow
+        "M5 15h6v1H5v-1z", // Wider base glow
+        "M7 3h2v1H7V3z", // Inner flame
+        "M6 5h1v1H6V5z", // Left flame detail
+        "M9 5h1v1H9V5z" // Right flame detail
+    ], "#f87171"),
+    EnemyRockTitan: createIcon([
+        "M4 14h8v-1H4v1z", // Base
+        "M5 12h6v-1H5v1z", // Lower body
+        "M3 10h10V7h1V5h-1V4H4v1H3v2h1v3z", // Torso and head
+        "M6 6h4v1H6V6z", // Face detail
+        "M7 5h2v1H7V5z", // Eye area
+        "M6 8h1v1H6V8z", // Left arm
+        "M9 8h1v1H9V8z" // Right arm
+    ], "#a8a29e"),
     EnemyStormSylph: createIcon(["M8 2L6 5h4L8 2z M4 7h8v1H4V7z M5 9h6v1H5V9z M7 11h2v3H7v-3z"], "#7dd3fc"),
     EnemyObsidianGolem: createIcon(["M4 14h8v-2H4v2zm1-3h6v-1H5v1zM3 10h10V7h1V4h-1V3H4v1H3v3h1v3zM6 5h4v1H6V5z"], "#475569"),
     EnemyElectrifiedSlime: createIcon(["M4 12v-1h1v-1h1v-1h4v1h1v1h1v1H4zm3-4h2v1h1v1H9V8H7V7h1V6H7v1z"], "#a3e635"),
@@ -169,18 +184,35 @@ export const Icons = {
 
 export const ItemVisuals = {
     // Helmets
-    LeatherHelm: createIcon(["M4 7h8v1h1v1H3V8h1V7z M5 5h6v2H5V5z"], "#a16207"),
+    LeatherHelm: createIcon([
+        "M4 7h8v1h1v1H3V8h1V7z", // Base helm shape
+        "M5 5h6v2H5V5z", // Top part
+        "M6 6h1v1H6V6z", // Left eye slit
+        "M9 6h1v1H9V6z" // Right eye slit
+    ], "#a16207"),
     IronHelm: createIcon(["M4 6h8v1H4V6z M5 4h6v2H5V4z M7 3h2v1H7V3z"], "#6b7280"),
     MagicHat: createIcon(["M3 8h10v1H3V8z M5 5h6v3H5V5z M7 3l2-2 2 2H7z"], "#9333ea"),
     // Weapons
-    RustySword: createIcon(["M7 1h2v8H7V1z M6 9h4v1H6V9z M5 10h6v1H5v-1z M7 11h2v3H7v-3z"], "#a16207"),
+    RustySword: createIcon([
+        "M7 1h2v8H7V1z", // Blade
+        "M6 9h4v1H6V9z", // Guard
+        "M5 10h6v1H5v-1z", // Handle base
+        "M7 11h2v3H7v-3z", // Handle
+        "M8 14h1v1H8v-1z" // Pommel
+    ], "#a16207"),
     SteelSword: createIcon(["M7 0h2v10H7V0z M6 10h4v1H6v-1z M5 11h6v1H5v-1z M7 12h2v3H7v-3z"], "#e5e7eb"),
     MagicStaff: createIcon(["M7 2h2v12H7V2z M8 0l-1 1h-1v1h1l1-1 1 1h1V1h-1L8 0z"], "#3b82f6"),
     // Shields
     WoodShield: createIcon(["M4 3h8v10H4V3z M8 4v3H7v1h2V6h1V4H8z"], "#78350f"),
     IronShield: createIcon(["M3 2h10v12H3V2z M8 5h2v6H8V5z"], "#9ca3af"),
     // Armor
-    LeatherArmor: createIcon(["M4 6h8v4H4V6z M5 5h6v1H5V5z M7 10h2v2H7v-2z"], "#854d0e"),
+    LeatherArmor: createIcon([
+        "M4 6h8v4H4V6z", // Torso
+        "M5 5h6v1H5V5z", // Neckline
+        "M7 10h2v2H7v-2z", // Belt/lower detail
+        "M6 7h1v1H6V7z", // Left shoulder
+        "M9 7h1v1H9V7z" // Right shoulder
+    ], "#854d0e"),
     IronArmor: createIcon(["M3 5h10v5H3V5z M4 4h8v1H4V4z M7 10h2v3H7v-3z"], "#d1d5d9"),
 };
 
@@ -267,7 +299,7 @@ export const BACKGROUND_BIOMES: Record<Element, { name: string; description: str
     [Element.SAND]: [{ name: "Sanddyner", description: "Ändlösa rullande sanddyner under en klar himmel.", classes: "bg-neutral-desert" }], // Falls back to neutral-desert
     [Element.EROSION]: [{ name: "Eroderade Klippor", description: "Vindpinade klippformationer som vittrar sönder.", classes: "bg-earth-mountains" }], // Falls back to earth-mountains
     [Element.MUD]: [{ name: "Djupt Kärr", description: "Ett djupt, klibbigt kärr med sjunkande mark.", classes: "bg-water-swamp" }], // Falls back to water-swamp
-    [Element.GROWTH]: [{ name: "Urskog", description: "En tät, uråldrig skog där naturen regerar.", classes: "bg-earth-lush-cave" }], // Falls back to earth-lush-cave
+    [Element.GROWTH]: [{ name: "Urskog", description: "En tät, uråldrig skog där naturen regerar.", classes: "bg-earth-lush-cave" }], // Falls back to earth-lush-lush-cave
     [Element.ICE]: [{ name: "Glaciärspricka", description: "En djup spricka i en glaciär med isiga väggar.", classes: "bg-water-ruins" }], // Falls back to water-ruins
     [Element.STORM]: [{ name: "Öppet Hav", description: "Ett stormigt hav med höga vågor och mörka moln.", classes: "bg-water-coast" }], // Falls back to water-coast
     [Element.VOLCANIC_STORM]: [{ name: "Vulkanisk Stormfront", description: "En front av eld och vind som drar fram över ett vulkaniskt landskap.", classes: "bg-fire-volcanic" }],

@@ -1,0 +1,5 @@
+{
+  "name": "Copy of Elemental RPG Skill Tree",
+  "description": "An interactive 16-bit style RPG skill tree visualizer based on the concepts of elemental magic. Users can allocate skill points to unlock new abilities in Fire, Earth, Wind, and Water, including hybrid skills.",
+  "requestFramePermissions": []
+}

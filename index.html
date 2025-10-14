@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Elemental RPG Skill Tree</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Press Start 2P', cursive;
+        background-color: #090a0f;
+        background-image: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+      }
+      .pixelated-border {
+        border-style: solid;
+        border-image-slice: 2;
+        border-image-width: 2;
+        border-image-repeat: stretch;
+        border-image-source: url('data:image/svg+xml;utf8,<svg width="6" height="6" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 0 H 2 V 2 H 0 Z M2 0 H 4 V 2 H 2 Z M4 0 H 6 V 2 H 4 Z M0 2 H 2 V 4 H 0 Z M4 2 H 6 V 4 H 4 Z M0 4 H 2 V 6 H 0 Z M2 4 H 4 V 6 H 2 Z M4 4 H 6 V 6 H 4 Z" fill="rgb(124 58 237)" /></svg>');
+        border-image-outset: 2;
+      }
+      .pixelated-border-gold {
+         border-style: solid;
+        border-image-slice: 2;
+        border-image-width: 2;
+        border-image-repeat: stretch;
+        border-image-source: url('data:image/svg+xml;utf8,<svg width="6" height="6" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 0 H 2 V 2 H 0 Z M2 0 H 4 V 2 H 2 Z M4 0 H 6 V 2 H 4 Z M0 2 H 2 V 4 H 0 Z M4 2 H 6 V 4 H 4 Z M0 4 H 2 V 6 H 0 Z M2 4 H 4 V 6 H 2 Z M4 4 H 6 V 6 H 4 Z" fill="rgb(202 138 4)" /></svg>');
+        border-image-outset: 2;
+      }
+       .tooltip-pixel-border {
+        border-style: solid;
+        border-image-slice: 2;
+        border-image-width: 2;
+        border-image-repeat: stretch;
+        border-image-source: url('data:image/svg+xml;utf8,<svg width="6" height="6" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 0 H 2 V 2 H 0 Z M2 0 H 4 V 2 H 2 Z M4 0 H 6 V 2 H 4 Z M0 2 H 2 V 4 H 0 Z M4 2 H 6 V 4 H 4 Z M0 4 H 2 V 6 H 0 Z M2 4 H 4 V 6 H 2 Z M4 4 H 6 V 6 H 4 Z" fill="rgb(107 114 128)" /></svg>');
+        border-image-outset: 2;
+      }
+       @keyframes pulse {
+        0%, 100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.05);
+          opacity: 0.7;
+        }
+      }
+      .animate-pulse-glow {
+        animation: pulse 2s infinite;
+      }
+
+      /* Final Fantasy Combat UI */
+      .ff-panel {
+        background: linear-gradient(165deg, #00135a 0%, #000a2a 100%);
+        border: 4px solid #fff;
+        box-shadow: 0 0 0 4px #000;
+        padding: 0.5rem;
+      }
+      .atb-bar-bg { background-color: #333; }
+      .atb-bar-fg { background-color: #fde047; transition: width 0.1s linear; }
+      .health-bar-fg { background-color: #22c55e; transition: width 0.2s ease-out; }
+      .aether-bar-fg { background-color: #3b82f6; transition: width 0.2s ease-out; }
+
+      @keyframes idle-bob {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-4px); }
+      }
+      .animate-idle-bob { animation: idle-bob 2.5s ease-in-out infinite; }
+      
+      @keyframes hit-flash {
+        0%, 100% { filter: brightness(1); }
+        50% { filter: brightness(3) invert(1); }
+      }
+      .animate-hit-flash { animation: hit-flash 0.3s linear; }
+      
+      @keyframes attack-lunge-player {
+        50% { transform: translateX(-120px) translateY(-4px); }
+      }
+      .animate-attack-player { animation: attack-lunge-player 0.6s ease-in-out; }
+      
+      @keyframes attack-lunge-enemy {
+         50% { transform: translateX(120px) translateY(-4px); }
+      }
+      .animate-attack-enemy { animation: attack-lunge-enemy 0.6s ease-in-out; }
+
+      /* --- Damage & Heal Popups --- */
+      
+      /* Base animation for normal damage */
+      @keyframes damage-popup-anim {
+        0% { transform: translateY(0); opacity: 1; }
+        100% { transform: translateY(-40px); opacity: 0; }
+      }
+      
+      /* Enhanced critical hit animation */
+      @keyframes damage-popup-crit-anim {
+        0% { transform: translateY(0) scale(1.2); opacity: 1; }
+        10% { transform: translateY(-5px) scale(1.7) rotate(-5deg) translateX(-3px); text-shadow: 0 0 12px #fff; }
+        20% { transform: translateY(-10px) scale(1.7) rotate(5deg) translateX(3px); }
+        30% { transform: translateY(-15px) scale(1.7) rotate(-3deg) translateX(-2px); }
+        40% { transform: translateY(-20px) scale(1.7) rotate(3deg) translateX(2px); }
+        100% { transform: translateY(-80px) scale(1.2); opacity: 0; }
+      }
+
+      /* Enhanced "floaty" heal animation */
+       @keyframes damage-popup-heal-anim {
+        0% { transform: translateY(10px); opacity: 0; filter: brightness(1.5); }
+        20% { opacity: 1; transform: translateY(0px) translateX(-3px); }
+        80% { opacity: 1; transform: translateY(-35px) translateX(3px); }
+        100% { transform: translateY(-40px); opacity: 0; }
+      }
+
+      /* Animation for misses (drifting down) */
+      @keyframes damage-popup-miss-anim {
+        0% { transform: translateY(0) scale(1); opacity: 1; }
+        100% { transform: translateY(20px) scale(0.8); opacity: 0; }
+      }
+      
+      /* Animation for status damage (slow drift) */
+      @keyframes damage-popup-status-anim {
+        0% { transform: translateY(0); opacity: 1; }
+        100% { transform: translateY(-25px); opacity: 0; }
+      }
+
+      .damage-popup {
+        position: absolute;
+        font-weight: bold;
+        text-shadow: 2px 2px 2px black;
+        pointer-events: none;
+        z-index: 100;
+        white-space: nowrap; /* Prevent text wrapping */
+      }
+      .damage-popup-damage { 
+        font-size: 1.5rem; 
+        color: white; 
+        animation: damage-popup-anim 1s ease-out forwards;
+      }
+      .damage-popup-crit { 
+        font-size: 2rem; 
+        color: #facc15; 
+        animation: damage-popup-crit-anim 1s ease-out forwards; 
+      }
+      .damage-popup-heal { 
+        font-size: 1.5rem; 
+        color: #4ade80; 
+        animation: damage-popup-heal-anim 1.2s ease-in-out forwards; 
+      }
+      .damage-popup-miss { 
+        font-size: 1rem; 
+        color: #9ca3af; 
+        animation: damage-popup-miss-anim 0.8s ease-in forwards; 
+      }
+      .damage-popup-status_damage { 
+        font-size: 1.2rem; 
+        color: #c084fc; /* purple-400 */
+        animation: damage-popup-status-anim 1.5s linear forwards; 
+      }
+
+      @keyframes defeat-fade {
+        0% { opacity: 1; filter: brightness(1); }
+        50% { opacity: 0.8; filter: brightness(5); }
+        100% { opacity: 0; filter: brightness(1); transform: translateY(20px) scale(0.9); }
+      }
+      .animate-defeat {
+        animation: defeat-fade 0.8s ease-out forwards;
+      }
+
+      @keyframes spell-impact {
+        0% { transform: scale(0.5); opacity: 1; }
+        100% { transform: scale(2); opacity: 0; }
+      }
+       .vfx-fireball {
+        width: 48px; height: 48px;
+        background-color: #f97316;
+        border-radius: 50%;
+        box-shadow: 0 0 20px 10px #ef4444;
+        transition: all 0.3s ease-out;
+      }
+      .vfx-slash {
+        width: 60px; height: 60px;
+        border-top: 4px solid white;
+        transform: rotate(45deg);
+        animation: spell-impact 0.3s ease-out forwards;
+      }
+       .vfx-heal-drop {
+        position: absolute;
+        width: 8px; height: 12px;
+        background-color: #60a5fa;
+        border-radius: 50%;
+        opacity: 0;
+        animation: heal-fall 0.8s ease-in-out;
+      }
+       @keyframes heal-fall {
+        0% { transform: translateY(-20px); opacity: 1; }
+        100% { transform: translateY(20px); opacity: 0; }
+      }
+      .status-icon {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 24px;
+        height: 24px;
+        background-color: rgba(0,0,0,0.7);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        transform: scale(0.8); /* Make icons a bit smaller */
+      }
+      .status-duration {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        background-color: rgba(0,0,0,0.8);
+        color: white;
+        font-size: 10px;
+        font-weight: bold;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        border: 1px solid #fff;
+        text-shadow: none;
+      }
+      
+      /* Status Effect VFX */
+      .status-vfx-overlay {
+        position: absolute;
+        top: -8px; left: -8px; right: -8px; bottom: -8px;
+        pointer-events: none;
+      }
+      @keyframes vfx-flicker {
+          0%, 100% { opacity: 0; transform: scale(0.9); }
+          50% { opacity: 0.7; transform: scale(1.1); }
+      }
+      .vfx-burning-overlay::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(circle, transparent 30%, #f97316 80%);
+          animation: vfx-flicker 0.6s infinite;
+          border-radius: 50%;
+      }
+
+      @keyframes vfx-bubbles {
+          0% { transform: translateY(10px); opacity: 0; }
+          50% { opacity: 0.8; }
+          100% { transform: translateY(-20px); opacity: 0; }
+      }
+      .vfx-poison-overlay::before, .vfx-poison-overlay::after {
+          content: '';
+          position: absolute;
+          width: 8px; height: 8px;
+          background: #84cc16;
+          border-radius: 50%;
+          animation: vfx-bubbles 1.8s infinite;
+      }
+      .vfx-poison-overlay::before { top: 50%; left: 40%; animation-delay: 0s; }
+      .vfx-poison-overlay::after { top: 60%; left: 60%; animation-delay: 0.9s; }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

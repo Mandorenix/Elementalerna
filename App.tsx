@@ -8,7 +8,7 @@ import EventView from './components/EventView';
 import DeckView from './components/DeckView';
 import DebugView from './components/DebugView';
 import type { View, Character, CharacterStats, Item, EquipmentSlot, Archetype, GameEvent, EventCard, Outcome, PlayerAbility, ItemStats, Element, UltimateAbility } from './types';
-import { INITIAL_CHARACTER_BASE, SKILL_TREE_DATA, Icons, PLAYER_ABILITIES, ItemVisuals, ELEMENTAL_AFFINITY_BONUSES, PASSIVE_TALENTS, ULTIMATE_ABILITIES } from './constants';
+import { INITIAL_CHARACTER_BASE, SKILL_TREE_DATA, Icons, PLAYER_ABILITIES, ItemVisuals, ELEMENTAL_AFFINITY_BONUSES, PASSIVE_TALENTS, ULTIMATE_ABILITIES, ARCHETYPES } from './constants';
 import { generateRandomCard, generateBossCard, generateRandomItem } from './utils/cardGenerator'; // Corrected import for generateRandomItem
 
 const initialEquipment: Record<EquipmentSlot, Item | null> = {
@@ -64,6 +64,7 @@ function App() {
 
     const newCharacter: Character = {
       ...INITIAL_CHARACTER_BASE,
+      id: `char-${Date.now()}`, // Generate a unique ID
       name: archetype.name,
       archetype: archetype.name,
       stats: newStats,
@@ -112,7 +113,7 @@ function App() {
   }, [setCharacter]);
 
   const unlockSkill = useCallback((skillId: string) => {
-    const skillData = SKILL_TREE_DATA.find(s => s.id === skillId);
+    const skillData = SKILL_TREE_DATA[skillId]; // Access as object property
     if (!skillData) return;
 
     const currentRank = unlockedSkills.get(skillId) || 0;
@@ -400,7 +401,7 @@ function App() {
 
   const renderActiveView = () => {
     if (currentEvent && playerCombatStats) {
-      return <EventView event={currentEvent} character={character} playerStats={playerCombatStats} onComplete={handleCombatCompletion} equipment={equipment} unlockedSkills={unlockedSkills} />
+      return <EventView event={currentEvent} character={character} playerStats={playerCombatStats} onComplete={handleCombatCompletion} equipment={equipment} unlockedSkills={unlockedSkills} setCharacter={setCharacter} />
     }
 
     switch (activeView) {

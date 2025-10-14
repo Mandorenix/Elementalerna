@@ -4,6 +4,7 @@ import { Element } from '../types';
 import { Icons, ARCHETYPES, PLAYER_ABILITIES } from '../constants';
 import { soundEffects } from '../sound'; // Aktiverar importen av ljudeffekter
 import CombatBackground from './CombatBackground'; // Import the new CombatBackground component
+import { createLogMessage, applyPlayerAbility, processEnemyTurn, applyStatusEffectDamageAndDuration, getRandom } from '../utils/combatCalculations'; // Import refactored functions
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
@@ -44,14 +45,17 @@ const STYRKA_PER_HIT = 15;
 const STYRKA_PER_DEFEND = 25;
 const FLODE_PER_HEAL_CC = 30;
 
-const EventView: React.FC<{
+interface EventViewProps {
   event: GameEvent;
   character: Character;
   playerStats: { health: number; maxHealth: number; aether: number; maxAether: number; resourceName: string; damage: number; armor: number; dodge: number; crit: number; intelligence: number; abilities: PlayerAbility[] };
   onComplete: (rewards: GameEvent['rewards']) => void;
   equipment: Record<EquipmentSlot, Item | null>;
   unlockedSkills: Map<string, number>;
-}> = ({ event, character, playerStats, onComplete, equipment, unlockedSkills }) => {
+  setCharacter: React.Dispatch<React.SetStateAction<Character | null>>; // Added setCharacter prop
+}
+
+const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, onComplete, equipment, unlockedSkills, setCharacter }) => {
   const [gameState, setGameState] = useState<GameState>('INTRO');
   const [actors, setActors] = useState<Actor[]>([]);
   const [playerResource, setPlayerResource] = useState(playerStats.aether);
@@ -69,9 +73,9 @@ const EventView: React.FC<{
 
   // Initialize combatants
   useEffect(() => {
-    const archetypeIcon = ARCHETYPES.find(a => a.name === character.archetype)?.icon || Icons.Start;
+    const archetypeIcon = ARCHETYPES[character.archetype]?.icon || Icons.Start; // Corrected access
     const playerActor: Actor = {
-      id: 'player', type: 'PLAYER', name: character.name, icon: archetypeIcon,
+      id: character.id, type: 'PLAYER', name: character.name, icon: archetypeIcon, // Use character.id
       hp: playerStats.health, maxHp: playerStats.maxHealth, atb: 0, 
       animationState: 'idle', statusEffects: [], isDefeated: false, ref: playerRef
     };
@@ -180,27 +184,33 @@ const EventView: React.FC<{
       // Process actor's own status effects (after environment effects)
       let effectsAfterTurn: StatusEffect[] = [];
       for (const effect of newStatusEffects) { // Iterate over potentially updated effects
-          if (effect.type === 'burning' && effect.damage) {
+          if (effect.type === 'burning' && 'damage' in effect && effect.damage) {
               hp = Math.max(0, hp - effect.damage);
               soundEffects.burn(); // Aktiverad ljudeffekt
               addLogMessage(`${actor.name} tar ${effect.damage} brännskada!`);
               addDamagePopup(effect.damage.toString(), actor.id, 'status_damage');
           }
-           if (effect.type === 'poisoned' && effect.damage) {
+           if (effect.type === 'poisoned' && 'damage' in effect && effect.damage) {
               hp = Math.max(0, hp - effect.damage);
               addLogMessage(`${actor.name} tar ${effect.damage} giftskada!`);
               addDamagePopup(effect.damage.toString(), actor.id, 'status_damage');
           }
-           if (effect.type === 'regenerating' && effect.heal) {
+           if (effect.type === 'regenerating' && 'heal' in effect && effect.heal) {
               hp = Math.min(actor.maxHp, hp + effect.heal);
               addLogMessage(`${actor.name} regenererar ${effect.heal} hälsa!`);
               addDamagePopup(`+${effect.heal}`, actor.id, 'heal');
           }
-          if (effect.type === 'steamed' && effect.damage) {
+          if (effect.type === 'steamed' && 'damage' in effect && effect.damage) {
               hp = Math.max(0, hp - effect.damage);
               addLogMessage(`${actor.name} tar ${effect.damage} ångskada!`);
               addDamagePopup(effect.damage.toString(), actor.id, 'status_damage');
           }
+          if (effect.type === 'bleeding' && 'damage' in effect && effect.damage) {
+              hp = Math.max(0, hp - effect.damage);
+              addLogMessage(`${actor.name} blöder och tar ${effect.damage} skada!`);
+              addDamagePopup(effect.damage.toString(), actor.id, 'status_damage');
+          }
+
 
           if (effect.duration > 1) {
               const newDuration = effect.duration - 1;
@@ -217,11 +227,28 @@ const EventView: React.FC<{
                   case 'overheated': effectsAfterTurn.push({ type: 'overheated', duration: newDuration }); break;
                   case 'rooted': effectsAfterTurn.push({ type: 'rooted', duration: newDuration }); break;
                   case 'steamed': effectsAfterTurn.push({ type: 'steamed', duration: newDuration, damage: effect.damage, accuracyReduction: effect.accuracyReduction }); break;
+                  case 'paralyzed': effectsAfterTurn.push({ type: 'paralyzed', duration: newDuration }); break;
+                  case 'bleeding': effectsAfterTurn.push({ type: 'bleeding', duration: newDuration, damage: effect.damage }); break;
+                  case 'frightened': effectsAfterTurn.push({ type: 'frightened', duration: newDuration, chanceToMissTurn: effect.chanceToMissTurn, chanceToAttackRandom: effect.chanceToAttackRandom }); break;
+                  case 'reflecting': effectsAfterTurn.push({ type: 'reflecting', duration: newDuration, element: effect.element, value: effect.value }); break;
+                  case 'absorbing': effectsAfterTurn.push({ type: 'absorbing', duration: newDuration, element: effect.element, value: effect.value }); break;
+                  case 'armor_reduction': effectsAfterTurn.push({ type: 'armor_reduction', duration: newDuration, value: effect.value }); break;
+                  case 'stunned': effectsAfterTurn.push({ type: 'stunned', duration: newDuration }); break;
+                  case 'frozen': effectsAfterTurn.push({ type: 'frozen', duration: newDuration }); break;
+                  case 'damage_reduction': effectsAfterTurn.push({ type: 'damage_reduction', duration: newDuration, value: effect.value, isPercentage: effect.isPercentage }); break;
               }
           } else {
              if (effect.type === 'rooted') addLogMessage(`${actor.name} är inte längre rotad.`);
              if (effect.type === 'blinded') addLogMessage(`${actor.name} är inte längre bländad.`);
              if (effect.type === 'steamed') addLogMessage(`${actor.name} är inte längre ångad.`);
+             if (effect.type === 'paralyzed') addLogMessage(`${actor.name} är inte längre förlamad.`);
+             if (effect.type === 'frightened') addLogMessage(`${actor.name} är inte längre skräckslagen.`);
+             if (effect.type === 'reflecting') addLogMessage(`${actor.name} reflekterar inte längre skada.`);
+             if (effect.type === 'absorbing') addLogMessage(`${actor.name} absorberar inte längre skada.`);
+             if (effect.type === 'armor_reduction') addLogMessage(`${actor.name}s rustning är återställd.`);
+             if (effect.type === 'stunned') addLogMessage(`${actor.name} är inte längre bedövad.`);
+             if (effect.type === 'frozen') addLogMessage(`${actor.name} är inte längre frusen.`);
+             if (effect.type === 'damage_reduction') addLogMessage(`${actor.name}s skadereduktion är borta.`);
           }
       }
       
@@ -266,13 +293,33 @@ const EventView: React.FC<{
           setGameState('PLAYER_TURN');
           setShowCommandMenu(true);
       } else {
-          await handleEnemyAction(actor.id);
+          const enemyData = event.enemies.find(e => e.id === actor.id);
+          if (!enemyData) return;
+
+          const { updatedPlayer: newPlayer, updatedEnemies: newEnemies, log: enemyLog, damageToPlayer: enemyDamage } = processEnemyTurn(
+              character, // Pass the actual character object
+              event.enemies, // Pass the original enemy data for reference
+              enemyData
+          );
+          
+          // Update player and enemy states based on enemy turn
+          setCharacter(prevChar => ({ ...prevChar!, ...newPlayer }));
+          setActors(currentActors => currentActors.map(a => {
+              const updatedEnemy = newEnemies.find(e => e.id === a.id);
+              if (updatedEnemy) {
+                  return { ...a, hp: updatedEnemy.stats.health, statusEffects: updatedEnemy.statusEffects || [] };
+              }
+              return a;
+          }));
+          addLogMessage(enemyLog.map(msg => msg.text).join('\n')); // Add enemy turn log messages
+          addDamagePopup(enemyDamage.toString(), 'player', 'damage'); // Show damage popup for player
+
           if (gameState as GameState !== 'VICTORY' && gameState as GameState !== 'DEFEAT') {
              setGameState('ACTIVE');
           }
       }
 
-  }, [actors, updateActorState, gameState, event.environment, character.archetype, playerStats.maxAether, character.element, event.enemies]);
+  }, [actors, updateActorState, gameState, event.environment, character, playerStats.maxAether, event.enemies, addLogMessage, addDamagePopup, setCharacter]); // Added setCharacter to dependencies
 
   // ATB Game Loop: Ticks the ATB bars up.
   useEffect(() => {
@@ -716,456 +763,397 @@ const EventView: React.FC<{
               break;
             case 'mud': // Lerfälla
               if(target) await performAttack(player.id, target.id, playerStats.damage * 0.25, abilityInfo.element, true, () => {
-                 const newEffects = [...target.statusEffects.filter(e => e.type !== 'slowed' && e.type !== 'rooted'), { type: 'slowed', duration: 3 }];
-                 let log = `${target.name} fastnar i leran och saktas ner!`;
-                 if (Math.random() < 0.25) { // 25% chance to root
-                    newEffects.push({ type: 'rooted', duration: 2 });
-                    log = `${target.name} sitter fast i leran!`
-                 }
-                 updateActorState(target.id, { statusEffects: newEffects });
-                 addLogMessage(log);
-              });
-              break;
-             case 'magma': // Magma Armor
-              const retaliateDamage = Math.floor(playerStats.intelligence * 0.8);
-              updateActorState(player.id, { atb: 0, statusEffects: [
-                  ...player.statusEffects.filter(e => e.type !== 'retaliating'),
-                  { type: 'retaliating', duration: 4, damage: retaliateDamage },
-                  { type: 'defending', duration: 4 }
-              ]});
-              addLogMessage(`Du omger dig med Magma Armor!`);
-              await sleep(500);
-              break;
-             case 'sand': // Sandstorm
-              const livingEnemies = actors.filter(a => a.type === 'ENEMY' && !a.isDefeated);
-              updateActorState(player.id, { animationState: 'casting', atb: 0 });
-              for (const enemy of livingEnemies) {
-                  let sandstormDamage = playerStats.damage * 0.6 + playerStats.intelligence;
-                  if (hasFullFlow) sandstormDamage *= 1.5;
-                  
-                  const enemyData = event.enemies.find(e => e.id === enemy.id);
-                  const resistance = enemyData?.resistances ? (enemyData.resistances[abilityInfo.element] || 0) : 0;
-                  const resistanceMultiplier = 1 - (resistance / 100);
-                  
-                  const enemyArmor = enemyData?.stats.armor || 0;
-                  const finalDamage = Math.floor(Math.max(1, (sandstormDamage - enemyArmor) * resistanceMultiplier));
-                  const newHp = Math.max(0, enemy.hp - finalDamage);
-                  const newStatusEffects: StatusEffect[] = [...enemy.statusEffects.filter(e => e.type !== 'blinded'), { type: 'blinded', duration: 3 }];
-                  
-                  updateActorState(enemy.id, { hp: newHp, statusEffects: newStatusEffects, animationState: 'hit' });
-                  addDamagePopup(finalDamage.toString(), enemy.id, 'damage');
-                  addLogMessage(`Sandstormen skadar ${enemy.name}!`);
-                  
-                  if (newHp <= 0) {
-                      updateActorState(enemy.id, { isDefeated: true });
-                      addLogMessage(`${enemy.name} har besegrats!`);
-                  }
-              }
-              await sleep(500);
-              livingEnemies.forEach(e => updateActorState(e.id, { animationState: 'idle' }));
-              updateActorState(player.id, { animationState: 'idle' });
-              break;
-            default:
-              addLogMessage("Färdigheten är inte implementerad än.");
-              updateActorState(player.id, { atb: 0 });
-              await sleep(500);
-              break;
-          }
-           // --- POST-ACTION RESOURCE LOGIC ---
-          if (character.archetype === 'Tidvattenvävaren') {
-            if (hasFullFlow) {
-              setPlayerResource(0);
-              updateActorState(player.id, { statusEffects: player.statusEffects.filter(e => e.type !== 'full_flow')});
-              addLogMessage("Fullt Flöde har förbrukats!");
-            } else if (abilityInfo.category === 'heal' || abilityInfo.category === 'cc') {
-              const newFlode = playerResource - effectiveCost + FLODE_PER_HEAL_CC; // Recalc based on state before this action
-              setPlayerResource(r => {
-                  const updatedFlode = r + FLODE_PER_HEAL_CC;
-                  if (updatedFlode >= playerStats.maxAether) {
-                      updateActorState(player.id, { statusEffects: [...player.statusEffects.filter(e => e.type !== 'full_flow'), {type: 'full_flow', duration: 99}] });
-                      addLogMessage("Fullt Flöde uppnått! Nästa förmåga är förstärkt!");
-                  }
-                  return Math.min(playerStats.maxAether, updatedFlode);
-              });
-            }
-          }
-      }
-      
-      if(gameState as GameState !== 'VICTORY' && gameState as GameState !== 'DEFEAT') {
-         setGameState('ACTIVE');
-      }
+                 const newEffects = [...target.statusEffects.filter(e => e.type !== 'slow<dyad-problem-report summary="10 problems">
+<problem file="components/SkillTree.tsx" line="31" column="44" code="2349">This expression is not callable.
+  Type 'Skill' has no call signatures.</problem>
+<problem file="components/SkillTree.tsx" line="102" column="30" code="2349">This expression is not callable.
+  Type 'Skill' has no call signatures.</problem>
+<problem file="components/SkillTree.tsx" line="108" column="69" code="2339">Property 'id' does not exist on type 'unknown'.</problem>
+<problem file="components/SkillTree.tsx" line="110" column="35" code="2339">Property 'x' does not exist on type 'unknown'.</problem>
+<problem file="components/SkillTree.tsx" line="111" column="35" code="2339">Property 'y' does not exist on type 'unknown'.</problem>
+<problem file="components/SkillTree.tsx" line="128" column="28" code="2349">This expression is not callable.
+  Type 'Skill' has no call signatures.</problem>
+<problem file="components/EventView.tsx" line="73" column="38" code="2339">Property 'find' does not exist on type 'Record&lt;ArchetypeName, Archetype&gt;'.</problem>
+<problem file="components/EventView.tsx" line="303" column="11" code="2552">Cannot find name 'setCharacter'. Did you mean 'character'?</problem>
+<problem file="App.tsx" line="65" column="11" code="2741">Property 'id' is missing in type '{ name: ArchetypeName; archetype: ArchetypeName; stats: { strength: number; dexterity: number; intelligence: number; constitution: number; }; resources: { health: { ...; }; aether: { ...; }; }; ... 7 more ...; level: number; }' but required in type 'Character'.</problem>
+<problem file="App.tsx" line="115" column="39" code="2349">This expression is not callable.
+  Type 'Skill' has no call signatures.</problem>
+</dyad-problem-report>Absolut! Jag kommer att åtgärda de 10 TypeScript-felen på ett koncist sätt.
+
+Felen beror främst på att `SKILL_TREE_DATA` och `ARCHETYPES` nyligen ändrades från arrayer till `Record` (objekt) i `constants.tsx`, men koden som använder dem har inte uppdaterats för att matcha den nya strukturen. Dessutom saknas `id` i `Character`-objektet vid skapandet, och `setCharacter` prop saknades i `EventView`.
+
+Här är de specifika åtgärderna:
+
+1.  **`types.ts`**:
+    *   Lägger till `id: string;` till `Character`-interfacet.
+2.  **`constants.tsx`**:
+    *   Ändrar `ARCHETYPES` till ett `Record<ArchetypeName, Archetype>`.
+    *   Ändrar `SKILL_TREE_DATA` till ett `Record<string, Skill>`.
+3.  **`App.tsx`**:
+    *   Uppdaterar `handleSelectArchetype` för att generera ett unikt `id` för den nya karaktären.
+    *   Uppdaterar `unlockSkill` för att komma åt `SKILL_TREE_DATA` som ett objekt istället för att använda `find` på en array.
+    *   Skickar `setCharacter` som en prop till `EventView`.
+4.  **`components/SkillTree.tsx`**:
+    *   Uppdaterar `skillMap` och `SKILL_TREE_DATA.map` för att iterera över objektets värden istället för att behandla det som en array.
+    *   Säkerställer att `parent` är korrekt typat som `Skill`.
+5.  **`components/EventView.tsx`**:
+    *   Uppdaterar `archetypeIcon` för att komma åt `ARCHETYPES` som ett objekt.
+    *   Lägger till `setCharacter` som en prop till `EventViewProps` och i komponenten.
+
+Här är de uppdaterade filerna:
+
+<dyad-write path="types.ts" description="Lägger till 'id' till Character-interfacet.">
+import type React from 'react';
+
+export enum Element {
+  NEUTRAL,
+  FIRE,
+  EARTH,
+  WIND,
+  WATER,
+  MAGMA,
+  OBSIDIAN,
+  FIRESTORM,
+  HOT_AIR,
+  STEAM,
+  HOT_SPRINGS,
+  SAND,
+  EROSION,
+  MUD,
+  GROWTH,
+  ICE,
+  STORM,
+  VOLCANIC_STORM,
+  ELECTRIFIED_MUD,
+  VITRIFIED_STORM,
+}
+
+export interface Skill {
+  id: string;
+  name: string;
+  description: string;
+  dependencies?: string[];
+  icon: React.FC;
+  x: number;
+  y: number;
+  element: Element;
+  maxRank: number;
+}
+
+export interface CharacterStats {
+  strength: number;
+  dexterity: number;
+  intelligence: number;
+  constitution: number;
+}
+
+export interface Resource {
+  current: number;
+  max: number;
+}
+
+export interface AetherResource extends Resource {
+  name: string;
+}
+
+export type ArchetypeName = 'Pyromanten' | 'Stenväktaren' | 'Stormdansaren' | 'Tidvattenvävaren';
+export type SpecialResourceName = 'Hetta' | 'Styrka' | 'Energi' | 'Flöde';
+
+export interface Archetype {
+  name: ArchetypeName;
+  description: string;
+  element: Element;
+  icon: React.FC;
+  statBonuses: Partial<CharacterStats>;
+  startingSkill: string;
+  resourceName: SpecialResourceName;
+}
+
+export interface PassiveTalent {
+  id: string;
+  name: string;
+  description?: string;
+  element: Element;
+  icon: React.FC;
+  effect:
+    | { type: 'COUNTER_ATTACK'; element?: Element; damage?: number; chance?: number; }
+    | { type: 'HEAL_BONUS'; value?: number; isPercentage?: boolean; }
+    | { type: 'RESOURCE_GAIN'; stat?: keyof CharacterStats | 'aether' | 'undvikandechans' | 'kritiskTräff' | 'skada' | 'rustning'; value?: number; isPercentage?: boolean; }
+    | { type: 'APPLY_STATUS'; status: StatusEffect['type']; chance: number; duration?: number; value?: number; isPercentage?: boolean; damage?: number; accuracyReduction?: number; element?: Element; } // Added element
+    | { type: 'DEAL_ELEMENTAL_DAMAGE'; element: Element; damage: number; chance: number; }
+    | { type: 'STAT_BONUS'; stat: keyof CharacterStats | 'skada' | 'rustning' | 'undvikandechans' | 'kritiskTräff'; value: number; isPercentage?: boolean; element?: Element; }; // Added element
+}
+
+export interface UltimateAbility {
+  id: string;
+  name: string;
+  description?: string;
+  element: Element;
+  icon: React.FC;
+  cooldown: number; // In turns
+  currentCooldown?: number; // New: Track current cooldown
+  targetType?: 'SINGLE_ENEMY' | 'ALL_ENEMIES' | 'LINE_AOE' | 'CIRCLE_AOE' | 'LOWEST_HP_ENEMY' | 'HIGHEST_HP_ENEMY' | 'SELF' | 'ALL_ALLIES'; // New
+  effect:
+    | { type: 'AOE_DAMAGE'; damage?: number; buff?: StatusEffect['type'] | 'pushed_back' | 'armor_reduction_buff' | 'stunned_buff' | 'frozen_buff' | 'cleanse_debuffs_action' | 'cleanse_all_debuffs_action'; duration?: number; value?: number; isPercentage?: boolean; }
+    | { type: 'MASS_HEAL'; heal?: number; buff?: StatusEffect['type'] | 'cleanse_debuffs_action' | 'cleanse_all_debuffs_action'; duration?: number; value?: number; isPercentage?: boolean; }
+    | { type: 'GLOBAL_BUFF'; buff?: StatusEffect['type'] | 'damage_reduction_buff'; duration?: number; value?: number; isPercentage?: boolean; }
+    | { type: 'SINGLE_TARGET_DAMAGE'; damage?: number; buff?: StatusEffect['type'] | 'frozen_buff'; duration?: number; value?: number; isPercentage?: boolean; };
+}
+
+export interface ElementalBonus {
+  threshold: number; // Points needed to unlock this bonus
+  description?: string;
+  effect: {
+    type: 'STAT_BONUS' | 'RESOURCE_REGEN' | 'RESISTANCE' | 'DAMAGE_BONUS' | 'PASSIVE_TALENT' | 'ULTIMATE_ABILITY' | 'HEAL_BONUS' | 'APPLY_STATUS'; // Added APPLY_STATUS
+    stat?: keyof CharacterStats | 'skada' | 'rustning' | 'undvikandechans' | 'kritiskTräff' | 'damage' | 'armor' | 'aether';
+    element?: Element;
+    value?: number; // Flat value or percentage
+    isPercentage?: boolean;
+    talentId?: string; // For PASSIVE_TALENT
+    abilityId?: string; // For ULTIMATE_ABILITY
+    status?: StatusEffect['type']; // Added for APPLY_STATUS
+    duration?: number; // Added for APPLY_STATUS
+    chance?: number; // Added for APPLY_STATUS
+    damage?: number; // Added for APPLY_STATUS (e.g., burning)
+    accuracyReduction?: number; // Added for APPLY_STATUS (e.g., steamed)
   };
+}
 
-  const handleEnemyAction = async (enemyId: string) => {
-      let player = actors.find(a => a.type === 'PLAYER');
-      if (!player || player.hp <= 0 || player.isDefeated) return;
-      
-      const enemyData = event.enemies.find(e => e.id === enemyId);
-      const enemyActor = actors.find(a => a.id === enemyId);
-      if (!enemyData || !enemyActor) return;
-      
-      // Check if enemy is blinded
-      const isBlinded = enemyActor.statusEffects.some(e => e.type === 'blinded');
-      if (isBlinded && Math.random() < 0.5) { // 50% chance to miss if blinded
-          addLogMessage(`${enemyData.name} är bländad och missar sin attack!`);
-          updateActorState(enemyId, { atb: 0 });
-          await sleep(500);
-          if (gameState as GameState !== 'VICTORY' && gameState as GameState !== 'DEFEAT') {
-             setGameState('ACTIVE');
-          }
-          return;
-      }
-
-      if (enemyData.ability === 'HASTE_SELF' && Math.random() < 0.4) { // 40% chance
-          const existingEffects = enemyActor.statusEffects.filter(e => e.type !== 'hasted');
-          const newEffects: StatusEffect[] = [...existingEffects, { type: 'hasted', duration: 4 }];
-          
-          updateActorState(enemyId, { atb: 0, statusEffects: newEffects });
-          addVisualEffect('haste', enemyId, enemyId);
-          addLogMessage(`${enemyData.name} använder vindhastighet!`);
-          await sleep(500);
-      } else {
-          await performAttack(enemyId, player.id, enemyData?.stats.damage || 5, enemyData.element);
-      }
-      
-      // Check for retaliation damage
-      player = actors.find(a => a.type === 'PLAYER'); // Re-fetch player state
-      if (player && !player.isDefeated) {
-          const retaliateEffect = player.statusEffects.find(e => e.type === 'retaliating');
-          const currentAttacker = actors.find(a => a.id === enemyId);
-          // FIX: Re-order conditions to help TypeScript with type narrowing.
-          // The optional chaining with a type check is correct, but can be made more explicit
-          // to potentially help older/stricter TS versions. The `find` predicate doesn't
-          // always narrow the return type for the compiler.
-          if (retaliateEffect && retaliateEffect.type === 'retaliating' && currentAttacker && !currentAttacker.isDefeated) {
-              await sleep(300);
-              const retaliateDamage = retaliateEffect.damage;
-              const newAttackerHp = Math.max(0, currentAttacker.hp - retaliateDamage);
-              updateActorState(enemyId, { hp: newAttackerHp, animationState: 'hit' });
-              addDamagePopup(retaliateDamage.toString(), enemyId, 'damage');
-              addLogMessage(`${player.name}'s Magma Armor skadar ${enemyData.name}!`);
-              if (newAttackerHp <= 0) {
-                  updateActorState(enemyId, { isDefeated: true });
-                  addLogMessage(`${enemyData.name} besegrades av Magma Armor!`);
-              }
-              await sleep(300);
-              updateActorState(enemyId, { animationState: 'idle' });
-          }
-      }
+export interface Character {
+  id: string; // Added id to Character
+  name: string;
+  archetype: ArchetypeName;
+  level: number;
+  stats: CharacterStats;
+  resources: {
+    health: Resource;
+    aether: AetherResource;
   };
-  
-  useEffect(() => {
-    if (gameState === 'PLAYER_TURN') {
-      const livingEnemies = actors.filter(a => a.type === 'ENEMY' && !a.isDefeated);
-      if (livingEnemies.length > 0) {
-        // If an AoE skill is selected, no target is needed. For now, we simplify and always select one.
-        if (!livingEnemies.some(e => e.id === selectedTarget)) {
-            setSelectedTarget(livingEnemies[0].id);
-        }
-      }
-    }
-  }, [actors, gameState, selectedTarget]);
-
-
-  useEffect(() => {
-      if (gameState === 'VICTORY' || gameState === 'DEFEAT') return;
-      
-      const activeEnemies = actors.filter(a => a.type === 'ENEMY' && !a.isDefeated);
-      const player = actors.find(a => a.type === 'PLAYER');
-
-      if (actors.length > 1 && player && player.isDefeated) {
-          setGameState('DEFEAT');
-      } else if (actors.length > 1 && activeEnemies.length === 0) {
-          soundEffects.victory(); // Aktiverad ljudeffekt
-          setGameState('VICTORY');
-      }
-  }, [actors, gameState]);
-  
-  const handleDefeatAnimationEnd = (actorId: string) => {
-      setActors(prev => prev.filter(a => a.id !== actorId));
-  }
-
-  const abilitiesByElement = playerStats.abilities.reduce((acc: Record<string, { element: Element, abilities: PlayerAbility[] }>, ability) => {
-    const elementName = Element[ability.element];
-    if (!acc[elementName]) {
-        acc[elementName] = { element: ability.element, abilities: [] };
-    }
-    acc[elementName].abilities.push(ability);
-    return acc;
-  }, {} as Record<string, { element: Element, abilities: PlayerAbility[] }>);
-
-  const elementSortOrder = [
-      Element.FIRE, Element.EARTH, Element.WIND, Element.WATER,
-      Element.MAGMA, Element.OBSIDIAN, Element.FIRESTORM, Element.HOT_AIR, Element.STEAM,
-      Element.HOT_SPRINGS, Element.SAND, Element.EROSION, Element.MUD, Element.GROWTH,
-      Element.ICE, Element.STORM,
-      Element.VOLCANIC_STORM, Element.ELECTRIFIED_MUD, Element.VITRIFIED_STORM,
-      Element.NEUTRAL
-  ];
-
-  const sortedAbilities = Object.entries(abilitiesByElement).sort((
-    [, a]: [string, { element: Element, abilities: PlayerAbility[] }],
-    [, b]: [string, { element: Element, abilities: PlayerAbility[] }]
-  ) => {
-      return elementSortOrder.indexOf(a.element) - elementSortOrder.indexOf(b.element);
-  });
-
-
-  const ActorSprite: React.FC<{actor: Actor; onDefeatAnimationEnd: (id: string) => void; equipment?: Record<EquipmentSlot, Item | null>}> = ({ actor, onDefeatAnimationEnd, equipment }) => {
-    const isSelected = selectedTarget === actor.id && (showCommandMenu || showAbilityMenu) && actor.type === 'ENEMY';
-    const Icon = actor.icon;
-    
-    let animationClass = actor.isDefeated ? 'animate-defeat' : 'animate-idle-bob';
-    if(actor.animationState === 'attacking' && !actor.isDefeated) {
-        animationClass = actor.type === 'PLAYER' ? 'animate-attack-player' : 'animate-attack-enemy';
-    } else if (actor.animationState === 'hit' && !actor.isDefeated) {
-        animationClass = 'animate-hit-flash';
-    }
-
-    const statusIconMap: Partial<Record<StatusEffect['type'], { icon: React.FC; title: string; }>> = {
-        'defending': { icon: Icons.Shield, title: "Defending" },
-        'hasted': { icon: Icons.Wind, title: "Hasted" },
-        'burning': { icon: Icons.Burn, title: "Burning" },
-        'poisoned': { icon: Icons.Poison, title: "Poisoned" },
-        'slowed': { icon: Icons.Slow, title: "Slowed" },
-        'blinded': { icon: Icons.Blinded, title: "Blinded" }, // New
-        'retaliating': { icon: Icons.Magma, title: "Retaliating" },
-        'full_flow': { icon: Icons.FullFlow, title: "Full Flow" },
-        'overheated': { icon: Icons.Overheat, title: "Overheated" },
-        'rooted': { icon: Icons.Rooted, title: "Rooted" }, // New
-        'steamed': { icon: Icons.Steamed, title: "Steamed" }, // New
-        'regenerating': { icon: Icons.Regenerating, title: "Regenerating" }
-    };
-
-
-    return (
-       <div 
-          ref={actor.ref} 
-          className={`relative flex flex-col items-center ${animationClass}`}
-          onAnimationEnd={() => { if(actor.isDefeated) onDefeatAnimationEnd(actor.id) }}
-        >
-          {isSelected && <div className="absolute -top-4 text-yellow-400 text-2xl">▼</div>}
-          
-          <div className="relative transform scale-[3] w-12 h-12 flex items-center justify-center">
-            <div className="relative w-full h-full flex items-center justify-center">
-              <Icon />
-              {/* FIX: Explicitly type 'item' to prevent 'unknown' type errors. */}
-              {equipment && Object.values(equipment).map((item: Item | null) => {
-                  if (item && item.visual) {
-                      const VisualComponent = item.visual;
-                      return (
-                          <div key={item.id} className="absolute inset-0 flex items-center justify-center">
-                              <VisualComponent />
-                          </div>
-                      );
-                  }
-                  return null;
-              })}
-            </div>
-            {/* Status Effect Visuals */}
-            <div className="status-vfx-overlay">
-                {actor.statusEffects.some(e => e.type === 'burning') && <div className="vfx-burning-overlay" />}
-                {actor.statusEffects.some(e => e.type === 'poisoned') && <div className="vfx-poison-overlay" />}
-                {actor.statusEffects.some(e => e.type === 'steamed') && <div className="vfx-steamed-overlay" />} {/* New VFX for steamed */}
-            </div>
-            {/* Status Effect Icons */}
-             <div className="absolute top-0 left-0 w-full h-full">
-                {actor.statusEffects.map((effect, index) => {
-                    const iconData = statusIconMap[effect.type];
-                    if (!iconData) return null;
-                    const Icon = iconData.icon;
-                    // Position icons around the sprite
-                    const angle = (index / actor.statusEffects.length) * 2 * Math.PI;
-                    const x = Math.cos(angle) * 12 - 4;
-                    const y = Math.sin(angle) * 12 - 4;
-                    return (
-                        <div
-                            key={effect.type}
-                            className="status-icon"
-                            style={{ transform: `translate(${x}px, ${y}px)` }}
-                            title={`${iconData.title} (${effect.duration} turns left)`}
-                        >
-                            <Icon />
-                            <span className="status-duration">{effect.duration}</span>
-                        </div>
-                    );
-                })}
-            </div>
-          </div>
-
-          <div className="w-24 mt-2">
-            <div className="text-xs text-center">{actor.name}</div>
-            <div className="w-full bg-gray-700 h-2 mt-1 border border-black">
-                <div className="health-bar-fg h-full" style={{width: `${(actor.hp / actor.maxHp) * 100}%`}}></div>
-            </div>
-            {actor.type === 'ENEMY' && (
-              <div className="w-full atb-bar-bg h-2 mt-1 border border-black/50">
-                  <div className="atb-bar-fg h-full" style={{width: `${actor.atb}%`}}></div>
-              </div>
-            )}
-          </div>
-       </div>
-    );
+  experience: {
+    current: number;
+    max: number;
   };
-  
-  const VFXLayer = () => {
-    return (
-      <>
-        {visualEffects.map(vfx => {
-            const origin = actors.find(a => a.id === vfx.originId);
-            const target = actors.find(a => a.id === vfx.targetId);
-            if (!origin?.ref?.current || !target?.ref?.current) return null;
-            
-            const originRect = origin.ref.current.getBoundingClientRect();
-            const targetRect = target.ref.current.getBoundingClientRect();
+  elementalAffinities: Partial<Record<Element, number>>;
+  unlockedPassiveTalents: string[];
+  unlockedUltimateAbilities: UltimateAbility[]; // Changed to store full UltimateAbility objects
+  activeAbilities: PlayerAbility[]; // New: Store active player abilities with cooldowns
+  equippedItems: Item[]; // New: Track equipped items
+  statusEffects?: StatusEffect[]; // New: Track status effects on character
+}
 
-            if (vfx.type === 'fireball') {
-                return <div key={vfx.id} className="vfx-fireball absolute" style={{ left: originRect.left, top: originRect.top, transform: `translate(${targetRect.left - originRect.left}px, ${targetRect.top - originRect.top}px)` }} />;
-            }
-            if(vfx.type === 'slash') {
-                return <div key={vfx.id} className="vfx-slash absolute" style={{ left: targetRect.left + 10, top: targetRect.top + 10 }} />
-            }
-            if (vfx.type === 'heal') {
-                return <div key={vfx.id} className="absolute" style={{ left: targetRect.left + targetRect.width / 2, top: targetRect.top }}>
-                    {[...Array(5)].map((_, i) => <div key={i} className="vfx-heal-drop" style={{ left: `${Math.random() * 40 - 20}px`, animationDelay: `${i * 0.1}s` }} />)}
-                </div>
-            }
-             if (vfx.type === 'haste') {
-                return <div key={vfx.id} className="absolute w-16 h-16 border-2 border-dashed border-sky-400 rounded-full animate-spin" style={{ left: targetRect.left, top: targetRect.top }} />
-            }
-            return null;
-        })}
-      </>
-    )
-  }
+export type View = 'skillTree' | 'characterSheet' | 'inventory' | 'event' | 'deck' | 'debug';
 
-  return (
-    <div className="flex-grow w-full h-full p-2 text-white flex flex-col items-center justify-center bg-black/80 relative overflow-hidden">
-        {/* Combat Background */}
-        <CombatBackground element={event.element} />
+export type Rarity = 'Vanlig' | 'Magisk' | 'Sällsynt' | 'Legendarisk';
 
-        {/* Environment Display */}
-        {event.environment && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 pixelated-border p-3 text-center z-10 max-w-md">
-                <h3 className="text-lg text-yellow-400 mb-1">{event.environment.name}</h3>
-                <p className="text-xs text-gray-300">{event.environment.description}</p>
-            </div>
-        )}
+export type EquipmentSlot = 'Hjälm' | 'Bröst' | 'Vapen 1' | 'Vapen 2' | 'Handskar' | 'Bälte' | 'Byxor' | 'Stövlar';
 
-        {/* Battle Scene */}
-        <div className="w-full flex justify-between items-end px-16 absolute bottom-64 z-10">
-             <div className="flex space-x-8">
-                 {actors.filter(a => a.type === 'ENEMY').map(enemy => <ActorSprite key={enemy.id} actor={enemy} onDefeatAnimationEnd={handleDefeatAnimationEnd} />)}
-             </div>
-             <div className="flex">
-                 {actors.find(a => a.type === 'PLAYER') && <ActorSprite actor={actors.find(a => a.type === 'PLAYER')!} onDefeatAnimationEnd={handleDefeatAnimationEnd} equipment={equipment} />}
-             </div>
-        </div>
+export interface ItemStats {
+  strength?: number;
+  dexterity?: number;
+  intelligence?: number;
+  constitution?: number;
+  skada?: number;
+  rustning?: number;
+  undvikandechans?: number;
+  kritiskTräff?: number;
+}
 
-        {/* UI Panels */}
-        <div className="absolute bottom-0 left-0 right-0 h-48 flex z-20">
-            {/* Command & Ability Menus */}
-            {showCommandMenu && (
-                <div className="ff-panel w-48">
-                    <ul>
-                        <li onClick={() => handlePlayerAction('ATTACK')} className="p-1 hover:bg-white/20 cursor-pointer">Attackera</li>
-                        <li onClick={() => { setShowCommandMenu(false); setShowAbilityMenu(true); }} className="p-1 hover:bg-white/20 cursor-pointer">Förmågor</li>
-                        <li onClick={() => handlePlayerAction('DEFEND')} className="p-1 hover:bg-white/20 cursor-pointer">Försvara</li>
-                    </ul>
-                </div>
-            )}
-            {showAbilityMenu && (
-                <div className="ff-panel w-64 text-xs">
-                    <ul className="h-full overflow-y-auto">
-                      {sortedAbilities.map(([elementName, { abilities }]: [string, { element: Element, abilities: PlayerAbility[] }]) => (
-                          <React.Fragment key={elementName}>
-                              <li className="p-1 pt-2 font-bold text-yellow-400 capitalize">{elementName.toLowerCase().replace('_', ' ')}</li>
-                              {abilities.map(ability => {
-                                  const rank = unlockedSkills.get(ability.id) || 1;
-                                  const rankData = ability.ranks[rank - 1];
-                                  if (!rankData) return null;
+export interface ItemAffix {
+  trigger: 'ON_HIT' | 'ON_TAKE_DAMAGE' | 'PASSIVE';
+  effect: {
+    type: 'DEAL_ELEMENTAL_DAMAGE';
+    element: Element;
+    damage: number;
+    chance: number;
+  } | {
+    type: 'APPLY_STATUS';
+    status: StatusEffect['type'];
+    chance: number;
+    duration?: number;
+    value?: number;
+    damage?: number;
+    accuracyReduction?: number;
+  };
+  description: string;
+}
 
-                                  const hasFullFlow = actors.find(a => a.type === 'PLAYER')?.statusEffects.some(e => e.type === 'full_flow');
-                                  const effectiveCost = hasFullFlow ? 0 : rankData.resourceCost;
-                                  const canAfford = character.archetype === 'Pyromanten' ? true : playerResource >= effectiveCost;
-                                  const costText = character.archetype === 'Pyromanten' ? `+${rankData.resourceCost}` : `${effectiveCost}`;
-        
-                                  return (
-                                    <li key={ability.id}
-                                        onClick={() => canAfford ? handlePlayerAction('SKILL', ability.id) : undefined}
-                                        className={`p-1 flex justify-between ${canAfford ? 'hover:bg-white/20 cursor-pointer pl-3' : 'text-gray-500 pl-3'}`}>
-                                        <span>{ability.name} {hasFullFlow && '⚡'}</span>
-                                        <span className={character.archetype === 'Pyromanten' ? 'text-green-400' : ''}>{costText}</span>
-                                    </li>
-                                  )
-                              })}
-                          </React.Fragment>
-                      ))}
-                    </ul>
-                    <button onClick={() => { setShowAbilityMenu(false); setShowCommandMenu(true); }} className="text-center w-full mt-1 text-gray-400 hover:text-white">Tillbaka</button>
-                </div>
-            )}
-            
-            {/* Log */}
-            <div className="ff-panel flex-grow h-full overflow-hidden">
-                 {log.map((msg, i) => <p key={i} className="text-sm">{msg}</p>)}
-            </div>
+export interface Item {
+  id: string;
+  name: string;
+  rarity: Rarity;
+  slot: EquipmentSlot | 'Föremål';
+  stats: ItemStats;
+  icon: React.FC;
+  visual?: React.FC;
+  affix?: ItemAffix;
+}
 
-            {/* Player Status */}
-            <div className="ff-panel w-96 text-sm">
-                <div className="grid grid-cols-3 gap-x-2 items-center">
-                    <span className="text-right">{character.name}</span>
-                    <span className="text-cyan-400">HP</span>
-                    <span>{actors.find(a=>a.type==='PLAYER')?.hp} / {playerStats.maxHealth}</span>
+export interface AbilityRankData {
+  description: string;
+  resourceCost: number;
+  damageMultiplier?: number;
+  dotDamage?: number;
+  healMultiplier?: number;
+  duration?: number;
+  chance?: number;
+  statusEffectsToApply?: StatusEffect['type'][]; // New
+  value?: number; // Added for buffs/debuffs
+  isPercentage?: boolean; // Added for buffs/debuffs
+}
 
-                    <span></span>
-                    <span className={resourceTheme.text}>{playerStats.resourceName}</span>
-                    <span>{Math.floor(playerResource)} / {playerStats.maxAether}</span>
-                    
-                    <span></span>
-                    <span className="text-yellow-400">ATB</span>
-                    <div className="atb-bar-bg h-3 border border-black/50">
-                        <div className="atb-bar-fg h-full" style={{width: `${actors.find(a=>a.type==='PLAYER')?.atb || 0}%`}}></div>
-                    </div>
-                </div>
-            </div>
-        </div>
+export interface PlayerAbility {
+  id: string;
+  name: string;
+  element: Element;
+  isAoe?: boolean;
+  category?: 'damage' | 'heal' | 'buff' | 'cc';
+  targetType?: 'SINGLE_ENEMY' | 'ALL_ENEMIES' | 'LINE_AOE' | 'CIRCLE_AOE' | 'LOWEST_HP_ENEMY' | 'HIGHEST_HP_ENEMY' | 'SELF' | 'ALL_ALLIES'; // New
+  ranks: AbilityRankData[];
+  cooldown?: number;
+  currentCooldown?: number;
+}
 
-        {/* Victory/Defeat Modal */}
-        {(gameState === 'VICTORY' || gameState === 'DEFEAT') && (
-            <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-30">
-                <div className="ff-panel text-center p-8">
-                    <h2 className="text-4xl mb-4">{gameState === 'VICTORY' ? 'Seger!' : 'Besegrad...'}</h2>
-                    {gameState === 'VICTORY' && (
-                        <div className="text-yellow-300">
-                            <p>Du får {event.rewards.xp} erfarenhet.</p>
-                            {event.rewards.items.map((item, i) => <p key={i}>Föremål: {item.name}</p>)}
-                        </div>
-                    )}
-                     {gameState === 'DEFEAT' && (
-                        <div className="text-red-400">
-                            <p>Du har fallit i strid. Resan tar slut här... för nu.</p>
-                        </div>
-                    )}
-                    <button onClick={() => onComplete(gameState === 'VICTORY' ? event.rewards : {xp: 0, items: []})} className="mt-6 px-4 py-2 border-2 text-lg bg-gray-800/50 border-gray-600 hover:border-yellow-400 text-white transition-colors">
-                        Fortsätt
-                    </button>
-                </div>
-            </div>
-        )}
-        
-        <div ref={popupContainerRef} className="absolute inset-0 pointer-events-none">
-            <VFXLayer/>
-            
-            {/* Damage Popups */}
-            {damagePopups.map(p => (
-                <div key={p.id} className={`damage-popup damage-popup-${p.type}`} style={{ left: p.x, top: p.y }}>
-                    {p.text}
-                </div>
-            ))}
-        </div>
-    </div>
-  );
-};
+export type EnemyBehavior = 'ATTACK_PLAYER' | 'ATTACK_LOWEST_HP' | 'APPLY_DEBUFF_TO_PLAYER' | 'BUFF_SELF' | 'BUFF_ALLIES' | 'ATTACK_HIGHEST_DAMAGE_PLAYER'; // New behaviors
 
-export default EventView;
+export interface EnemyAbility {
+  id: string;
+  name: string;
+  element: Element;
+  category: 'damage' | 'heal' | 'buff' | 'cc';
+  targetType: 'SINGLE_PLAYER' | 'ALL_PLAYERS' | 'SELF' | 'ALL_ENEMIES'; // Simplified for enemies
+  damageMultiplier?: number;
+  healMultiplier?: number;
+  statusEffectsToApply?: StatusEffect['type'][];
+  duration?: number;
+  value?: number; // For buffs/debuffs
+  cooldown: number;
+  currentCooldown?: number;
+}
+
+export interface EnemyPhase {
+  name: string;
+  threshold: number; // e.g., HP percentage
+  newBehavior?: EnemyBehavior;
+  newAbilities?: EnemyAbility[];
+  statusEffectsToApplyToSelf?: StatusEffect['type'][];
+  description?: string;
+}
+
+export interface Enemy {
+  id: string;
+  name: string;
+  level: number;
+  element: Element;
+  stats: {
+    health: number;
+    maxHealth: number;
+    damage: number;
+    armor: number;
+  };
+  resistances?: Partial<Record<Element, number>>;
+  icon: React.FC;
+  behavior?: EnemyBehavior; // New
+  abilities?: EnemyAbility[]; // New
+  phases?: EnemyPhase[]; // New for bosses
+  specialAbility?: 'HASTE_SELF'; // New: For simple, hardcoded enemy abilities
+  onHitEffect?:
+    | { type: 'burning'; duration: number; damage: number }
+    | { type: 'poison'; duration: number; damage: number }
+    | { type: 'slow'; duration: number };
+  statusEffects?: StatusEffect[]; // New: Track status effects on enemy
+}
+
+export interface EnvironmentEffect {
+  description: string;
+  type: 'dot' | 'status_apply' | 'stat_modifier' | 'atb_modifier';
+  element?: Element;
+  value?: number;
+  status?: StatusEffect['type'];
+  statusDuration?: number;
+  statusChance?: number;
+  targetScope: 'all' | 'player' | 'enemies' | 'non_elemental' | 'elemental';
+  targetElement?: Element;
+}
+
+export interface Environment {
+  name: string;
+  description: string;
+  element: Element;
+  effects: EnvironmentEffect[];
+}
+
+export interface EventModifier {
+  description: string;
+  effect: 'player_stat' | 'enemy_stat' | 'reward_bonus';
+  stat?: 'damage' | 'health' | 'armor' | 'crit' | 'dodge';
+  value?: number;
+  isPercentage?: boolean;
+}
+
+export interface GameEvent {
+  title: string;
+  description: string;
+  element: Element;
+  modifiers: EventModifier[];
+  environment?: Environment;
+  enemies: Enemy[];
+  rewards: {
+    xp: number;
+    items: Item[];
+  };
+}
+
+export type StatusEffect =
+  | { type: 'defending'; duration: number; value?: number; }
+  | { type: 'hasted'; duration: number }
+  | { type: 'burning'; duration: number; damage: number }
+  | { type: 'poisoned'; duration: number; damage: number }
+  | { type: 'slowed'; duration: number }
+  | { type: 'retaliating'; duration: number; damage: number }
+  | { type: 'blinded'; duration: number }
+  | { type: 'full_flow'; duration: number }
+  | { type: 'overheated'; duration: number }
+  | { type: 'rooted'; duration: number }
+  | { type: 'steamed'; duration: number; damage?: number; accuracyReduction?: number }
+  | { type: 'regenerating'; duration: number; heal: number }
+  | { type: 'armor_reduction'; duration: number; value: number; }
+  | { type: 'stunned'; duration: number; }
+  | { type: 'frozen'; duration: number; }
+  | { type: 'damage_reduction'; duration: number; value: number; isPercentage?: boolean; }
+  | { type: 'paralyzed'; duration: number; } // New
+  | { type: 'bleeding'; duration: number; damage: number; } // New
+  | { type: 'frightened'; duration: number; chanceToMissTurn: number; chanceToAttackRandom: number; } // New
+  | { type: 'reflecting'; duration: number; element: Element; value: number; } // New
+  | { type: 'absorbing'; duration: number; element: Element; value: number; }; // New
+
+export interface CombatLogMessage {
+  id: number;
+  text: string;
+  type: 'player' | 'enemy' | 'system' | 'reward';
+}
+
+export type EventType = 'COMBAT' | 'CHOICE' | 'BOON' | 'CURSE';
+
+export interface Outcome {
+    log: string;
+    xp?: number;
+    healthChange?: number;
+    items?: Item[];
+}
+
+export interface ChoiceOption {
+    buttonText: string;
+    description: string;
+    outcome: Outcome;
+}
+
+export interface EventCard {
+    id: string;
+    title: string;
+    description: string;
+    icon: React.FC;
+    element: Element;
+    type: EventType;
+    payload: GameEvent | { options: ChoiceOption[] } | Outcome;
+    isBoss?: boolean;
+}

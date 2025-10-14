@@ -74,9 +74,9 @@ export interface PassiveTalent {
     | { type: 'COUNTER_ATTACK'; element?: Element; damage?: number; chance?: number; }
     | { type: 'HEAL_BONUS'; value?: number; isPercentage?: boolean; }
     | { type: 'RESOURCE_GAIN'; stat?: keyof CharacterStats | 'aether' | 'undvikandechans' | 'kritiskTräff' | 'skada' | 'rustning'; value?: number; isPercentage?: boolean; }
-    | { type: 'APPLY_STATUS'; status: StatusEffect['type']; chance: number; duration?: number; value?: number; isPercentage?: boolean; damage?: number; accuracyReduction?: number; }
+    | { type: 'APPLY_STATUS'; status: StatusEffect['type']; chance: number; duration?: number; value?: number; isPercentage?: boolean; damage?: number; accuracyReduction?: number; element?: Element; } // Added element
     | { type: 'DEAL_ELEMENTAL_DAMAGE'; element: Element; damage: number; chance: number; }
-    | { type: 'STAT_BONUS'; stat: keyof CharacterStats | 'skada' | 'rustning' | 'undvikandechans' | 'kritiskTräff'; value: number; isPercentage?: boolean; };
+    | { type: 'STAT_BONUS'; stat: keyof CharacterStats | 'skada' | 'rustning' | 'undvikandechans' | 'kritiskTräff'; value: number; isPercentage?: boolean; element?: Element; }; // Added element
 }
 
 export interface UltimateAbility {
@@ -115,6 +115,7 @@ export interface ElementalBonus {
 }
 
 export interface Character {
+  id: string; // Added id to Character
   name: string;
   archetype: ArchetypeName;
   level: number;
@@ -191,6 +192,8 @@ export interface AbilityRankData {
   duration?: number;
   chance?: number;
   statusEffectsToApply?: StatusEffect['type'][]; // New
+  value?: number; // Added for buffs/debuffs
+  isPercentage?: boolean; // Added for buffs/debuffs
 }
 
 export interface PlayerAbility {

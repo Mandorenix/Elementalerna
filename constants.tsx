@@ -142,8 +142,8 @@ export const STATUS_EFFECT_ICONS: Record<StatusEffect['type'], React.FC> = {
 };
 
 // --- Archetypes ---
-export const ARCHETYPES: Archetype[] = [ // Changed to array
-  {
+export const ARCHETYPES: Record<ArchetypeName, Archetype> = { // Changed to Record
+  Pyromanten: {
     name: 'Pyromanten',
     description: 'En mästare på eldmagi, specialiserad på att bränna fiender över tid.',
     element: Element.FIRE,
@@ -152,7 +152,7 @@ export const ARCHETYPES: Archetype[] = [ // Changed to array
     startingSkill: 'fireball',
     resourceName: 'Hetta',
   },
-  {
+  Stenväktaren: {
     name: 'Stenväktaren',
     description: 'En robust försvarare som manipulerar jorden för att skydda sig och sina allierade.',
     element: Element.EARTH,
@@ -161,7 +161,7 @@ export const ARCHETYPES: Archetype[] = [ // Changed to array
     startingSkill: 'rock_throw',
     resourceName: 'Styrka',
   },
-  {
+  Stormdansaren: {
     name: 'Stormdansaren',
     description: 'En snabb och svårfångad krigare som använder vindens kraft för att undvika attacker och slå snabbt.',
     element: Element.WIND,
@@ -170,7 +170,7 @@ export const ARCHETYPES: Archetype[] = [ // Changed to array
     startingSkill: 'gust',
     resourceName: 'Energi',
   },
-  {
+  Tidvattenvävaren: {
     name: 'Tidvattenvävaren',
     description: 'En helare och kontrollör som använder vatten för att läka sår och sakta ner fiender.',
     element: Element.WATER,
@@ -179,12 +179,12 @@ export const ARCHETYPES: Archetype[] = [ // Changed to array
     startingSkill: 'water_bolt',
     resourceName: 'Flöde',
   },
-];
+};
 
 // --- Skills ---
-export const SKILL_TREE_DATA: Skill[] = [ // Renamed to SKILL_TREE_DATA
+export const SKILL_TREE_DATA: Record<string, Skill> = { // Changed to Record
   // Fire Skills
-  {
+  fireball: {
     id: 'fireball',
     name: 'Eldklot',
     description: 'Kastar ett eldklot som gör skada och har en chans att bränna fienden.',
@@ -193,7 +193,7 @@ export const SKILL_TREE_DATA: Skill[] = [ // Renamed to SKILL_TREE_DATA
     x: 0, y: 0,
     maxRank: 3,
   },
-  {
+  incinerate: {
     id: 'incinerate',
     name: 'Förbränna',
     description: 'Gör stor eldskada på ett enskilt mål.',
@@ -203,7 +203,7 @@ export const SKILL_TREE_DATA: Skill[] = [ // Renamed to SKILL_TREE_DATA
     x: 1, y: 0,
     maxRank: 3,
   },
-  {
+  fire_shield: {
     id: 'fire_shield',
     name: 'Eldsköld',
     description: 'Omger dig med en sköld av eld som skadar anfallare.',
@@ -214,7 +214,7 @@ export const SKILL_TREE_DATA: Skill[] = [ // Renamed to SKILL_TREE_DATA
     maxRank: 3,
   },
   // Earth Skills
-  {
+  rock_throw: {
     id: 'rock_throw',
     name: 'Stenkast',
     description: 'Kastar en sten som gör fysisk skada.',
@@ -223,7 +223,7 @@ export const SKILL_TREE_DATA: Skill[] = [ // Renamed to SKILL_TREE_DATA
     x: 0, y: 0,
     maxRank: 3,
   },
-  {
+  earthquake: {
     id: 'earthquake',
     name: 'Jordbävning',
     description: 'Skakar marken och skadar alla fiender i ett område.',
@@ -232,145 +232,6 @@ export const SKILL_TREE_DATA: Skill[] = [ // Renamed to SKILL_TREE_DATA
     icon: Icons.Earth,
     x: 1, y: 0,
     maxRank: 3,
-  },
-  {
-    id: 'harden_skin',
-    name: 'Härda Hud',
-    description: 'Ökar din rustning under en kort period.',
-    dependencies: ['rock_throw'],
-    element: Element.EARTH,
-    icon: Icons.Earth,
-    x: 0, y: 1,
-    maxRank: 3,
-  },
-  // Wind Skills
-  {
-    id: 'gust',
-    name: 'Vindstöt',
-    description: 'En snabb vindstöt som gör vindskada och har en chans att sakta ner fienden.',
-    element: Element.WIND,
-    icon: Icons.Wind,
-    x: 0, y: 0,
-    maxRank: 3,
-  },
-  {
-    id: 'cyclone',
-    name: 'Cyklon',
-    description: 'Skapar en virvelvind som skadar och förvirrar fiender i ett område.',
-    dependencies: ['gust'],
-    element: Element.WIND,
-    icon: Icons.Wind,
-    x: 1, y: 0,
-    maxRank: 3,
-  },
-  {
-    id: 'evasive_maneuver',
-    name: 'Undvikande Manöver',
-    description: 'Ökar din undvikandechans under en kort period.',
-    dependencies: ['gust'],
-    element: Element.WIND,
-    icon: Icons.Wind,
-    x: 0, y: 1,
-    maxRank: 3,
-  },
-  // Water Skills
-  {
-    id: 'water_bolt',
-    name: 'Vattenprojektil',
-    description: 'Kastar en vattenprojektil som gör vattenskada.',
-    element: Element.WATER,
-    icon: Icons.Water,
-    x: 0, y: 0,
-    maxRank: 3,
-  },
-  {
-    id: 'healing_wave',
-    name: 'Helande Våg',
-    description: 'Skickar ut en våg av helande energi som återställer hälsa till dig själv eller en allierad.',
-    dependencies: ['water_bolt'],
-    element: Element.WATER,
-    icon: Icons.Water,
-    x: 1, y: 0,
-    maxRank: 3,
-  },
-  {
-    id: 'freeze',
-    name: 'Frysning',
-    description: 'Fryser en fiende, vilket hindrar dem från att agera under en kort tid.',
-    dependencies: ['water_bolt'],
-    element: Element.WATER,
-    icon: Icons.Water,
-    x: 0, y: 1,
-    maxRank: 3,
-  },
-];
-
-// --- Player Abilities (Active Skills) ---
-export const PLAYER_ABILITIES: Record<string, PlayerAbility> = {
-  fireball: {
-    id: 'fireball',
-    name: 'Eldklot',
-    element: Element.FIRE,
-    category: 'damage',
-    targetType: 'SINGLE_ENEMY', // Default for single target
-    ranks: [
-      { description: 'Gör 10 eldskada. 20% chans att bränna i 2 rundor (3 skada/runda).', resourceCost: 10, damageMultiplier: 1.0, dotDamage: 3, duration: 2, chance: 20, statusEffectsToApply: ['burning'] },
-      { description: 'Gör 15 eldskada. 30% chans att bränna i 2 rundor (5 skada/runda).', resourceCost: 12, damageMultiplier: 1.5, dotDamage: 5, duration: 2, chance: 30, statusEffectsToApply: ['burning'] },
-      { description: 'Gör 20 eldskada. 40% chans att bränna i 3 rundor (7 skada/runda).', resourceCost: 15, damageMultiplier: 2.0, dotDamage: 7, duration: 3, chance: 40, statusEffectsToApply: ['burning'] },
-    ],
-    cooldown: 0,
-  },
-  incinerate: {
-    id: 'incinerate',
-    name: 'Förbränna',
-    element: Element.FIRE,
-    category: 'damage',
-    targetType: 'SINGLE_ENEMY',
-    ranks: [
-      { description: 'Gör 30 eldskada.', resourceCost: 20, damageMultiplier: 3.0 },
-      { description: 'Gör 45 eldskada.', resourceCost: 25, damageMultiplier: 4.5 },
-      { description: 'Gör 60 eldskada.', resourceCost: 30, damageMultiplier: 6.0 },
-    ],
-    cooldown: 3,
-  },
-  fire_shield: {
-    id: 'fire_shield',
-    name: 'Eldsköld',
-    element: Element.FIRE,
-    category: 'buff',
-    targetType: 'SELF',
-    ranks: [
-      { description: 'Omger dig med en eldsköld. När du tar skada, 30% chans att bränna anfallaren i 1 runda (2 skada/runda). Varar 3 rundor.', resourceCost: 15, duration: 3, chance: 30, dotDamage: 2, statusEffectsToApply: ['retaliating'] },
-      { description: 'Omger dig med en eldsköld. När du tar skada, 40% chans att bränna anfallaren i 2 rundor (3 skada/runda). Varar 4 rundor.', resourceCost: 18, duration: 4, chance: 40, dotDamage: 3, statusEffectsToApply: ['retaliating'] },
-      { description: 'Omger dig med en eldsköld. När du tar skada, 50% chans att bränna anfallaren i 2 rundor (4 skada/runda). Varar 5 rundor.', resourceCost: 22, duration: 5, chance: 50, dotDamage: 4, statusEffectsToApply: ['retaliating'] },
-    ],
-    cooldown: 5,
-  },
-  rock_throw: {
-    id: 'rock_throw',
-    name: 'Stenkast',
-    element: Element.EARTH,
-    category: 'damage',
-    targetType: 'SINGLE_ENEMY',
-    ranks: [
-      { description: 'Gör 12 fysisk skada.', resourceCost: 8, damageMultiplier: 1.2 },
-      { description: 'Gör 18 fysisk skada.', resourceCost: 10, damageMultiplier: 1.8 },
-      { description: 'Gör 24 fysisk skada.', resourceCost: 12, damageMultiplier: 2.4 },
-    ],
-    cooldown: 0,
-  },
-  earthquake: {
-    id: 'earthquake',
-    name: 'Jordbävning',
-    element: Element.EARTH,
-    category: 'damage',
-    targetType: 'ALL_ENEMIES', // AOE
-    ranks: [
-      { description: 'Gör 15 jordskada till alla fiender.', resourceCost: 25, damageMultiplier: 1.5 },
-      { description: 'Gör 20 jordskada till alla fiender.', resourceCost: 30, damageMultiplier: 2.0 },
-      { description: 'Gör 25 jordskada till alla fiender.', resourceCost: 35, damageMultiplier: 2.5 },
-    ],
-    cooldown: 4,
   },
   harden_skin: {
     id: 'harden_skin',

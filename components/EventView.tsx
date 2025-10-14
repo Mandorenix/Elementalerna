@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { GameEvent, Enemy, CombatLogMessage, Character, StatusEffect, PlayerAbility, EquipmentSlot, Item, ArchetypeName, ItemAffix, AbilityRankData } from '../types';
 import { Element } from '../types';
-import { Icons, ARCHETYPES, PLAYER_ABILITIES, STATUS_EFFECT_ICONS } from '../constants'; // Lade till STATUS_EFFECT_ICONS
+import { Icons, ARCHETYPES, PLAYER_ABILITIES } from '../constants';
 import { soundEffects } from '../sound'; // Aktiverar importen av ljudeffekter
 import CombatBackground from './CombatBackground'; // Import the new CombatBackground component
-import { createLogMessage, applyPlayerAbility, processEnemyTurn, applyStatusEffectDamageAndDuration, getRandom } from '../utils/combatCalculations'; // Import refactored functions
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
@@ -45,17 +44,14 @@ const STYRKA_PER_HIT = 15;
 const STYRKA_PER_DEFEND = 25;
 const FLODE_PER_HEAL_CC = 30;
 
-interface EventViewProps {
+const EventView: React.FC<{
   event: GameEvent;
   character: Character;
   playerStats: { health: number; maxHealth: number; aether: number; maxAether: number; resourceName: string; damage: number; armor: number; dodge: number; crit: number; intelligence: number; abilities: PlayerAbility[] };
   onComplete: (rewards: GameEvent['rewards']) => void;
   equipment: Record<EquipmentSlot, Item | null>;
   unlockedSkills: Map<string, number>;
-  setCharacter: React.Dispatch<React.SetStateAction<Character | null>>;
-}
-
-const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, onComplete, equipment, unlockedSkills, setCharacter }) => {
+}> = ({ event, character, playerStats, onComplete, equipment, unlockedSkills }) => {
   const [gameState, setGameState] = useState<GameState>('INTRO');
   const [actors, setActors] = useState<Actor[]>([]);
   const [playerResource, setPlayerResource] = useState(playerStats.aether);
@@ -71,16 +67,11 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
   const popupContainerRef = useRef<HTMLDivElement>(null);
   const resourceTheme = resourceThemes[playerStats.resourceName] || resourceThemes['Aether'];
 
-  // Moved handleResetCharacter here so it's declared before being used in useEffect
-  const handleResetCharacter = useCallback(() => {
-    setCharacter(null);
-  }, [setCharacter]);
-
   // Initialize combatants
   useEffect(() => {
-    const archetypeIcon = ARCHETYPES[character.archetype]?.icon || Icons.Start;
+    const archetypeIcon = ARCHETYPES.find(a => a.name === character.archetype)?.icon || Icons.Start;
     const playerActor: Actor = {
-      id: character.id, type: 'PLAYER', name: character.name, icon: archetypeIcon,
+      id: 'player', type: 'PLAYER', name: character.name, icon: archetypeIcon,
       hp: playerStats.health, maxHp: playerStats.maxHealth, atb: 0, 
       animationState: 'idle', statusEffects: [], isDefeated: false, ref: playerRef
     };
@@ -189,33 +180,27 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
       // Process actor's own status effects (after environment effects)
       let effectsAfterTurn: StatusEffect[] = [];
       for (const effect of newStatusEffects) { // Iterate over potentially updated effects
-          if (effect.type === 'burning' && 'damage' in effect && effect.damage) {
+          if (effect.type === 'burning' && effect.damage) {
               hp = Math.max(0, hp - effect.damage);
               soundEffects.burn(); // Aktiverad ljudeffekt
               addLogMessage(`${actor.name} tar ${effect.damage} brännskada!`);
               addDamagePopup(effect.damage.toString(), actor.id, 'status_damage');
           }
-           if (effect.type === 'poisoned' && 'damage' in effect && effect.damage) {
+           if (effect.type === 'poisoned' && effect.damage) {
               hp = Math.max(0, hp - effect.damage);
               addLogMessage(`${actor.name} tar ${effect.damage} giftskada!`);
               addDamagePopup(effect.damage.toString(), actor.id, 'status_damage');
           }
-           if (effect.type === 'regenerating' && 'heal' in effect && effect.heal) {
+           if (effect.type === 'regenerating' && effect.heal) {
               hp = Math.min(actor.maxHp, hp + effect.heal);
               addLogMessage(`${actor.name} regenererar ${effect.heal} hälsa!`);
               addDamagePopup(`+${effect.heal}`, actor.id, 'heal');
           }
-          if (effect.type === 'steamed' && 'damage' in effect && effect.damage) {
+          if (effect.type === 'steamed' && effect.damage) {
               hp = Math.max(0, hp - effect.damage);
               addLogMessage(`${actor.name} tar ${effect.damage} ångskada!`);
               addDamagePopup(effect.damage.toString(), actor.id, 'status_damage');
           }
-          if (effect.type === 'bleeding' && 'damage' in effect && effect.damage) {
-              hp = Math.max(0, hp - effect.damage);
-              addLogMessage(`${actor.name} blöder och tar ${effect.damage} skada!`);
-              addDamagePopup(effect.damage.toString(), actor.id, 'status_damage');
-          }
-
 
           if (effect.duration > 1) {
               const newDuration = effect.duration - 1;
@@ -232,28 +217,11 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
                   case 'overheated': effectsAfterTurn.push({ type: 'overheated', duration: newDuration }); break;
                   case 'rooted': effectsAfterTurn.push({ type: 'rooted', duration: newDuration }); break;
                   case 'steamed': effectsAfterTurn.push({ type: 'steamed', duration: newDuration, damage: effect.damage, accuracyReduction: effect.accuracyReduction }); break;
-                  case 'paralyzed': effectsAfterTurn.push({ type: 'paralyzed', duration: newDuration }); break;
-                  case 'bleeding': effectsAfterTurn.push({ type: 'bleeding', duration: newDuration, damage: effect.damage }); break;
-                  case 'frightened': effectsAfterTurn.push({ type: 'frightened', duration: newDuration, chanceToMissTurn: effect.chanceToMissTurn, chanceToAttackRandom: effect.chanceToAttackRandom }); break;
-                  case 'reflecting': effectsAfterTurn.push({ type: 'reflecting', duration: newDuration, element: effect.element, value: effect.value }); break;
-                  case 'absorbing': effectsAfterTurn.push({ type: 'absorbing', duration: newDuration, element: effect.element, value: effect.value }); break;
-                  case 'armor_reduction': effectsAfterTurn.push({ type: 'armor_reduction', duration: newDuration, value: effect.value }); break;
-                  case 'stunned': effectsAfterTurn.push({ type: 'stunned', duration: newDuration }); break;
-                  case 'frozen': effectsAfterTurn.push({ type: 'frozen', duration: newDuration }); break;
-                  case 'damage_reduction': effectsAfterTurn.push({ type: 'damage_reduction', duration: newDuration, value: effect.value, isPercentage: effect.isPercentage }); break;
               }
           } else {
              if (effect.type === 'rooted') addLogMessage(`${actor.name} är inte längre rotad.`);
              if (effect.type === 'blinded') addLogMessage(`${actor.name} är inte längre bländad.`);
              if (effect.type === 'steamed') addLogMessage(`${actor.name} är inte längre ångad.`);
-             if (effect.type === 'paralyzed') addLogMessage(`${actor.name} är inte längre förlamad.`);
-             if (effect.type === 'frightened') addLogMessage(`${actor.name} är inte längre skräckslagen.`);
-             if (effect.type === 'reflecting') addLogMessage(`${actor.name} reflekterar inte längre skada.`);
-             if (effect.type === 'absorbing') addLogMessage(`${actor.name} absorberar inte längre skada.`);
-             if (effect.type === 'armor_reduction') addLogMessage(`${actor.name}s rustning är återställd.`);
-             if (effect.type === 'stunned') addLogMessage(`${actor.name} är inte längre bedövad.`);
-             if (effect.type === 'frozen') addLogMessage(`${actor.name} är inte längre frusen.`);
-             if (effect.type === 'damage_reduction') addLogMessage(`${actor.name}s skadereduktion är borta.`);
           }
       }
       
@@ -298,33 +266,13 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
           setGameState('PLAYER_TURN');
           setShowCommandMenu(true);
       } else {
-          const enemyData = event.enemies.find(e => e.id === actor.id);
-          if (!enemyData) return;
-
-          const { updatedPlayer: newPlayer, updatedEnemies: newEnemies, log: enemyLog, damageToPlayer: enemyDamage } = processEnemyTurn(
-              character,
-              event.enemies,
-              enemyData
-          );
-          
-          // Update player and enemy states based on enemy turn
-          setCharacter(prevChar => ({ ...prevChar!, ...newPlayer }));
-          setActors(currentActors => currentActors.map(a => {
-              const updatedEnemy = newEnemies.find(e => e.id === a.id);
-              if (updatedEnemy) {
-                  return { ...a, hp: updatedEnemy.stats.health, statusEffects: updatedEnemy.statusEffects || [] };
-              }
-              return a;
-          }));
-          addLogMessage(enemyLog.map(msg => msg.text).join('\n'));
-          addDamagePopup(enemyDamage.toString(), 'player', 'damage');
-
+          await handleEnemyAction(actor.id);
           if (gameState as GameState !== 'VICTORY' && gameState as GameState !== 'DEFEAT') {
              setGameState('ACTIVE');
           }
       }
 
-  }, [actors, updateActorState, gameState, event.environment, character, playerStats.maxAether, event.enemies, addLogMessage, addDamagePopup, setCharacter]);
+  }, [actors, updateActorState, gameState, event.environment, character.archetype, playerStats.maxAether, character.element, event.enemies]);
 
   // ATB Game Loop: Ticks the ATB bars up.
   useEffect(() => {
@@ -392,6 +340,7 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
   };
   
   const performAttack = async (attackerId: string, defenderId: string, baseDamage: number, damageElement: Element = Element.NEUTRAL, isSkill: boolean = false, skillEffect?: () => void) => {
+      // FIX: Change attacker to let to allow reassignment later
       let attacker = actors.find(a => a.id === attackerId);
       let defender = actors.find(a => a.id === defenderId);
       if(!attacker || !defender || defender.isDefeated) return;
@@ -402,7 +351,7 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
       }
       const totalBaseDamage = baseDamage + hettaBonus;
 
-      if (!isSkill) soundEffects.slash();
+      if (!isSkill) soundEffects.slash(); // Aktiverad ljudeffekt
       updateActorState(attackerId, { animationState: 'attacking', atb: 0, statusEffects: attacker.statusEffects.filter(e => e.type !== 'defending') });
       await sleep(300);
 
@@ -411,11 +360,11 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
       const isDodge = isBlinded ? dodgeRoll < 50 : dodgeRoll < (defender.type === 'PLAYER' ? playerStats.dodge : 0);
 
       if(isDodge) {
-          soundEffects.miss();
+          soundEffects.miss(); // Aktiverad ljudeffekt
           addDamagePopup("MISS", defenderId, 'miss');
           addLogMessage(`${attacker.name} attackerade ${defender.name}, men missade!`);
       } else {
-          soundEffects.hit();
+          soundEffects.hit(); // Aktiverad ljudeffekt
           addVisualEffect(isSkill ? 'fireball' : 'slash', attackerId, defenderId);
           await sleep(200);
 
@@ -448,6 +397,9 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
               let statusToAdd: StatusEffect | undefined;
               let logMsg = "";
           
+              // FIX: Use a switch statement for robust type narrowing on discriminated unions.
+              // This resolves an issue where the if-else chain failed to correctly narrow the type of `effect`,
+              // leading to a TypeScript error when creating statusToAdd.
               switch (effect.type) {
                 case 'burning':
                     statusToAdd = { type: 'burning', duration: effect.duration, damage: effect.damage };
@@ -478,29 +430,33 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
           const hettaLog = hettaBonus > 0 ? ` (+${hettaBonus} från Hetta)` : "";
           addLogMessage(`${attacker.name} skadade ${defender.name} för ${finalDamage} HP${hettaLog}.`);
           
+          // Must apply damage before checking affixes, so they have the latest HP
           defender = { ...defender, hp: newHp };
           updateActorState(defenderId, { ...defenderUpdates, hp: newHp });
 
           // --- AFFIX PROCESSING ---
           if (attacker.type === 'PLAYER') {
+            // FIX: Explicitly cast the array from Object.values to prevent 'unknown' type errors.
             for (const item of Object.values(equipment) as (Item | null)[]) {
                 if (item?.affix?.trigger === 'ON_HIT') {
                     await applyAffix(item.affix, attacker, defender);
-                    defender = actors.find(a => a.id === defenderId)!;
+                    defender = actors.find(a => a.id === defenderId)!; // Refresh defender state after affix
                     if (defender.isDefeated) break;
                 }
             }
-          } else {
+          } else { // Enemy is attacker
+            // FIX: Explicitly cast the array from Object.values to prevent 'unknown' type errors.
             for (const item of Object.values(equipment) as (Item | null)[]) {
                 if (item?.affix?.trigger === 'ON_TAKE_DAMAGE') {
                      await applyAffix(item.affix, defender, attacker);
-                     attacker = actors.find(a => a.id === attackerId)!;
+                     attacker = actors.find(a => a.id === attackerId)!; // Refresh attacker state
                      if (attacker.isDefeated) break;
                 }
+                // Check for retaliation from player's Magma Armor
                 const playerActor = actors.find(a => a.type === 'PLAYER');
                 if (playerActor && !playerActor.isDefeated) {
                     const retaliateEffect = playerActor.statusEffects.find(e => e.type === 'retaliating');
-                    if (retaliateEffect && retaliateEffect.type === 'retaliating' && Math.random() * 100 < 30) {
+                    if (retaliateEffect && retaliateEffect.type === 'retaliating' && Math.random() * 100 < 30) { // 30% chance to retaliate
                         await sleep(300);
                         const retaliateDamage = retaliateEffect.damage;
                         const newAttackerHp = Math.max(0, attacker.hp - retaliateDamage);
@@ -518,13 +474,13 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
             }
           }
 
-          if(newHp <= 0 && !defender.isDefeated) {
+          if(newHp <= 0 && !defender.isDefeated) { // Check again after affixes
               updateActorState(defenderId, { isDefeated: true });
               addLogMessage(`${defender.name} har besegrats!`);
           }
       }
       
-      await sleep(300);
+      await sleep(300); // hit flash duration
       updateActorState(attackerId, { animationState: 'idle' });
       updateActorState(defenderId, { animationState: 'idle' });
   };
@@ -554,7 +510,7 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
         case 'Pyromanten':
             if (player.statusEffects.some(e => e.type === 'overheated')) {
                 addLogMessage("Du är överhettad och kan inte generera Hetta!");
-                effectiveCost = 0;
+                effectiveCost = 0; // Prevent Hetta gain
             } else {
                 const hettaGained = rankData ? rankData.resourceCost : 0;
                 const newHetta = playerResource + hettaGained;
@@ -614,9 +570,10 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
           // --- SKILL LOGIC ---
           let healAmount = 0;
           switch(abilityInfo.id) {
-            case 'fireball': // Changed from fire_1, fire_3 to fireball
-            case 'incinerate': // Added incinerate
+            case 'fire_1':
+            case 'fire_3':
                if(target && rankData.damageMultiplier) {
+                 // Reaction: Water + Burning = Steamed
                  const isBurning = target.statusEffects.some(e => e.type === 'burning');
                  if (abilityInfo.element === Element.WATER && isBurning) {
                      addLogMessage(`${target.name}s eld släcktes av vattnet och skapade ånga!`);
@@ -630,6 +587,7 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
                      addDamagePopup(newStatus.damage!.toString(), target.id, 'status_damage');
                      await sleep(500);
                  } 
+                 // Reaction: Fire + Slowed = Steamed
                  else if (abilityInfo.element === Element.FIRE && target.statusEffects.some(e => e.type === 'slowed')) {
                      addLogMessage(`${target.name}s kyla förångades av elden!`);
                      updateActorState(target.id, {
@@ -647,9 +605,10 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
                  }
                }
                break;
-            case 'cyclone': // Changed from wind_3 to cyclone
+            case 'wind_3': // Cyklon
                 if (target && rankData.damageMultiplier) {
-                    const isRootedOrSlowedByMud = target.statusEffects.some(e => e.type === 'rooted' || (e.type === 'slowed' && event.element === Element.MUD));
+                    // Reaction: Wind + Rooted/Slowed (from Mud) = Blinded
+                    const isRootedOrSlowedByMud = target.statusEffects.some(e => e.type === 'rooted' || (e.type === 'slowed' && event.element === Element.MUD)); // Assuming Mud environment for slowed
                     if (isRootedOrSlowedByMud) {
                         addLogMessage(`Vinden torkar ut leran och bländar ${target.name}!`);
                         updateActorState(target.id, {
@@ -661,17 +620,21 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
                         });
                         await sleep(500);
                     }
+                    // NEW Reaction: Wind + Burning = Intensified Burn
                     const existingBurning = target.statusEffects.find(e => e.type === 'burning');
                     if (abilityInfo.element === Element.WIND && existingBurning && existingBurning.type === 'burning') {
                         addLogMessage(`Vinden fläktar elden och intensifierar bränningen på ${target.name}!`);
+                        // Remove old burning, deal immediate bonus damage, apply stronger burn
                         updateActorState(target.id, {
                             statusEffects: target.statusEffects.filter(e => e.type !== 'burning')
                         });
-                        const bonusFireDamage = Math.floor(existingBurning.damage * 1.5);
-                        const newBurnDamage = Math.floor(existingBurning.damage * 1.2);
+                        const bonusFireDamage = Math.floor(existingBurning.damage * 1.5); // 50% more immediate damage
+                        const newBurnDamage = Math.floor(existingBurning.damage * 1.2); // 20% stronger DoT
                         
+                        // Deal immediate bonus damage
                         await performAttack(player.id, target.id, bonusFireDamage, Element.FIRE, true);
                         
+                        // Apply new, stronger burning status
                         const newBurningStatus: StatusEffect = { type: 'burning', duration: 3, damage: newBurnDamage };
                         updateActorState(target.id, {
                             statusEffects: [...target.statusEffects.filter(e => e.type !== 'burning'), newBurningStatus]
@@ -683,7 +646,7 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
                     }
                 }
                 break;
-            case 'freeze': // Changed from ice to freeze
+            case 'ice':
                if(target && rankData.damageMultiplier) await performAttack(player.id, target.id, baseSkillDamage * rankData.damageMultiplier, abilityInfo.element, true, () => {
                  if (rankData.duration) {
                     updateActorState(target.id, { statusEffects: [...target.statusEffects.filter(e => e.type !== 'slowed'), { type: 'slowed', duration: rankData.duration }] });
@@ -691,7 +654,7 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
                  }
                });
                break;
-            case 'fire_shield': // Changed from fire_2 to fire_shield
+            case 'fire_2': // Antända
               if(target && rankData.damageMultiplier && rankData.dotDamage) {
                 await performAttack(player.id, target.id, baseSkillDamage * rankData.damageMultiplier, abilityInfo.element, true, () => {
                   const burnDamage = Math.floor(rankData.dotDamage! + playerStats.intelligence * 0.2);
@@ -700,8 +663,9 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
                 });
               }
               break;
-            case 'harden_skin': // Changed from earth_1 to harden_skin
+            case 'earth_1': // Stenhud
               if (rankData.duration) {
+                // Reaction: Earth + Poisoned = Cleansed
                 if (player.statusEffects.some(e => e.type === 'poisoned')) {
                     addLogMessage(`Jordens kraft renar dig från giftet!`);
                     updateActorState(player.id, {
@@ -714,8 +678,8 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
                 await sleep(500);
               }
               break;
-            case 'earthquake': // Changed from earth_3 to earthquake
-            case 'healing_wave': // Changed from water_3 to healing_wave
+            case 'earth_3': // Jordskalv
+            case 'water_3': // Tidvattenvåg
               if(target && rankData.damageMultiplier && rankData.duration) {
                 await performAttack(player.id, target.id, baseSkillDamage * rankData.damageMultiplier, abilityInfo.element, true, () => {
                    updateActorState(target.id, { statusEffects: [...target.statusEffects.filter(e => e.type !== 'slowed'), { type: 'slowed', duration: rankData.duration! }] });
@@ -723,18 +687,18 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
                 });
               }
               break;
-            case 'evasive_maneuver': // Changed from wind_1 to evasive_maneuver
+            case 'wind_1': // Hastighet
               if (rankData.duration) {
                 addVisualEffect('haste', player.id, player.id);
                 updateActorState(player.id, { atb: 0, statusEffects: [...player.statusEffects.filter(e => e.type !== 'hasted'), {type: 'hasted', duration: rankData.duration}] });
                 await sleep(500);
               }
               break;
-            case 'water_bolt': // Changed from water_1 to water_bolt
+            case 'water_1': // Läka
               if (rankData.healMultiplier) {
                 healAmount = Math.floor(player.maxHp * rankData.healMultiplier + playerStats.intelligence);
                 if(hasFullFlow) healAmount = Math.floor(healAmount * 1.5);
-                soundEffects.heal();
+                soundEffects.heal(); // Aktiverad ljudeffekt
                 const newHp = Math.min(player.maxHp, player.hp + healAmount);
                 addVisualEffect('heal', player.id, player.id);
                 await sleep(300);
@@ -744,252 +708,462 @@ const EventView: React.FC<EventViewProps> = ({ event, character, playerStats, on
                 await sleep(500);
               }
               break;
-            case 'growth':
+            case 'growth': // Tillväxt
               const healPerTurn = Math.floor(playerStats.intelligence * 0.5 + 5);
               updateActorState(player.id, { atb: 0, statusEffects: [...player.statusEffects.filter(e => e.type !== 'regenerating'), {type: 'regenerating', duration: 4, heal: healPerTurn}] });
               addLogMessage(`Du känner en läkande kraft från jorden.`);
               await sleep(500);
               break;
-            case 'mud':
-                if(target) await performAttack(player.id, target.id, playerStats.damage * 0.25, abilityInfo.element, true, () => {
-                   const newEffects = [...target.statusEffects.filter(e => e.type !== 'slowed')];
-                   const newStatus: StatusEffect = { type: 'slowed', duration: 2 };
-                   updateActorState(target.id, { statusEffects: [...newEffects, newStatus] });
-                   addLogMessage(`${target.name} fastnar i lera och saktas ner!`);
-                });
-                break;
+            case 'mud': // Lerfälla
+              if(target) await performAttack(player.id, target.id, playerStats.damage * 0.25, abilityInfo.element, true, () => {
+                 const newEffects = [...target.statusEffects.filter(e => e.type !== 'slowed' && e.type !== 'rooted'), { type: 'slowed', duration: 3 }];
+                 let log = `${target.name} fastnar i leran och saktas ner!`;
+                 if (Math.random() < 0.25) { // 25% chance to root
+                    newEffects.push({ type: 'rooted', duration: 2 });
+                    log = `${target.name} sitter fast i leran!`
+                 }
+                 updateActorState(target.id, { statusEffects: newEffects });
+                 addLogMessage(log);
+              });
+              break;
+             case 'magma': // Magma Armor
+              const retaliateDamage = Math.floor(playerStats.intelligence * 0.8);
+              updateActorState(player.id, { atb: 0, statusEffects: [
+                  ...player.statusEffects.filter(e => e.type !== 'retaliating'),
+                  { type: 'retaliating', duration: 4, damage: retaliateDamage },
+                  { type: 'defending', duration: 4 }
+              ]});
+              addLogMessage(`Du omger dig med Magma Armor!`);
+              await sleep(500);
+              break;
+             case 'sand': // Sandstorm
+              const livingEnemies = actors.filter(a => a.type === 'ENEMY' && !a.isDefeated);
+              updateActorState(player.id, { animationState: 'casting', atb: 0 });
+              for (const enemy of livingEnemies) {
+                  let sandstormDamage = playerStats.damage * 0.6 + playerStats.intelligence;
+                  if (hasFullFlow) sandstormDamage *= 1.5;
+                  
+                  const enemyData = event.enemies.find(e => e.id === enemy.id);
+                  const resistance = enemyData?.resistances ? (enemyData.resistances[abilityInfo.element] || 0) : 0;
+                  const resistanceMultiplier = 1 - (resistance / 100);
+                  
+                  const enemyArmor = enemyData?.stats.armor || 0;
+                  const finalDamage = Math.floor(Math.max(1, (sandstormDamage - enemyArmor) * resistanceMultiplier));
+                  const newHp = Math.max(0, enemy.hp - finalDamage);
+                  const newStatusEffects: StatusEffect[] = [...enemy.statusEffects.filter(e => e.type !== 'blinded'), { type: 'blinded', duration: 3 }];
+                  
+                  updateActorState(enemy.id, { hp: newHp, statusEffects: newStatusEffects, animationState: 'hit' });
+                  addDamagePopup(finalDamage.toString(), enemy.id, 'damage');
+                  addLogMessage(`Sandstormen skadar ${enemy.name}!`);
+                  
+                  if (newHp <= 0) {
+                      updateActorState(enemy.id, { isDefeated: true });
+                      addLogMessage(`${enemy.name} har besegrats!`);
+                  }
+              }
+              await sleep(500);
+              livingEnemies.forEach(e => updateActorState(e.id, { animationState: 'idle' }));
+              updateActorState(player.id, { animationState: 'idle' });
+              break;
+            default:
+              addLogMessage("Färdigheten är inte implementerad än.");
+              updateActorState(player.id, { atb: 0 });
+              await sleep(500);
+              break;
+          }
+           // --- POST-ACTION RESOURCE LOGIC ---
+          if (character.archetype === 'Tidvattenvävaren') {
+            if (hasFullFlow) {
+              setPlayerResource(0);
+              updateActorState(player.id, { statusEffects: player.statusEffects.filter(e => e.type !== 'full_flow')});
+              addLogMessage("Fullt Flöde har förbrukats!");
+            } else if (abilityInfo.category === 'heal' || abilityInfo.category === 'cc') {
+              const newFlode = playerResource - effectiveCost + FLODE_PER_HEAL_CC; // Recalc based on state before this action
+              setPlayerResource(r => {
+                  const updatedFlode = r + FLODE_PER_HEAL_CC;
+                  if (updatedFlode >= playerStats.maxAether) {
+                      updateActorState(player.id, { statusEffects: [...player.statusEffects.filter(e => e.type !== 'full_flow'), {type: 'full_flow', duration: 99}] });
+                      addLogMessage("Fullt Flöde uppnått! Nästa förmåga är förstärkt!");
+                  }
+                  return Math.min(playerStats.maxAether, updatedFlode);
+              });
+            }
           }
       }
       
-      updateActorState(player.id, { atb: 0 });
-      if (gameState as GameState !== 'VICTORY' && gameState as GameState !== 'DEFEAT') {
-          setGameState('ACTIVE');
+      if(gameState as GameState !== 'VICTORY' && gameState as GameState !== 'DEFEAT') {
+         setGameState('ACTIVE');
       }
   };
 
-  const handleTargetSelect = (enemyId: string) => {
-      setSelectedTarget(enemyId);
-      setShowAbilityMenu(true);
-  };
+  const handleEnemyAction = async (enemyId: string) => {
+      let player = actors.find(a => a.type === 'PLAYER');
+      if (!player || player.hp <= 0 || player.isDefeated) return;
+      
+      const enemyData = event.enemies.find(e => e.id === enemyId);
+      const enemyActor = actors.find(a => a.id === enemyId);
+      if (!enemyData || !enemyActor) return;
+      
+      // Check if enemy is blinded
+      const isBlinded = enemyActor.statusEffects.some(e => e.type === 'blinded');
+      if (isBlinded && Math.random() < 0.5) { // 50% chance to miss if blinded
+          addLogMessage(`${enemyData.name} är bländad och missar sin attack!`);
+          updateActorState(enemyId, { atb: 0 });
+          await sleep(500);
+          if (gameState as GameState !== 'VICTORY' && gameState as GameState !== 'DEFEAT') {
+             setGameState('ACTIVE');
+          }
+          return;
+      }
 
-  const handleAbilitySelect = (abilityId: string) => {
-      handlePlayerAction('SKILL', abilityId);
-      setSelectedTarget(null);
-      setShowAbilityMenu(false);
+      if (enemyData.ability === 'HASTE_SELF' && Math.random() < 0.4) { // 40% chance
+          const existingEffects = enemyActor.statusEffects.filter(e => e.type !== 'hasted');
+          const newEffects: StatusEffect[] = [...existingEffects, { type: 'hasted', duration: 4 }];
+          
+          updateActorState(enemyId, { atb: 0, statusEffects: newEffects });
+          addVisualEffect('haste', enemyId, enemyId);
+          addLogMessage(`${enemyData.name} använder vindhastighet!`);
+          await sleep(500);
+      } else {
+          await performAttack(enemyId, player.id, enemyData?.stats.damage || 5, enemyData.element);
+      }
+      
+      // Check for retaliation damage
+      player = actors.find(a => a.type === 'PLAYER'); // Re-fetch player state
+      if (player && !player.isDefeated) {
+          const retaliateEffect = player.statusEffects.find(e => e.type === 'retaliating');
+          const currentAttacker = actors.find(a => a.id === enemyId);
+          // FIX: Re-order conditions to help TypeScript with type narrowing.
+          // The optional chaining with a type check is correct, but can be made more explicit
+          // to potentially help older/stricter TS versions. The `find` predicate doesn't
+          // always narrow the return type for the compiler.
+          if (retaliateEffect && retaliateEffect.type === 'retaliating' && currentAttacker && !currentAttacker.isDefeated) {
+              await sleep(300);
+              const retaliateDamage = retaliateEffect.damage;
+              const newAttackerHp = Math.max(0, currentAttacker.hp - retaliateDamage);
+              updateActorState(enemyId, { hp: newAttackerHp, animationState: 'hit' });
+              addDamagePopup(retaliateDamage.toString(), enemyId, 'damage');
+              addLogMessage(`${player.name}'s Magma Armor skadar ${enemyData.name}!`);
+              if (newAttackerHp <= 0) {
+                  updateActorState(enemyId, { isDefeated: true });
+                  addLogMessage(`${enemyData.name} besegrades av Magma Armor!`);
+              }
+              await sleep(300);
+              updateActorState(enemyId, { animationState: 'idle' });
+          }
+      }
   };
+  
+  useEffect(() => {
+    if (gameState === 'PLAYER_TURN') {
+      const livingEnemies = actors.filter(a => a.type === 'ENEMY' && !a.isDefeated);
+      if (livingEnemies.length > 0) {
+        // If an AoE skill is selected, no target is needed. For now, we simplify and always select one.
+        if (!livingEnemies.some(e => e.id === selectedTarget)) {
+            setSelectedTarget(livingEnemies[0].id);
+        }
+      }
+    }
+  }, [actors, gameState, selectedTarget]);
 
-  const allEnemiesDefeated = actors.filter(a => a.type === 'ENEMY').every(a => a.isDefeated);
-  const playerDefeated = actors.find(a => a.type === 'PLAYER')?.isDefeated;
 
   useEffect(() => {
-    if (allEnemiesDefeated && gameState !== 'VICTORY') {
-      setGameState('VICTORY');
-      addLogMessage("Alla fiender besegrade! Seger!");
-      soundEffects.victory();
-      setTimeout(() => {
-        if (event.rewards) {
-          onComplete(event.rewards);
-        }
-      }, 2000);
-    } else if (playerDefeated && gameState !== 'DEFEAT') {
-      setGameState('DEFEAT');
-      addLogMessage("Du har besegrats! Spelet är slut.");
-      setTimeout(() => {
-        // Optionally, reset game or show game over screen
-        handleResetCharacter(); // Example: reset character on defeat
-      }, 2000);
+      if (gameState === 'VICTORY' || gameState === 'DEFEAT') return;
+      
+      const activeEnemies = actors.filter(a => a.type === 'ENEMY' && !a.isDefeated);
+      const player = actors.find(a => a.type === 'PLAYER');
+
+      if (actors.length > 1 && player && player.isDefeated) {
+          setGameState('DEFEAT');
+      } else if (actors.length > 1 && activeEnemies.length === 0) {
+          soundEffects.victory(); // Aktiverad ljudeffekt
+          setGameState('VICTORY');
+      }
+  }, [actors, gameState]);
+  
+  const handleDefeatAnimationEnd = (actorId: string) => {
+      setActors(prev => prev.filter(a => a.id !== actorId));
+  }
+
+  const abilitiesByElement = playerStats.abilities.reduce((acc: Record<string, { element: Element, abilities: PlayerAbility[] }>, ability) => {
+    const elementName = Element[ability.element];
+    if (!acc[elementName]) {
+        acc[elementName] = { element: ability.element, abilities: [] };
     }
-  }, [allEnemiesDefeated, playerDefeated, gameState, event.rewards, onComplete, handleResetCharacter]);
+    acc[elementName].abilities.push(ability);
+    return acc;
+  }, {} as Record<string, { element: Element, abilities: PlayerAbility[] }>);
 
-  return (
-    <div className="relative w-full h-full flex flex-col overflow-hidden">
-      <CombatBackground element={event.element} />
+  const elementSortOrder = [
+      Element.FIRE, Element.EARTH, Element.WIND, Element.WATER,
+      Element.MAGMA, Element.OBSIDIAN, Element.FIRESTORM, Element.HOT_AIR, Element.STEAM,
+      Element.HOT_SPRINGS, Element.SAND, Element.EROSION, Element.MUD, Element.GROWTH,
+      Element.ICE, Element.STORM,
+      Element.VOLCANIC_STORM, Element.ELECTRIFIED_MUD, Element.VITRIFIED_STORM,
+      Element.NEUTRAL
+  ];
 
-      <div className="absolute inset-0 flex flex-col z-10">
-        {/* Top Bar: Event Title */}
-        <div className="w-full p-4 text-center bg-black/50 text-yellow-400 text-xl pixelated-border-b">
-          {event.title}
-        </div>
+  const sortedAbilities = Object.entries(abilitiesByElement).sort((
+    [, a]: [string, { element: Element, abilities: PlayerAbility[] }],
+    [, b]: [string, { element: Element, abilities: PlayerAbility[] }]
+  ) => {
+      return elementSortOrder.indexOf(a.element) - elementSortOrder.indexOf(b.element);
+  });
 
-        {/* Combat Area */}
-        <div className="flex-grow flex items-center justify-between p-8 relative" ref={popupContainerRef}>
-          {/* Player */}
-          <div className="relative w-48 h-48 flex items-center justify-center" ref={playerRef}>
-            <div className={`w-32 h-32 bg-blue-700/50 rounded-full flex items-center justify-center text-5xl pixelated-border ${actors.find(a => a.type === 'PLAYER')?.animationState === 'attacking' ? 'animate-attack-player' : ''} ${actors.find(a => a.type === 'PLAYER')?.animationState === 'hit' ? 'animate-hit-flash' : ''} ${actors.find(a => a.type === 'PLAYER')?.isDefeated ? 'animate-defeat' : 'animate-idle-bob'}`}>
-              {actors.find(a => a.type === 'PLAYER')?.icon()}
+
+  const ActorSprite: React.FC<{actor: Actor; onDefeatAnimationEnd: (id: string) => void; equipment?: Record<EquipmentSlot, Item | null>}> = ({ actor, onDefeatAnimationEnd, equipment }) => {
+    const isSelected = selectedTarget === actor.id && (showCommandMenu || showAbilityMenu) && actor.type === 'ENEMY';
+    const Icon = actor.icon;
+    
+    let animationClass = actor.isDefeated ? 'animate-defeat' : 'animate-idle-bob';
+    if(actor.animationState === 'attacking' && !actor.isDefeated) {
+        animationClass = actor.type === 'PLAYER' ? 'animate-attack-player' : 'animate-attack-enemy';
+    } else if (actor.animationState === 'hit' && !actor.isDefeated) {
+        animationClass = 'animate-hit-flash';
+    }
+
+    const statusIconMap: Partial<Record<StatusEffect['type'], { icon: React.FC; title: string; }>> = {
+        'defending': { icon: Icons.Shield, title: "Defending" },
+        'hasted': { icon: Icons.Wind, title: "Hasted" },
+        'burning': { icon: Icons.Burn, title: "Burning" },
+        'poisoned': { icon: Icons.Poison, title: "Poisoned" },
+        'slowed': { icon: Icons.Slow, title: "Slowed" },
+        'blinded': { icon: Icons.Blinded, title: "Blinded" }, // New
+        'retaliating': { icon: Icons.Magma, title: "Retaliating" },
+        'full_flow': { icon: Icons.FullFlow, title: "Full Flow" },
+        'overheated': { icon: Icons.Overheat, title: "Overheated" },
+        'rooted': { icon: Icons.Rooted, title: "Rooted" }, // New
+        'steamed': { icon: Icons.Steamed, title: "Steamed" }, // New
+        'regenerating': { icon: Icons.Regenerating, title: "Regenerating" }
+    };
+
+
+    return (
+       <div 
+          ref={actor.ref} 
+          className={`relative flex flex-col items-center ${animationClass}`}
+          onAnimationEnd={() => { if(actor.isDefeated) onDefeatAnimationEnd(actor.id) }}
+        >
+          {isSelected && <div className="absolute -top-4 text-yellow-400 text-2xl">▼</div>}
+          
+          <div className="relative transform scale-[3] w-12 h-12 flex items-center justify-center">
+            <div className="relative w-full h-full flex items-center justify-center">
+              <Icon />
+              {/* FIX: Explicitly type 'item' to prevent 'unknown' type errors. */}
+              {equipment && Object.values(equipment).map((item: Item | null) => {
+                  if (item && item.visual) {
+                      const VisualComponent = item.visual;
+                      return (
+                          <div key={item.id} className="absolute inset-0 flex items-center justify-center">
+                              <VisualComponent />
+                          </div>
+                      );
+                  }
+                  return null;
+              })}
             </div>
-            {/* Player Status Effects VFX */}
-            {actors.find(a => a.type === 'PLAYER')?.statusEffects.some(e => e.type === 'burning') && (
-                <div className="status-vfx-overlay vfx-burning-overlay"></div>
-            )}
-            {actors.find(a => a.type === 'PLAYER')?.statusEffects.some(e => e.type === 'poisoned') && (
-                <div className="status-vfx-overlay vfx-poison-overlay"></div>
-            )}
-            {actors.find(a => a.type === 'PLAYER')?.statusEffects.some(e => e.type === 'steamed') && (
-                <div className="status-vfx-overlay vfx-steamed-overlay"></div>
-            )}
-            {/* Damage Popups */}
-            {damagePopups.filter(p => p.id === 'player' || p.id === actors.find(a => a.type === 'PLAYER')?.id).map(popup => (
-                <div key={popup.id} className={`damage-popup damage-popup-${popup.type}`} style={{ left: popup.x, top: popup.y }}>
-                    {popup.text}
-                </div>
-            ))}
-            {/* VFX */}
-            {visualEffects.filter(vfx => vfx.targetId === actors.find(a => a.type === 'PLAYER')?.id).map(vfx => (
-                <div key={vfx.id} className={`absolute ${vfx.type === 'heal' ? 'vfx-heal-drop' : ''}`}></div>
-            ))}
-          </div>
-
-          {/* Enemies */}
-          <div className="flex space-x-8">
-            {actors.filter(a => a.type === 'ENEMY').map((enemy, index) => (
-              <div key={enemy.id} className="relative w-48 h-48 flex items-center justify-center" ref={enemy.ref}>
-                <div 
-                    onClick={() => handleTargetSelect(enemy.id)}
-                    className={`w-32 h-32 bg-red-700/50 rounded-full flex items-center justify-center text-5xl pixelated-border cursor-pointer
-                                ${enemy.animationState === 'attacking' ? 'animate-attack-enemy' : ''} 
-                                ${enemy.animationState === 'hit' ? 'animate-hit-flash' : ''} 
-                                ${enemy.isDefeated ? 'animate-defeat' : 'animate-idle-bob'}
-                                ${selectedTarget === enemy.id ? 'border-yellow-400 shadow-[0_0_15px_rgba(252,211,77,0.7)]' : ''}`}
-                >
-                  {enemy.icon()}
-                </div>
-                {/* Enemy Status Effects VFX */}
-                {enemy.statusEffects.some(e => e.type === 'burning') && (
-                    <div className="status-vfx-overlay vfx-burning-overlay"></div>
-                )}
-                {enemy.statusEffects.some(e => e.type === 'poisoned') && (
-                    <div className="status-vfx-overlay vfx-poison-overlay"></div>
-                )}
-                {enemy.statusEffects.some(e => e.type === 'steamed') && (
-                    <div className="status-vfx-overlay vfx-steamed-overlay"></div>
-                )}
-                {/* Damage Popups */}
-                {damagePopups.filter(p => p.id === enemy.id).map(popup => (
-                    <div key={popup.id} className={`damage-popup damage-popup-${popup.type}`} style={{ left: popup.x, top: popup.y }}>
-                        {popup.text}
-                    </div>
-                ))}
-                {/* VFX */}
-                {visualEffects.filter(vfx => vfx.targetId === enemy.id).map(vfx => (
-                    <div key={vfx.id} className={`absolute ${vfx.type === 'slash' ? 'vfx-slash' : vfx.type === 'fireball' ? 'vfx-fireball' : ''}`}></div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Bottom UI */}
-        <div className="w-full p-4 bg-black/70 pixelated-border-t flex justify-between items-end">
-          {/* Player Info */}
-          <div className="w-1/3 p-2 bg-black/50 pixelated-border">
-            <div className="text-lg text-yellow-300">{character.name}</div>
-            <div className="flex items-center mt-1">
-              <div className="w-full bg-gray-700 h-4 pixelated-border">
-                <div className="bg-green-500 h-full" style={{ width: `${(actors.find(a => a.type === 'PLAYER')?.hp / actors.find(a => a.type === 'PLAYER')?.maxHp || 0) * 100}%` }}></div>
-              </div>
-              <span className="ml-2 text-xs">{actors.find(a => a.type === 'PLAYER')?.hp} / {actors.find(a => a.type === 'PLAYER')?.maxHp}</span>
+            {/* Status Effect Visuals */}
+            <div className="status-vfx-overlay">
+                {actor.statusEffects.some(e => e.type === 'burning') && <div className="vfx-burning-overlay" />}
+                {actor.statusEffects.some(e => e.type === 'poisoned') && <div className="vfx-poison-overlay" />}
+                {actor.statusEffects.some(e => e.type === 'steamed') && <div className="vfx-steamed-overlay" />} {/* New VFX for steamed */}
             </div>
-            <div className="flex items-center mt-1">
-              <div className="w-full bg-gray-700 h-4 pixelated-border">
-                <div className={`${resourceTheme.bg} h-full`} style={{ width: `${(playerResource / playerStats.maxAether) * 100}%` }}></div>
-              </div>
-              <span className="ml-2 text-xs">{playerResource} / {playerStats.maxAether}</span>
-            </div>
-            {/* Player Status Effects */}
-            <div className="flex space-x-1 mt-2">
-                {actors.find(a => a.type === 'PLAYER')?.statusEffects.map(effect => {
-                    const Icon = STATUS_EFFECT_ICONS[effect.type];
+            {/* Status Effect Icons */}
+             <div className="absolute top-0 left-0 w-full h-full">
+                {actor.statusEffects.map((effect, index) => {
+                    const iconData = statusIconMap[effect.type];
+                    if (!iconData) return null;
+                    const Icon = iconData.icon;
+                    // Position icons around the sprite
+                    const angle = (index / actor.statusEffects.length) * 2 * Math.PI;
+                    const x = Math.cos(angle) * 12 - 4;
+                    const y = Math.sin(angle) * 12 - 4;
                     return (
-                        <div key={effect.type} className="status-icon">
+                        <div
+                            key={effect.type}
+                            className="status-icon"
+                            style={{ transform: `translate(${x}px, ${y}px)` }}
+                            title={`${iconData.title} (${effect.duration} turns left)`}
+                        >
                             <Icon />
-                            {effect.duration > 0 && <span className="status-duration">{effect.duration}</span>}
+                            <span className="status-duration">{effect.duration}</span>
                         </div>
                     );
                 })}
             </div>
           </div>
 
-          {/* Combat Log */}
-          <div className="w-1/3 p-2 bg-black/50 pixelated-border h-32 overflow-y-auto flex flex-col-reverse text-xs text-gray-300">
-            {log.map((msg, i) => <p key={i} className="mb-1">{msg}</p>)}
-          </div>
-
-          {/* Enemy Info */}
-          <div className="w-1/3 p-2 bg-black/50 pixelated-border">
-            {actors.filter(a => a.type === 'ENEMY' && !a.isDefeated).map(enemy => (
-              <div key={enemy.id} className="mb-2">
-                <div className="text-lg text-red-300">{enemy.name}</div>
-                <div className="flex items-center mt-1">
-                  <div className="w-full bg-gray-700 h-4 pixelated-border">
-                    <div className="bg-red-500 h-full" style={{ width: `${(enemy.hp / enemy.maxHp) * 100}%` }}></div>
-                  </div>
-                  <span className="ml-2 text-xs">{enemy.hp} / {enemy.maxHp}</span>
-                </div>
-                {/* Enemy Status Effects */}
-                <div className="flex space-x-1 mt-2">
-                    {enemy.statusEffects.map(effect => {
-                        const Icon = STATUS_EFFECT_ICONS[effect.type];
-                        return (
-                            <div key={effect.type} className="status-icon">
-                                <Icon />
-                                {effect.duration > 0 && <span className="status-duration">{effect.duration}</span>}
-                            </div>
-                        );
-                    })}
-                </div>
+          <div className="w-24 mt-2">
+            <div className="text-xs text-center">{actor.name}</div>
+            <div className="w-full bg-gray-700 h-2 mt-1 border border-black">
+                <div className="health-bar-fg h-full" style={{width: `${(actor.hp / actor.maxHp) * 100}%`}}></div>
+            </div>
+            {actor.type === 'ENEMY' && (
+              <div className="w-full atb-bar-bg h-2 mt-1 border border-black/50">
+                  <div className="atb-bar-fg h-full" style={{width: `${actor.atb}%`}}></div>
               </div>
-            ))}
+            )}
           </div>
-        </div>
+       </div>
+    );
+  };
+  
+  const VFXLayer = () => {
+    return (
+      <>
+        {visualEffects.map(vfx => {
+            const origin = actors.find(a => a.id === vfx.originId);
+            const target = actors.find(a => a.id === vfx.targetId);
+            if (!origin?.ref?.current || !target?.ref?.current) return null;
+            
+            const originRect = origin.ref.current.getBoundingClientRect();
+            const targetRect = target.ref.current.getBoundingClientRect();
 
-        {/* Player Command Menu */}
-        {gameState === 'PLAYER_TURN' && showCommandMenu && (
-          <div className="absolute bottom-40 left-1/2 -translate-x-1/2 flex space-x-4 z-20">
-            <button onClick={() => handlePlayerAction('ATTACK')} className="px-6 py-3 bg-blue-800/70 border-2 border-blue-600 text-white text-lg pixelated-border hover:bg-blue-700/70">
-              Attack
-            </button>
-            <button onClick={() => setShowAbilityMenu(true)} className="px-6 py-3 bg-purple-800/70 border-2 border-purple-600 text-white text-lg pixelated-border hover:bg-purple-700/70">
-              Förmågor
-            </button>
-            <button onClick={() => handlePlayerAction('DEFEND')} className="px-6 py-3 bg-green-800/70 border-2 border-green-600 text-white text-lg pixelated-border hover:bg-green-700/70">
-              Försvara
-            </button>
-          </div>
-        )}
+            if (vfx.type === 'fireball') {
+                return <div key={vfx.id} className="vfx-fireball absolute" style={{ left: originRect.left, top: originRect.top, transform: `translate(${targetRect.left - originRect.left}px, ${targetRect.top - originRect.top}px)` }} />;
+            }
+            if(vfx.type === 'slash') {
+                return <div key={vfx.id} className="vfx-slash absolute" style={{ left: targetRect.left + 10, top: targetRect.top + 10 }} />
+            }
+            if (vfx.type === 'heal') {
+                return <div key={vfx.id} className="absolute" style={{ left: targetRect.left + targetRect.width / 2, top: targetRect.top }}>
+                    {[...Array(5)].map((_, i) => <div key={i} className="vfx-heal-drop" style={{ left: `${Math.random() * 40 - 20}px`, animationDelay: `${i * 0.1}s` }} />)}
+                </div>
+            }
+             if (vfx.type === 'haste') {
+                return <div key={vfx.id} className="absolute w-16 h-16 border-2 border-dashed border-sky-400 rounded-full animate-spin" style={{ left: targetRect.left, top: targetRect.top }} />
+            }
+            return null;
+        })}
+      </>
+    )
+  }
 
-        {/* Ability Menu */}
-        {gameState === 'PLAYER_TURN' && showAbilityMenu && (
-            <div className="absolute bottom-40 left-1/2 -translate-x-1/2 flex flex-col space-y-2 p-4 bg-black/80 pixelated-border z-30">
-                <h3 className="text-yellow-300 text-center mb-2">Välj Förmåga</h3>
-                {playerStats.abilities.map(ability => {
-                    const currentRank = unlockedSkills.get(ability.id) || 0;
-                    const abilityData = ability.ranks[currentRank - 1];
-                    const canAfford = playerResource >= abilityData.resourceCost;
-                    const onCooldown = (ability.currentCooldown || 0) > 0;
+  return (
+    <div className="flex-grow w-full h-full p-2 text-white flex flex-col items-center justify-center bg-black/80 relative overflow-hidden">
+        {/* Combat Background */}
+        <CombatBackground element={event.element} />
 
-                    return (
-                        <button
-                            key={ability.id}
-                            onClick={() => handleAbilitySelect(ability.id)}
-                            disabled={!canAfford || onCooldown || !selectedTarget}
-                            className={`px-4 py-2 text-sm text-left w-64
-                                ${canAfford && !onCooldown && selectedTarget ? 'bg-purple-700/50 border-purple-500 hover:bg-purple-600/50' : 'bg-gray-700/50 border-gray-500 text-gray-400 cursor-not-allowed'}
-                                border-2 transition-colors flex justify-between items-center`}
-                        >
-                            <span>{ability.name} (Rank {currentRank})</span>
-                            <span className="text-xs text-gray-300">
-                                {onCooldown ? `CD: ${ability.currentCooldown}` : `Kostnad: ${abilityData.resourceCost}`}
-                            </span>
-                        </button>
-                    );
-                })}
-                <button onClick={() => setShowAbilityMenu(false)} className="mt-2 px-4 py-2 bg-gray-600/50 border-2 border-gray-500 text-white text-sm pixelated-border hover:bg-gray-500/50">
-                    Tillbaka
-                </button>
+        {/* Environment Display */}
+        {event.environment && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 pixelated-border p-3 text-center z-10 max-w-md">
+                <h3 className="text-lg text-yellow-400 mb-1">{event.environment.name}</h3>
+                <p className="text-xs text-gray-300">{event.environment.description}</p>
             </div>
         )}
-      </div>
+
+        {/* Battle Scene */}
+        <div className="w-full flex justify-between items-end px-16 absolute bottom-64 z-10">
+             <div className="flex space-x-8">
+                 {actors.filter(a => a.type === 'ENEMY').map(enemy => <ActorSprite key={enemy.id} actor={enemy} onDefeatAnimationEnd={handleDefeatAnimationEnd} />)}
+             </div>
+             <div className="flex">
+                 {actors.find(a => a.type === 'PLAYER') && <ActorSprite actor={actors.find(a => a.type === 'PLAYER')!} onDefeatAnimationEnd={handleDefeatAnimationEnd} equipment={equipment} />}
+             </div>
+        </div>
+
+        {/* UI Panels */}
+        <div className="absolute bottom-0 left-0 right-0 h-48 flex z-20">
+            {/* Command & Ability Menus */}
+            {showCommandMenu && (
+                <div className="ff-panel w-48">
+                    <ul>
+                        <li onClick={() => handlePlayerAction('ATTACK')} className="p-1 hover:bg-white/20 cursor-pointer">Attackera</li>
+                        <li onClick={() => { setShowCommandMenu(false); setShowAbilityMenu(true); }} className="p-1 hover:bg-white/20 cursor-pointer">Förmågor</li>
+                        <li onClick={() => handlePlayerAction('DEFEND')} className="p-1 hover:bg-white/20 cursor-pointer">Försvara</li>
+                    </ul>
+                </div>
+            )}
+            {showAbilityMenu && (
+                <div className="ff-panel w-64 text-xs">
+                    <ul className="h-full overflow-y-auto">
+                      {sortedAbilities.map(([elementName, { abilities }]: [string, { element: Element, abilities: PlayerAbility[] }]) => (
+                          <React.Fragment key={elementName}>
+                              <li className="p-1 pt-2 font-bold text-yellow-400 capitalize">{elementName.toLowerCase().replace('_', ' ')}</li>
+                              {abilities.map(ability => {
+                                  const rank = unlockedSkills.get(ability.id) || 1;
+                                  const rankData = ability.ranks[rank - 1];
+                                  if (!rankData) return null;
+
+                                  const hasFullFlow = actors.find(a => a.type === 'PLAYER')?.statusEffects.some(e => e.type === 'full_flow');
+                                  const effectiveCost = hasFullFlow ? 0 : rankData.resourceCost;
+                                  const canAfford = character.archetype === 'Pyromanten' ? true : playerResource >= effectiveCost;
+                                  const costText = character.archetype === 'Pyromanten' ? `+${rankData.resourceCost}` : `${effectiveCost}`;
+        
+                                  return (
+                                    <li key={ability.id}
+                                        onClick={() => canAfford ? handlePlayerAction('SKILL', ability.id) : undefined}
+                                        className={`p-1 flex justify-between ${canAfford ? 'hover:bg-white/20 cursor-pointer pl-3' : 'text-gray-500 pl-3'}`}>
+                                        <span>{ability.name} {hasFullFlow && '⚡'}</span>
+                                        <span className={character.archetype === 'Pyromanten' ? 'text-green-400' : ''}>{costText}</span>
+                                    </li>
+                                  )
+                              })}
+                          </React.Fragment>
+                      ))}
+                    </ul>
+                    <button onClick={() => { setShowAbilityMenu(false); setShowCommandMenu(true); }} className="text-center w-full mt-1 text-gray-400 hover:text-white">Tillbaka</button>
+                </div>
+            )}
+            
+            {/* Log */}
+            <div className="ff-panel flex-grow h-full overflow-hidden">
+                 {log.map((msg, i) => <p key={i} className="text-sm">{msg}</p>)}
+            </div>
+
+            {/* Player Status */}
+            <div className="ff-panel w-96 text-sm">
+                <div className="grid grid-cols-3 gap-x-2 items-center">
+                    <span className="text-right">{character.name}</span>
+                    <span className="text-cyan-400">HP</span>
+                    <span>{actors.find(a=>a.type==='PLAYER')?.hp} / {playerStats.maxHealth}</span>
+
+                    <span></span>
+                    <span className={resourceTheme.text}>{playerStats.resourceName}</span>
+                    <span>{Math.floor(playerResource)} / {playerStats.maxAether}</span>
+                    
+                    <span></span>
+                    <span className="text-yellow-400">ATB</span>
+                    <div className="atb-bar-bg h-3 border border-black/50">
+                        <div className="atb-bar-fg h-full" style={{width: `${actors.find(a=>a.type==='PLAYER')?.atb || 0}%`}}></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {/* Victory/Defeat Modal */}
+        {(gameState === 'VICTORY' || gameState === 'DEFEAT') && (
+            <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-30">
+                <div className="ff-panel text-center p-8">
+                    <h2 className="text-4xl mb-4">{gameState === 'VICTORY' ? 'Seger!' : 'Besegrad...'}</h2>
+                    {gameState === 'VICTORY' && (
+                        <div className="text-yellow-300">
+                            <p>Du får {event.rewards.xp} erfarenhet.</p>
+                            {event.rewards.items.map((item, i) => <p key={i}>Föremål: {item.name}</p>)}
+                        </div>
+                    )}
+                     {gameState === 'DEFEAT' && (
+                        <div className="text-red-400">
+                            <p>Du har fallit i strid. Resan tar slut här... för nu.</p>
+                        </div>
+                    )}
+                    <button onClick={() => onComplete(gameState === 'VICTORY' ? event.rewards : {xp: 0, items: []})} className="mt-6 px-4 py-2 border-2 text-lg bg-gray-800/50 border-gray-600 hover:border-yellow-400 text-white transition-colors">
+                        Fortsätt
+                    </button>
+                </div>
+            </div>
+        )}
+        
+        <div ref={popupContainerRef} className="absolute inset-0 pointer-events-none">
+            <VFXLayer/>
+            
+            {/* Damage Popups */}
+            {damagePopups.map(p => (
+                <div key={p.id} className={`damage-popup damage-popup-${p.type}`} style={{ left: p.x, top: p.y }}>
+                    {p.text}
+                </div>
+            ))}
+        </div>
     </div>
   );
 };

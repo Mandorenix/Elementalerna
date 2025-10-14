@@ -86,6 +86,7 @@ export interface UltimateAbility {
   element: Element;
   icon: React.FC;
   cooldown: number; // In turns
+  currentCooldown?: number; // New: Track current cooldown
   targetType?: 'SINGLE_ENEMY' | 'ALL_ENEMIES' | 'LINE_AOE' | 'CIRCLE_AOE' | 'LOWEST_HP_ENEMY' | 'HIGHEST_HP_ENEMY' | 'SELF' | 'ALL_ALLIES'; // New
   effect:
     | { type: 'AOE_DAMAGE'; damage?: number; buff?: StatusEffect['type'] | 'pushed_back' | 'armor_reduction_buff' | 'stunned_buff' | 'frozen_buff' | 'cleanse_debuffs_action' | 'cleanse_all_debuffs_action'; duration?: number; value?: number; isPercentage?: boolean; }
@@ -128,7 +129,10 @@ export interface Character {
   };
   elementalAffinities: Partial<Record<Element, number>>;
   unlockedPassiveTalents: string[];
-  unlockedUltimateAbilities: string[];
+  unlockedUltimateAbilities: UltimateAbility[]; // Changed to store full UltimateAbility objects
+  activeAbilities: PlayerAbility[]; // New: Store active player abilities with cooldowns
+  equippedItems: Item[]; // New: Track equipped items
+  statusEffects?: StatusEffect[]; // New: Track status effects on character
 }
 
 export type View = 'skillTree' | 'characterSheet' | 'inventory' | 'event' | 'deck' | 'debug';
@@ -248,6 +252,7 @@ export interface Enemy {
     | { type: 'burning'; duration: number; damage: number }
     | { type: 'poison'; duration: number; damage: number }
     | { type: 'slow'; duration: number };
+  statusEffects?: StatusEffect[]; // New: Track status effects on enemy
 }
 
 export interface EnvironmentEffect {

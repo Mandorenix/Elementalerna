@@ -185,7 +185,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ character, equipment, a
             {/* New: Passive Talents */}
             <div className="p-4 bg-black/30 pixelated-border">
                 <h2 className="text-lg text-yellow-500 mb-4 text-center">Passiva Talanger</h2>
-                {unlockedPassiveTalents.length > 0 ? (
+                {unlockedPassiveTalents && unlockedPassiveTalents.length > 0 ? (
                     <div className="space-y-3">
                         {unlockedPassiveTalents.map(talentId => {
                             const talent = PASSIVE_TALENTS[talentId];
@@ -210,7 +210,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({ character, equipment, a
             {/* New: Ultimate Abilities */}
             <div className="p-4 bg-black/30 pixelated-border">
                 <h2 className="text-lg text-yellow-500 mb-4 text-center">Ultimata Förmågor</h2>
-                {unlockedUltimateAbilities.length > 0 ? (
+                {unlockedUltimateAbilities && unlockedUltimateAbilities.length > 0 ? (
                     <div className="space-y-3">
                         {unlockedUltimateAbilities.map(abilityId => {
                             const ability = ULTIMATE_ABILITIES[abilityId];

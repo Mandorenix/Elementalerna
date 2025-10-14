@@ -102,11 +102,11 @@ function App() {
     setDeck(generateNewRoundDeck(1, 1));
     setDiscardPile([]);
     setActiveView('deck');
-  }, []);
+  }, [INITIAL_CHARACTER_BASE, setCharacter, setSkillPoints, setAttributePoints, setElementalPoints, setUnlockedSkills, setEquipment, setInventory, setCurrentEvent, setDrawnCard, setRoundLevel, setDeck, setDiscardPile, setActiveView]);
 
   const handleResetCharacter = useCallback(() => {
     setCharacter(null);
-  }, []);
+  }, [setCharacter]);
 
   const unlockSkill = useCallback((skillId: string) => {
     const skillData = SKILL_TREE_DATA.find(s => s.id === skillId);
@@ -121,7 +121,7 @@ function App() {
             return newSkills;
         });
     }
-  }, [skillPoints, unlockedSkills]);
+  }, [skillPoints, unlockedSkills, setSkillPoints, setUnlockedSkills, SKILL_TREE_DATA]);
   
   const gainExperience = useCallback((amount: number) => {
     if (!character) return;
@@ -155,23 +155,23 @@ function App() {
             experience: { current: newExp, max: newMaxExp },
         };
     });
-  }, [character]);
+  }, [character, setCharacter, setSkillPoints, setAttributePoints, setElementalPoints]);
 
   const applyOutcome = useCallback((outcome: Outcome) => {
     if (outcome.xp) gainExperience(outcome.xp);
     if (outcome.items) setInventory(prev => [...prev, ...outcome.items]);
     if (outcome.healthChange && character) {
-        setCharacter(c => c ? { ...c.resources, health: { ...c.resources.health, current: Math.max(0, Math.min(c.resources.health.max, c.resources.health.current + outcome.healthChange)) }}} : null);
+        setCharacter(c => c ? { ...c, resources: { ...c.resources, health: { ...c.resources.health, current: Math.max(0, Math.min(c.resources.health.max, c.resources.health.current + outcome.healthChange)) }}} : null);
     }
     // TODO: Add log message to a future game log panel
-  }, [character, gainExperience]);
+  }, [character, gainExperience, setInventory, setCharacter]);
 
   const handleDrawCard = useCallback(() => {
     if (drawnCard || deck.length === 0) return;
     const [nextCard, ...restOfDeck] = deck;
     setDeck(restOfDeck);
     setDrawnCard(nextCard);
-  }, [deck, drawnCard]);
+  }, [deck, drawnCard, setDeck, setDrawnCard]);
 
   const handleResolveCard = useCallback((outcome?: Outcome) => {
     if (!drawnCard) return;
@@ -190,7 +190,7 @@ function App() {
         setDiscardPile(prev => [...prev, drawnCard]);
         setDrawnCard(null);
     }
-  }, [drawnCard, applyOutcome]);
+  }, [drawnCard, applyOutcome, setCurrentEvent, setActiveView, setDiscardPile, setDrawnCard]);
 
   const handleStartNextRound = useCallback(() => {
     if (!character) return;
@@ -198,7 +198,7 @@ function App() {
     setRoundLevel(newRound);
     setDeck(generateNewRoundDeck(character.level, newRound));
     setDiscardPile([]);
-  }, [character, roundLevel]);
+  }, [character, roundLevel, setRoundLevel, setDeck, setDiscardPile]);
 
   const increaseStat = useCallback((stat: keyof CharacterStats) => {
     if (attributePoints > 0 && character) {
@@ -217,7 +217,7 @@ function App() {
             return { ...prevChar, stats: newStats, resources: newResources };
         });
     }
-  }, [attributePoints, character]);
+  }, [attributePoints, character, setAttributePoints, setCharacter]);
 
   const increaseElementalAffinity = useCallback((element: Element) => {
     if (elementalPoints > 0 && character) {
@@ -261,7 +261,7 @@ function App() {
             };
         });
     }
-  }, [elementalPoints, character]);
+  }, [elementalPoints, character, setElementalPoints, setCharacter, ELEMENTAL_AFFINITY_BONUSES, PASSIVE_TALENTS, ULTIMATE_ABILITIES]);
 
   const handleCombatCompletion = useCallback((rewards: GameEvent['rewards']) => {
     if (drawnCard) {
@@ -287,7 +287,7 @@ function App() {
     setCurrentEvent(null);
     setDrawnCard(null);
     setActiveView('deck');
-  }, [gainExperience, drawnCard, character]);
+  }, [gainExperience, drawnCard, character, setDiscardPile, setInventory, setCharacter, setCurrentEvent, setDrawnCard, setActiveView]);
 
   const equipItem = useCallback((itemToEquip: Item) => {
     if (itemToEquip.slot === 'Föremål') return;
@@ -300,7 +300,7 @@ function App() {
     }
     
     setEquipment(prev => ({ ...prev, [itemToEquip.slot as EquipmentSlot]: itemToEquip }));
-  }, [equipment]);
+  }, [equipment, setInventory, setEquipment]);
 
   const unequipItem = useCallback((slot: EquipmentSlot) => {
     const itemToUnequip = equipment[slot];
@@ -308,7 +308,7 @@ function App() {
 
     setEquipment(prev => ({...prev, [slot]: null}));
     setInventory(prev => [...prev, itemToUnequip]);
-  }, [equipment]);
+  }, [equipment, setEquipment, setInventory]);
   
   const playerAbilities = useMemo(() => {
     const abilities: PlayerAbility[] = [];
@@ -318,7 +318,7 @@ function App() {
         }
     });
     return abilities;
-  }, [unlockedSkills]);
+  }, [unlockedSkills, PLAYER_ABILITIES]);
 
   const playerCombatStats = useMemo(() => {
       if (!character) return null;
@@ -375,16 +375,16 @@ function App() {
   }, [character, equipment, playerAbilities]);
 
   // --- DEBUG FUNCTIONS ---
-  const debugAddXP = () => gainExperience(100);
-  const debugAddSkillPoint = () => setSkillPoints(p => p + 1);
-  const debugAddAttrPoint = () => setAttributePoints(p => p + 1);
-  const debugAddElementalPoint = () => setElementalPoints(p => p + 1); // New debug function
-  const debugAddItem = () => {
+  const debugAddXP = useCallback(() => gainExperience(100), [gainExperience]);
+  const debugAddSkillPoint = useCallback(() => setSkillPoints(p => p + 1), [setSkillPoints]);
+  const debugAddAttrPoint = useCallback(() => setAttributePoints(p => p + 1), [setAttributePoints]);
+  const debugAddElementalPoint = useCallback(() => setElementalPoints(p => p + 1), [setElementalPoints]); // New debug function
+  const debugAddItem = useCallback(() => {
       if (character) {
           setInventory(inv => [...inv, generateRandomItem(character.level)]);
       }
-  };
-  const debugHealPlayer = () => {
+  }, [character, setInventory]);
+  const debugHealPlayer = useCallback(() => {
       if (character) {
         const isEnergyArchetype = character.archetype === 'Stormdansaren';
         setCharacter(c => c ? ({
@@ -395,7 +395,7 @@ function App() {
             }
         }) : null);
       }
-  };
+  }, [character, setCharacter]);
 
   if (!character) {
       return (

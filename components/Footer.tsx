@@ -14,7 +14,6 @@ interface FooterProps {
 
 const FooterButton: React.FC<{
   label: string;
-  // FIX: Changed JSX.Element to React.ReactElement to resolve namespace error.
   icon: React.ReactElement;
   isActive: boolean;
   onClick: () => void;
@@ -25,10 +24,11 @@ const FooterButton: React.FC<{
   return (
     <button
       onClick={onClick}
-      className={`flex items-center space-x-2 px-3 py-2 border-2 text-xs transition-colors ${isActive ? activeClasses : inactiveClasses}`}
+      className={`flex flex-col items-center justify-center w-16 h-16 border-2 text-xs transition-colors ${isActive ? activeClasses : inactiveClasses}`}
+      title={label} // Add title for accessibility
     >
-      {icon}
-      <span>{label}</span>
+      <div className="mb-1">{icon}</div>
+      <span className="text-[10px]">{label}</span>
     </button>
   );
 };

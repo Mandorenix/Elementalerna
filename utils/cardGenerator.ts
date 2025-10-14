@@ -1,5 +1,5 @@
 import React from 'react';
-import { Element, type EventCard, type GameEvent, type Outcome, type Item, type ItemStats, type ItemAffix, type EquipmentSlot, type Rarity, type Enemy, type PuzzleChallenge, type MerchantOffer, type CharacterStats, type ChoiceOption, type EnvironmentEffect } from '../types';
+import { Element, type EventCard, type GameEvent, type Outcome, type Item, type ItemStats, type ItemAffix, type EquipmentSlot, type Rarity, type Enemy, type PuzzleChallenge, type MerchantOffer, type CharacterStats, type ChoiceOption, type EnvironmentEffect, type Environment, type StatusEffect } from '../types';
 import { ELEMENT_ICONS, Icons, ItemVisuals } from '../constants';
 
 // Re-map the enum to a plain object for easier iteration if needed, and to avoid circular dependencies
@@ -391,14 +391,14 @@ export const createBossCombatPayload = (playerLevel: number, round: number): Gam
                 name: "Rasande",
                 threshold: 0.5, // Below 50% HP
                 newBehavior: 'ATTACK_HIGHEST_DAMAGE_PLAYER',
-                statusEffectsToApplyToSelf: [{ type: 'hasted', duration: 99 }],
+                statusEffectsToApplyToSelf: [{ type: 'hasted', duration: 99 } as StatusEffect],
                 description: "Bossen blir rasande och attackerar den starkaste fienden!"
             },
             {
                 name: "Försvar",
                 threshold: 0.2, // Below 20% HP
                 newBehavior: 'BUFF_SELF',
-                statusEffectsToApplyToSelf: [{ type: 'defending', duration: 99, value: 50 }],
+                statusEffectsToApplyToSelf: [{ type: 'defending', duration: 99, value: 50 } as StatusEffect],
                 description: "Bossen drar sig tillbaka och förstärker sitt försvar!"
             }
         ]

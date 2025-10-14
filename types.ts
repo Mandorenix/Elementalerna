@@ -224,7 +224,7 @@ export interface EnemyPhase {
   threshold: number; // e.g., HP percentage
   newBehavior?: EnemyBehavior;
   newAbilities?: EnemyAbility[];
-  statusEffectsToApplyToSelf?: StatusEffect['type'][];
+  statusEffectsToApplyToSelf?: StatusEffect[]; // Changed from StatusEffect['type'][] to StatusEffect[]
   description?: string;
 }
 

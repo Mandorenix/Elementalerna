@@ -306,8 +306,13 @@ function App() {
 
       const equipmentStats = Object.values(equipment).reduce<Required<ItemStats>>((acc, item) => {
           if (item) {
-              for (const key of Object.keys(item.stats) as Array<keyof ItemStats>) {
-                  const statValue = item.stats[key];
+              // Explicitly cast item to Item here for clarity and to satisfy TS
+              const typedItem = item as Item;
+              // Iterate over the known keys of ItemStats to ensure type safety.
+              for (const key of Object.keys(initialEquipmentStats) as Array<keyof ItemStats>) {
+                  // Access typedItem.stats[key] directly. TypeScript now knows 'typedItem' is 'Item'
+                  // and 'key' is a valid key for 'ItemStats'.
+                  const statValue = typedItem.stats[key];
                   if (statValue !== undefined) {
                       acc[key] += statValue; 
                   }

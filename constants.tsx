@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Character, Skill, Archetype, Item, Rarity, Enemy, GameEvent, EquipmentSlot, EventModifier, EventCard, ChoiceOption, Outcome, PlayerAbility, ItemAffix, ElementalBonus, Environment, PassiveTalent, UltimateAbility } from './types';
+import type { Character, Skill, Archetype, Item, Rarity, Enemy, GameEvent, EquipmentSlot, EventModifier, EventCard, ChoiceOption, Outcome, PlayerAbility, ItemAffix, ElementalBonus, Environment, PassiveTalent, UltimateAbility, ItemStats } from './types';
 import { Element } from './types';
 
 // Helper for creating simple, pixelated-style SVG icons
@@ -22,14 +22,14 @@ export const Icons = {
     Poison: createIcon(["M8 1C5 1 3 3 3 6c0 1 0 1 1 2s1 2 3 3c2-1 2-2 3-3s1-1 1-2c0-3-2-5-5-5z M6 6h1v1H6V6z m3 0h1v1H9V6z M8 9c-1 0-1-1-1-1h2c0 0 0 1-1 1z"], "#84cc16"),
     // New status icons
     FullFlow: createIcon(["M8 7C6 7 5 8 5 9s1 2 3 2 3-1 3-1-1-3-3-3z M8 4l-2-2h1v2h2V2h1L8 4z"], "#22d3ee"),
-    Overheat: createIcon(["M8 9v-1h1V7h-1V6h1V5h-1V4h1V3h-1V2h-1V1H6v1H5v1h1v1h-1v1h1v1h-1v1h1v1H5v1h1v1H5v1h6v-1h-1v-1H8z m0-2h1V6H8v1z", "M7 12h2v2H7v-2z"], "#fef08a"),
+    Overheat: createIcon(["M8 9v-1h1V7h-1V6h1V5h-1V4h1V3h-1V2h-1V1H7v1H6v1h1v1h-1v2h1v1h-1v1h1v1H6v1h4v-1h-1v-1H8z m0-2h1V6H8v1z", "M7 12h2v2H7v-2z"], "#fef08a"),
     Rooted: createIcon(["M8 13v-2H7v-1h2v1h-1v2H8z M6 10H5V8h1v2z m4 0h1V8h-1v2z M8 8H7V6h2v2h-1z M10 5h-1V4H7v1H6V4H5v2h1v1h4V6h1V4h-1v1z"], "#78350f"),
     Regenerating: createIcon(["M8 4l-1 2h2L8 4z M7 6v1h2V6H7z M6 8v1h4V8H6z M5 10v1h6v-1H5z"], "#4ade80"),
-    Blinded: createIcon(["M8 4c-2 0-3 2-3 4s1 4 3 4 3-2 3-4-1-4-3-4z M8 6c1 0 1 1 1 2s0 2-1 2-1-1-1-2 0-2 1-2z M5 8h6v1H5V8z"], "#9ca3af"), // New icon for Blinded
-    Steamed: createIcon(["M4 7h2v1H4V7z M10 7h2v1h-2V7z M7 4h2v1H7V4z M5 9h6v1H5V9z M4 11h8v1H4v-1z"], "#e0f2f4"), // New icon for Steamed
+    Blinded: createIcon(["M8 4c-2 0-3 2-3 4s1 4 3 4 3-2 3-4-1-4-3-4z M8 6c1 0 1 1 1 2s0 2-1 2-1-1-1-2 0-2 1-2z M5 8h6v1H5V8z"], "#9ca3af"),
+    Steamed: createIcon(["M4 7h2v1H4V7z M10 7h2v1h-2V7z M7 4h2v1H7V4z M5 9h6v1H5V9z M4 11h8v1H4v-1z"], "#e0f2f4"),
     // New Tier 1.5 Icons
     Fireball: createIcon(["M8 1c-2 2-3 4-3 6s1 4 3 4 3-2 3-4-1-4-3-6zm0 2c-1 1-1 2-1 3s0 2 1 3 1-2 1-3-0-2-1-3z"], "#f87171"),
-    Earthquake: createIcon(["M2 8h2V7h1v2h2V7h2v2h2V7h1v1h2v1H2z M3 10h10v-1H3v1z"], "#a16207"),
+    Earthquake: createIcon(["M2 8h2V7h1v2h2V7h2v2h2V7h1v1h2v1H2z M8 8h1V7h1V6H6v1h1v1h1z"], "#a16207"),
     Cyclone: createIcon(["M8 4c-2 0-4 2-4 4h2c0-1 1-2 2-2s2 1 2 2h2c0 2-2 4-4 4z m0 8c2 0 4-2 4-4h-2c0 1-1 2-2 2s-2-1-2-2H4c0 2 2 4 4 4z"], "#38bdf8"),
     TidalWave: createIcon(["M2 8c1-1 2-2 4-2s3 1 4 2v2c-1 1-2 2-4 2s-3-1-4-2V8z M2 12h8v-1H2v1z"], "#60a5fa"),
     // Hybrid Icons
@@ -80,14 +80,14 @@ export const Icons = {
     Gaze: createIcon(["M8 4c-2 0-3 2-3 4s1 4 3 4 3-2 3-4-1-4-3-4z M8 6c1 0 1 1 1 2s0 2-1 2-1-1-1-2 0-2 1-2z M5 8h6v1H5V8z M7 10h2v1H7v-1z"], "#1e293b"), // Petrifying Gaze
     SwiftFire: createIcon(["M8 11v-1h1V9h-1V8h1V7h-1V5h1V4h-1V3h1V2h-1V1H7v1H6v1h1v1h-1v2h1v1h-1v1h1v1H6v1h4v-1h-1v-1H8z M4 7h1v2H4V7z"], "#f59e0b"), // Swift Inferno
     Tornado: createIcon(["M8 1c-2 0-4 2-4 4h2c0-1 1-2 2-2s2 1 2 2h2c0 2-2 4-4 4z m0 8c2 0 4-2 4-4h-2c0 1-1 2-2 2s-2-1-2-2H4c0 2 2 4 4 4z M7 13h2v1H7v-1z"], "#38bdf8"), // Raging Cyclone
-    Haze: createIcon(["M4 7h2v1H4V7z M10 7h2v1h-2V7z M7 4h2v1H7V4z M5 9h6v1H5V9z M4 11h8v1H4v-1z M7 13h2v1H7v-1z"], "#fbbf24"), // Heat Haze
+    Haze: createIcon(["M4 7h2v1H4V7z M10 7h2v1h-2V7z M7 4h2v1H7V4z M5 9h6v1H5V9z M4 11h8v1H4v-1z"], "#fbbf24"), // Heat Haze
     Scorch: createIcon(["M8 11v-1h1V9h-1V8h1V7h-1V5h1V4h-1V3h1V2h-1V1H7v1H6v1h1v1h-1v2h1v1h-1v1h1v1H6v1h4v-1h-1v-1H8z M4 13h8v1H4v-1z"], "#ef4444"), // Scorch Wind
     SteamCloud: createIcon(["M4 7h2v1H4V7z M10 7h2v1h-2V7z M7 4h2v1H7V4z M5 9h6v1H5V9z M4 11h8v1H4v-1z M7 13h2v1H7v-1z"], "#eab308"), // Steam Veil
     Geyser: createIcon(["M8 1l-2 2h1v3h2V3h1L8 1z M4 7h8v1H4V7z M3 9h10v1H3V9z M2 11h12v1H2V11z M1 13h14v1H1V13z"], "#60a5fa"), // Geyser Burst
     Mist: createIcon(["M4 7h2v1H4V7z M10 7h2v1h-2V7z M7 4h2v1H7V4z M5 9h6v1H5V9z M4 11h8v1H4v-1z M7 13h2v1H7v-1z"], "#fcd34d"), // Soothing Mist
     Cleanse: createIcon(["M8 1l-1 2h2L8 1z M7 3v1h2V3H7z M6 5v1h4V5H6z M5 7v1h6V7H5z M4 9h8v1H4V9z M3 11h10v1H3V11z"], "#4ade80"), // Cleansing Geyser
     SandClock: createIcon(["M8 1l-3 3h6L8 1z M4 5h8v1H4V5z M3 6h10v1H3V6z M2 7h12v1H2V7z M1 8h14v1H1V8z M5 9h6v1H5V9z M6 10h4v1H6v-1z M7 11h2v1H7v-1z"], "#a16207"), // Shifting Sands
-    Desert: createIcon(["M2 8h2v1H2V8zm2 2h2v-1H4v1zm2 1h2V9H6v2zm2-1h2V8H8v2zm2-2h2V7h-2v1zm2 1h2V6h-2v2z M1 13h14v1H1v-1z"], "#ca8a04"), // Desert Storm
+    Desert: createIcon(["M2 8h2v1H2V8zm2 2h2v-1H4v1zm2 1h2V9H6v2zm2-1h2V8H8v2zm2-2h2V7h-2v1zm2 1h2V6h-2v2z M1 13h14v1H1v-1z"], "#d4a04e"), // Desert Storm
     Grind: createIcon(["M12 4H4v1h8V4z m0 2H4v1h8V6z m0 3H4v1h8V9z m-2 2H6v1h4v-1z M7 13h2v1H7v-1z"], "#ca8a04"), // Grinding Winds
     Dust: createIcon(["M8 1c-2 0-4 2-4 4h2c0-1 1-2 2-2s2 1 2 2h2c0 2-2 4-4 4z m0 8c2 0 4-2 4-4h-2c0 1-1 2-2 2s-2-1-2-2H4c0 2 2 4 4 4z M7 13h2v1H7v-1z"], "#a16207"), // Dust Devil
     Mire: createIcon(["M4 8v1h1v1h6V9h1V8H4z M6 11h4v1H6v-1z M7 13h2v1H7v-1z"], "#78350f"), // Sticky Mire
@@ -227,7 +227,7 @@ export const INITIAL_CHARACTER_BASE: Omit<Character, 'name' | 'archetype' | 'unl
     current: 0,
     max: 100,
   },
-  elementalAffinities: {}, // Initialize empty elemental affinities
+  elementalAffinities: {},
 };
 
 export const SKILL_TREE_DATA: Skill[] = [
@@ -483,7 +483,7 @@ export const PASSIVE_TALENTS: Record<string, PassiveTalent> = {
     description: '10% chans att bränna anfallare för 3 eldskada i 2 rundor när du tar skada.',
     element: Element.MAGMA,
     icon: Icons.MagmaShield,
-    effect: { type: 'APPLY_STATUS', status: 'burning', duration: 2, value: 3, chance: 10 },
+    effect: { type: 'APPLY_STATUS', status: 'burning', duration: 2, damage: 3, chance: 10 },
   },
   'obsidian_shard': {
     id: 'obsidian_shard',
@@ -499,7 +499,7 @@ export const PASSIVE_TALENTS: Record<string, PassiveTalent> = {
     description: 'Efter att ha delat ut eldskada, ökar din ATB-hastighet med 5% i 1 runda.',
     element: Element.FIRESTORM,
     icon: Icons.SwiftFire,
-    effect: { type: 'RESOURCE_GAIN', stat: 'dexterity', value: 5, isPercentage: true }, // Represents ATB speed
+    effect: { type: 'RESOURCE_GAIN', stat: 'dexterity', value: 5, isPercentage: true },
   },
   'heat_haze': {
     id: 'heat_haze',
@@ -580,7 +580,7 @@ export const PASSIVE_TALENTS: Record<string, PassiveTalent> = {
     description: 'Alla fiender tar 2 eldskada varje runda.',
     element: Element.FIRE,
     icon: Icons.FireAura,
-    effect: { type: 'DEAL_ELEMENTAL_DAMAGE', element: Element.FIRE, damage: 2, chance: 100 }, // Passive, always active
+    effect: { type: 'DEAL_ELEMENTAL_DAMAGE', element: Element.FIRE, damage: 2, chance: 100 },
   },
   'earth_guard': {
     id: 'earth_guard',
@@ -588,7 +588,7 @@ export const PASSIVE_TALENTS: Record<string, PassiveTalent> = {
     description: '10% chans att få +5 rustning i 1 runda när du tar skada.',
     element: Element.EARTH,
     icon: Icons.EarthShield,
-    effect: { type: 'APPLY_STATUS', status: 'defending', duration: 1, value: 5, chance: 10 }, // Placeholder for temp armor
+    effect: { type: 'APPLY_STATUS', status: 'defending', duration: 1, value: 5, chance: 10 },
   },
   'wind_evasion': {
     id: 'wind_evasion',
@@ -604,7 +604,7 @@ export const PASSIVE_TALENTS: Record<string, PassiveTalent> = {
     description: 'Regenererar 5% av din maxhälsa varje runda.',
     element: Element.WATER,
     icon: Icons.WaterRegen,
-    effect: { type: 'HEAL_BONUS', value: 5, isPercentage: true }, // Represents passive regen
+    effect: { type: 'HEAL_BONUS', value: 5, isPercentage: true },
   },
 };
 
@@ -671,7 +671,7 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
     element: Element.STEAM,
     icon: Icons.Geyser,
     cooldown: 14,
-    effect: { type: 'AOE_DAMAGE', damage: 30, buff: 'pushed_back', duration: 1 }, // Placeholder status type
+    effect: { type: 'AOE_DAMAGE', damage: 30, buff: 'pushed_back', duration: 1 },
   },
   'cleansing_geyser': {
     id: 'cleansing_geyser',
@@ -680,7 +680,7 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
     element: Element.HOT_SPRINGS,
     icon: Icons.Cleanse,
     cooldown: 16,
-    effect: { type: 'MASS_HEAL', heal: 60, buff: 'cleanse_debuffs_action' }, // Placeholder buff type
+    effect: { type: 'MASS_HEAL', heal: 60, buff: 'cleanse_debuffs_action' },
   },
   'desert_storm': {
     id: 'desert_storm',
@@ -689,7 +689,7 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
     element: Element.SAND,
     icon: Icons.Desert,
     cooldown: 15,
-    effect: { type: 'AOE_DAMAGE', damage: 35, buff: 'blinded', duration: 2, value: 2 }, // Value for slow amount
+    effect: { type: 'AOE_DAMAGE', damage: 35, buff: 'blinded', duration: 2, value: 2 },
   },
   'dust_devil': {
     id: 'dust_devil',
@@ -707,7 +707,7 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
     element: Element.MUD,
     icon: Icons.Quagmire,
     cooldown: 16,
-    effect: { type: 'AOE_DAMAGE', damage: 20, buff: 'rooted', duration: 3, value: 4 }, // Value for poison damage
+    effect: { type: 'AOE_DAMAGE', damage: 20, buff: 'rooted', duration: 3, value: 4 },
   },
   'lifebloom': {
     id: 'lifebloom',
@@ -725,7 +725,7 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
     element: Element.ICE,
     icon: Icons.Spike,
     cooldown: 12,
-    effect: { type: 'SINGLE_TARGET_DAMAGE', damage: 70, buff: 'frozen', duration: 2 }, // Placeholder status type
+    effect: { type: 'SINGLE_TARGET_DAMAGE', damage: 70, buff: 'frozen_buff', duration: 2 },
   },
   'thunderclap': {
     id: 'thunderclap',
@@ -734,7 +734,7 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
     element: Element.STORM,
     icon: Icons.Thunder,
     cooldown: 14,
-    effect: { type: 'AOE_DAMAGE', damage: 40, buff: 'stunned', duration: 1 },
+    effect: { type: 'AOE_DAMAGE', damage: 40, buff: 'stunned_buff', duration: 1 },
   },
   'volcanic_storm_ultimate': {
     id: 'volcanic_storm_ultimate',
@@ -752,7 +752,7 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
     element: Element.ELECTRIFIED_MUD,
     icon: Icons.ElectrifiedMud,
     cooldown: 20,
-    effect: { type: 'AOE_DAMAGE', damage: 60, buff: 'stunned', duration: 2, value: 5 }, // Value for slow/poison
+    effect: { type: 'AOE_DAMAGE', damage: 60, buff: 'stunned_buff', duration: 2, value: 5 },
   },
   'vitrified_storm_ultimate': {
     id: 'vitrified_storm_ultimate',
@@ -761,7 +761,7 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
     element: Element.VITRIFIED_STORM,
     icon: Icons.VitrifiedStorm,
     cooldown: 20,
-    effect: { type: 'AOE_DAMAGE', damage: 70, buff: 'armor_reduction', duration: 4, value: 10 },
+    effect: { type: 'AOE_DAMAGE', damage: 70, buff: 'armor_reduction_buff', duration: 4, value: 10 },
   },
   // New base element ultimate abilities
   'fire_nova': {
@@ -780,7 +780,7 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
     element: Element.EARTH,
     icon: Icons.EarthWall,
     cooldown: 18,
-    effect: { type: 'GLOBAL_BUFF', buff: 'damage_reduction', duration: 3, value: 30, isPercentage: true }, // 30% damage reduction
+    effect: { type: 'GLOBAL_BUFF', buff: 'damage_reduction_buff', duration: 3, value: 30, isPercentage: true },
   },
   'wind_burst': {
     id: 'wind_burst',
@@ -789,7 +789,7 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
     element: Element.WIND,
     icon: Icons.WindBurst,
     cooldown: 16,
-    effect: { type: 'AOE_DAMAGE', damage: 20, buff: 'slowed', duration: 2 }, // Small damage, primary CC
+    effect: { type: 'AOE_DAMAGE', damage: 20, buff: 'slowed', duration: 2 },
   },
   'water_blessing': {
     id: 'water_blessing',
@@ -798,12 +798,13 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
     element: Element.WATER,
     icon: Icons.WaterBless,
     cooldown: 20,
-    effect: { type: 'MASS_HEAL', heal: 80, buff: 'cleanse_all_debuffs_action' }, // Heals and cleanses
+    effect: { type: 'MASS_HEAL', heal: 80, buff: 'cleanse_all_debuffs_action' },
   },
 };
 
 
 export const ELEMENTAL_AFFINITY_BONUSES: Record<Element, ElementalBonus[]> = {
+  [Element.NEUTRAL]: [], // Added missing entry for Element.NEUTRAL
   [Element.FIRE]: [
     { threshold: 1, description: "+1 Skada", effect: { type: 'STAT_BONUS', stat: 'skada', value: 1 } },
     { threshold: 5, description: "+5% Kritisk Träff", effect: { type: 'STAT_BONUS', stat: 'kritiskTräff', value: 5, isPercentage: true } },
@@ -819,7 +820,7 @@ export const ELEMENTAL_AFFINITY_BONUSES: Record<Element, ElementalBonus[]> = {
   ],
   [Element.EARTH]: [
     { threshold: 1, description: "+1 Rustning", effect: { type: 'STAT_BONUS', stat: 'rustning', value: 1 } },
-    { threshold: 5, description: "+10 Max Hälsa", effect: { type: 'STAT_BONUS', stat: 'constitution', value: 10 } }, // Constitution affects max health
+    { threshold: 5, description: "+10 Max Hälsa", effect: { type: 'STAT_BONUS', stat: 'constitution', value: 10 } },
     { threshold: 10, description: "+10% Jordresistans", effect: { type: 'RESISTANCE', element: Element.EARTH, value: 10, isPercentage: true } },
     { threshold: 15, description: "Låser upp passiv talang: Jordens Resonans", effect: { type: 'PASSIVE_TALENT', talentId: 'earth_resonance' } },
     { threshold: 20, description: "+15% Max Hälsa", effect: { type: 'STAT_BONUS', stat: 'constitution', value: 15, isPercentage: true } },
@@ -832,7 +833,7 @@ export const ELEMENTAL_AFFINITY_BONUSES: Record<Element, ElementalBonus[]> = {
   ],
   [Element.WIND]: [
     { threshold: 1, description: "+1 Undvikandechans", effect: { type: 'STAT_BONUS', stat: 'undvikandechans', value: 1 } },
-    { threshold: 5, description: "+5% ATB-hastighet", effect: { type: 'RESOURCE_REGEN', stat: 'dexterity', value: 5, isPercentage: true } }, // Representing ATB speed
+    { threshold: 5, description: "+5% ATB-hastighet", effect: { type: 'RESOURCE_REGEN', stat: 'dexterity', value: 5, isPercentage: true } },
     { threshold: 10, description: "+10% Vindskada", effect: { type: 'DAMAGE_BONUS', element: Element.WIND, value: 10, isPercentage: true } },
     { threshold: 15, description: "+10% Undvikandechans", effect: { type: 'STAT_BONUS', stat: 'undvikandechans', value: 10, isPercentage: true } },
     { threshold: 20, description: "+10% ATB-hastighet", effect: { type: 'RESOURCE_REGEN', stat: 'dexterity', value: 10, isPercentage: true } },
@@ -845,7 +846,7 @@ export const ELEMENTAL_AFFINITY_BONUSES: Record<Element, ElementalBonus[]> = {
   ],
   [Element.WATER]: [
     { threshold: 1, description: "+1 Intelligens", effect: { type: 'STAT_BONUS', stat: 'intelligence', value: 1 } },
-    { threshold: 5, description: "+5% Resursregeneration", effect: { type: 'RESOURCE_REGEN', stat: 'intelligence', value: 5, isPercentage: true } }, // Affects Aether regen
+    { threshold: 5, description: "+5% Resursregeneration", effect: { type: 'RESOURCE_REGEN', stat: 'intelligence', value: 5, isPercentage: true } },
     { threshold: 10, description: "+10% Vattenresistans", effect: { type: 'RESISTANCE', element: Element.WATER, value: 10, isPercentage: true } },
     { threshold: 15, description: "+10% Helande effekt", effect: { type: 'HEAL_BONUS', value: 10, isPercentage: true } },
     { threshold: 20, description: "+10% Resursregeneration", effect: { type: 'RESOURCE_REGEN', stat: 'intelligence', value: 10, isPercentage: true } },
@@ -862,12 +863,12 @@ export const ELEMENTAL_AFFINITY_BONUSES: Record<Element, ElementalBonus[]> = {
     { threshold: 5, description: "+10% Eld- och Jordresistans", effect: { type: 'RESISTANCE', element: Element.FIRE, value: 10, isPercentage: true } },
     { threshold: 10, description: "Låser upp passiv talang: Magmahud", effect: { type: 'PASSIVE_TALENT', talentId: 'magma_skin' } },
     { threshold: 15, description: "+15% Magmaskada", effect: { type: 'DAMAGE_BONUS', element: Element.MAGMA, value: 15, isPercentage: true } },
-    { threshold: 20, description: "+10 Max Hetta, +5% Hetta-regen", effect: { type: 'RESOURCE_REGEN', stat: 'aether', value: 10 } }, // Assuming aether is Hetta
+    { threshold: 20, description: "+10 Max Hetta, +5% Hetta-regen", effect: { type: 'RESOURCE_REGEN', stat: 'aether', value: 10 } },
     { threshold: 25, description: "Låser upp ultimat förmåga: Vulkanutbrott", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'volcanic_eruption' } },
   ],
   [Element.OBSIDIAN]: [
     { threshold: 1, description: "+3 Rustning, +1 Styrka", effect: { type: 'STAT_BONUS', stat: 'rustning', value: 3 } },
-    { threshold: 5, description: "+15% Skadeåterkastning", effect: { type: 'DAMAGE_BONUS', stat: 'rustning', value: 15, isPercentage: true } }, // Placeholder for retaliation
+    { threshold: 5, description: "+15% Skadeåterkastning", effect: { type: 'STAT_BONUS', stat: 'rustning', value: 15, isPercentage: true } },
     { threshold: 10, description: "Låser upp passiv talang: Obsidianskärva", effect: { type: 'PASSIVE_TALENT', talentId: 'obsidian_shard' } },
     { threshold: 15, description: "+20 Max Hälsa", effect: { type: 'STAT_BONUS', stat: 'constitution', value: 20 } },
     { threshold: 20, description: "+10% Jord- och Eldresistans", effect: { type: 'RESISTANCE', element: Element.EARTH, value: 10, isPercentage: true } },
@@ -885,7 +886,7 @@ export const ELEMENTAL_AFFINITY_BONUSES: Record<Element, ElementalBonus[]> = {
     { threshold: 1, description: "+10% chans att blinda fiender", effect: { type: 'STAT_BONUS', stat: 'dexterity', value: 10, isPercentage: true } },
     { threshold: 5, description: "+5% Undvikandechans", effect: { type: 'STAT_BONUS', stat: 'undvikandechans', value: 5, isPercentage: true } },
     { threshold: 10, description: "Låser upp passiv talang: Hett Dis", effect: { type: 'PASSIVE_TALENT', talentId: 'heat_haze' } },
-    { threshold: 15, description: "+10% chans att applicera Ångad", effect: { type: 'APPLY_STATUS', status: 'steamed', duration: 2, value: 15, isPercentage: true, chance: 10 } },
+    { threshold: 15, description: "+10% chans att applicera Ångad", effect: { type: 'APPLY_STATUS', status: 'steamed', duration: 2, accuracyReduction: 15, chance: 10 } },
     { threshold: 20, description: "+10% Vind- och Eldresistans", effect: { type: 'RESISTANCE', element: Element.WIND, value: 10, isPercentage: true } },
     { threshold: 25, description: "Låser upp ultimat förmåga: Svedande Vind", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'scorch_wind' } },
   ],
@@ -894,7 +895,7 @@ export const ELEMENTAL_AFFINITY_BONUSES: Record<Element, ElementalBonus[]> = {
     { threshold: 5, description: "+5% Aether Regeneration", effect: { type: 'RESOURCE_REGEN', stat: 'intelligence', value: 5, isPercentage: true } },
     { threshold: 10, description: "Låser upp passiv talang: Ångslöja", effect: { type: 'PASSIVE_TALENT', talentId: 'steam_veil' } },
     { threshold: 15, description: "+15% Ångskada", effect: { type: 'DAMAGE_BONUS', element: Element.STEAM, value: 15, isPercentage: true } },
-    { threshold: 20, description: "+10 Max Flöde, +5% Flöde-regen", effect: { type: 'RESOURCE_REGEN', stat: 'aether', value: 10 } }, // Assuming aether is Flöde
+    { threshold: 20, description: "+10 Max Flöde, +5% Flöde-regen", effect: { type: 'RESOURCE_REGEN', stat: 'aether', value: 10 } },
     { threshold: 25, description: "Låser upp ultimat förmåga: Gejserutbrott", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'geyser_burst' } },
   ],
   [Element.HOT_SPRINGS]: [
@@ -932,344 +933,249 @@ export const ELEMENTAL_AFFINITY_BONUSES: Record<Element, ElementalBonus[]> = {
   [Element.GROWTH]: [
     { threshold: 1, description: "+5% regenerering", effect: { type: 'HEAL_BONUS', value: 5, isPercentage: true } },
     { threshold: 5, description: "+10 Max Hälsa", effect: { type: 'STAT_BONUS', stat: 'constitution', value: 10 } },
-    { threshold: 10<dyad-problem-report summary="14 problems">
-<problem file="constants.tsx" line="486" column="37" code="2322">Type '{ type: string; duration: number; damage: number; }' is not assignable to type '&quot;defending&quot; | &quot;hasted&quot; | &quot;burning&quot; | &quot;poisoned&quot; | &quot;slowed&quot; | &quot;retaliating&quot; | &quot;blinded&quot; | &quot;full_flow&quot; | &quot;overheated&quot; | &quot;rooted&quot; | &quot;steamed&quot; | &quot;regenerating&quot; | &quot;armor_reduction&quot; | &quot;stunned&quot; | &quot;frozen&quot; | &quot;damage_reduction&quot;'.</problem>
-<problem file="constants.tsx" line="494" column="37" code="2322">Type '{ type: string; duration: number; }' is not assignable to type '&quot;defending&quot; | &quot;hasted&quot; | &quot;burning&quot; | &quot;poisoned&quot; | &quot;slowed&quot; | &quot;retaliating&quot; | &quot;blinded&quot; | &quot;full_flow&quot; | &quot;overheated&quot; | &quot;rooted&quot; | &quot;steamed&quot; | &quot;regenerating&quot; | &quot;armor_reduction&quot; | &quot;stunned&quot; | &quot;frozen&quot; | &quot;damage_reduction&quot;'.</problem>
-<problem file="constants.tsx" line="510" column="37" code="2322">Type '{ type: string; duration: number; }' is not assignable to type '&quot;defending&quot; | &quot;hasted&quot; | &quot;burning&quot; | &quot;poisoned&quot; | &quot;slowed&quot; | &quot;retaliating&quot; | &quot;blinded&quot; | &quot;full_flow&quot; | &quot;overheated&quot; | &quot;rooted&quot; | &quot;steamed&quot; | &quot;regenerating&quot; | &quot;armor_reduction&quot; | &quot;stunned&quot; | &quot;frozen&quot; | &quot;damage_reduction&quot;'.</problem>
-<problem file="constants.tsx" line="518" column="37" code="2322">Type '{ type: string; duration: number; accuracyReduction: number; }' is not assignable to type '&quot;defending&quot; | &quot;hasted&quot; | &quot;burning&quot; | &quot;poisoned&quot; | &quot;slowed&quot; | &quot;retaliating&quot; | &quot;blinded&quot; | &quot;full_flow&quot; | &quot;overheated&quot; | &quot;rooted&quot; | &quot;steamed&quot; | &quot;regenerating&quot; | &quot;armor_reduction&quot; | &quot;stunned&quot; | &quot;frozen&quot; | &quot;damage_reduction&quot;'.</problem>
-<problem file="constants.tsx" line="534" column="37" code="2322">Type '{ type: string; duration: number; }' is not assignable to type '&quot;defending&quot; | &quot;hasted&quot; | &quot;burning&quot; | &quot;poisoned&quot; | &quot;slowed&quot; | &quot;retaliating&quot; | &quot;blinded&quot; | &quot;full_flow&quot; | &quot;overheated&quot; | &quot;rooted&quot; | &quot;steamed&quot; | &quot;regenerating&quot; | &quot;armor_reduction&quot; | &quot;stunned&quot; | &quot;frozen&quot; | &quot;damage_reduction&quot;'.</problem>
-<problem file="constants.tsx" line="542" column="37" code="2322">Type '{ type: string; duration: number; value: number; }' is not assignable to type '&quot;defending&quot; | &quot;hasted&quot; | &quot;burning&quot; | &quot;poisoned&quot; | &quot;slowed&quot; | &quot;retaliating&quot; | &quot;blinded&quot; | &quot;full_flow&quot; | &quot;overheated&quot; | &quot;rooted&quot; | &quot;steamed&quot; | &quot;regenerating&quot; | &quot;armor_reduction&quot; | &quot;stunned&quot; | &quot;frozen&quot; | &quot;damage_reduction&quot;'.</problem>
-<problem file="constants.tsx" line="550" column="37" code="2322">Type '{ type: string; duration: number; }' is not assignable to type '&quot;defending&quot; | &quot;hasted&quot; | &quot;burning&quot; | &quot;poisoned&quot; | &quot;slowed&quot; | &quot;retaliating&quot; | &quot;blinded&quot; | &quot;full_flow&quot; | &quot;overheated&quot; | &quot;rooted&quot; | &quot;steamed&quot; | &quot;regenerating&quot; | &quot;armor_reduction&quot; | &quot;stunned&quot; | &quot;frozen&quot; | &quot;damage_reduction&quot;'.</problem>
-<problem file="constants.tsx" line="566" column="37" code="2322">Type '{ type: string; duration: number; }' is not assignable to type '&quot;defending&quot; | &quot;hasted&quot; | &quot;burning&quot; | &quot;poisoned&quot; | &quot;slowed&quot; | &quot;retaliating&quot; | &quot;blinded&quot; | &quot;full_flow&quot; | &quot;overheated&quot; | &quot;rooted&quot; | &quot;steamed&quot; | &quot;regenerating&quot; | &quot;armor_reduction&quot; | &quot;stunned&quot; | &quot;frozen&quot; | &quot;damage_reduction&quot;'.</problem>
-<problem file="constants.tsx" line="574" column="37" code="2322">Type '{ type: string; duration: number; }' is not assignable to type '&quot;defending&quot; | &quot;hasted&quot; | &quot;burning&quot; | &quot;poisoned&quot; | &quot;slowed&quot; | &quot;retaliating&quot; | &quot;blinded&quot; | &quot;full_flow&quot; | &quot;overheated&quot; | &quot;rooted&quot; | &quot;steamed&quot; | &quot;regenerating&quot; | &quot;armor_reduction&quot; | &quot;stunned&quot; | &quot;frozen&quot; | &quot;damage_reduction&quot;'.</problem>
-<problem file="constants.tsx" line="591" column="37" code="2322">Type '{ type: string; duration: number; value: number; }' is not assignable to type '&quot;defending&quot; | &quot;hasted&quot; | &quot;burning&quot; | &quot;poisoned&quot; | &quot;slowed&quot; | &quot;retaliating&quot; | &quot;blinded&quot; | &quot;full_flow&quot; | &quot;overheated&quot; | &quot;rooted&quot; | &quot;steamed&quot; | &quot;regenerating&quot; | &quot;armor_reduction&quot; | &quot;stunned&quot; | &quot;frozen&quot; | &quot;damage_reduction&quot;'.</problem>
-<problem file="constants.tsx" line="683" column="44" code="2322">Type '&quot;cleanse_debuffs&quot;' is not assignable to type '&quot;defending&quot; | &quot;hasted&quot; | &quot;burning&quot; | &quot;poisoned&quot; | &quot;slowed&quot; | &quot;retaliating&quot; | &quot;blinded&quot; | &quot;full_flow&quot; | &quot;overheated&quot; | &quot;rooted&quot; | &quot;steamed&quot; | &quot;regenerating&quot; | &quot;armor_reduction&quot; | ... 9 more ... | &quot;damage_reduction_buff&quot;'.</problem>
-<problem file="constants.tsx" line="801" column="44" code="2322">Type '&quot;cleanse_all_debuffs&quot;' is not assignable to type '&quot;defending&quot; | &quot;hasted&quot; | &quot;burning&quot; | &quot;poisoned&quot; | &quot;slowed&quot; | &quot;retaliating&quot; | &quot;blinded&quot; | &quot;full_flow&quot; | &quot;overheated&quot; | &quot;rooted&quot; | &quot;steamed&quot; | &quot;regenerating&quot; | &quot;armor_reduction&quot; | ... 9 more ... | &quot;damage_reduction_buff&quot;'.</problem>
-<problem file="constants.tsx" line="888" column="79" code="2322">Type '&quot;APPLY_STATUS&quot;' is not assignable to type '&quot;HEAL_BONUS&quot; | &quot;STAT_BONUS&quot; | &quot;RESOURCE_REGEN&quot; | &quot;RESISTANCE&quot; | &quot;DAMAGE_BONUS&quot; | &quot;PASSIVE_TALENT&quot; | &quot;ULTIMATE_ABILITY&quot;'.</problem>
-<problem file="constants.tsx" line="996" column="41" code="2322">Type '{ type: string; duration: number; damage: number; }' is not assignable to type '&quot;defending&quot; | &quot;hasted&quot; | &quot;burning&quot; | &quot;poisoned&quot; | &quot;slowed&quot; | &quot;retaliating&quot; | &quot;blinded&quot; | &quot;full_flow&quot; | &quot;overheated&quot; | &quot;rooted&quot; | &quot;steamed&quot; | &quot;regenerating&quot; | &quot;armor_reduction&quot; | &quot;stunned&quot; | &quot;frozen&quot; | &quot;damage_reduction&quot;'.</problem>
-</dyad-problem-report>Absolut! Jag ser att de återstående felen handlar om att `status` egenskapen i `APPLY_STATUS` effekterna förväntar sig en strängliteral (t.ex. `'burning'`) men får ett helt objekt (t.ex. `{ type: 'burning', duration: 2, damage: 3 }`). Dessutom finns det några fel där `buff` i `UltimateAbility` förväntar sig en `StatusEffect['type']` men får en strängliteral som inte är en del av den typen.
+    { threshold: 10, description: "Låser upp passiv talang: Grönskande Aura", effect: { type: 'PASSIVE_TALENT', talentId: 'verdant_aura' } },
+    { threshold: 15, description: "+15% Helande effekt", effect: { type: 'HEAL_BONUS', value: 15, isPercentage: true } },
+    { threshold: 20, description: "+10% Vatten- och Jordresistans", effect: { type: 'RESISTANCE', element: Element.WATER, value: 10, isPercentage: true } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Livsblom", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'lifebloom' } },
+  ],
+  [Element.ICE]: [
+    { threshold: 1, description: "+10% chans att sakta ner fiender", effect: { type: 'STAT_BONUS', stat: 'dexterity', value: 10, isPercentage: true } },
+    { threshold: 5, description: "+5% Kritisk Träff", effect: { type: 'STAT_BONUS', stat: 'kritiskTräff', value: 5, isPercentage: true } },
+    { threshold: 10, description: "Låser upp passiv talang: Köldskada", effect: { type: 'PASSIVE_TALENT', talentId: 'frostbite' } },
+    { threshold: 15, description: "+15% Isskada", effect: { type: 'DAMAGE_BONUS', element: Element.ICE, value: 15, isPercentage: true } },
+    { threshold: 20, description: "+10% Vind- och Vattenresistans", effect: { type: 'RESISTANCE', element: Element.WIND, value: 10, isPercentage: true } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Glaciärspik", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'glacial_spike' } },
+  ],
+  [Element.STORM]: [
+    { threshold: 1, description: "+10% chans att förlama fiender", effect: { type: 'STAT_BONUS', stat: 'intelligence', value: 10, isPercentage: true } },
+    { threshold: 5, description: "+5% ATB-hastighet", effect: { type: 'RESOURCE_REGEN', stat: 'dexterity', value: 5, isPercentage: true } },
+    { threshold: 10, description: "Låser upp passiv talang: Statisk Laddning", effect: { type: 'PASSIVE_TALENT', talentId: 'static_charge' } },
+    { threshold: 15, description: "+15% Stormskada", effect: { type: 'DAMAGE_BONUS', element: Element.STORM, value: 15, isPercentage: true } },
+    { threshold: 20, description: "+10% Vatten- och Vindresistans", effect: { type: 'RESISTANCE', element: Element.WATER, value: 10, isPercentage: true } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Åskknall", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'thunderclap' } },
+  ],
+  [Element.VOLCANIC_STORM]: [
+    { threshold: 1, description: "+20% Eld- och Vindskada", effect: { type: 'DAMAGE_BONUS', element: Element.FIRE, value: 20, isPercentage: true } },
+    { threshold: 5, description: "+15% Kritisk Träff", effect: { type: 'STAT_BONUS', stat: 'kritiskTräff', value: 15, isPercentage: true } },
+    { threshold: 10, description: "+15% ATB-hastighet", effect: { type: 'RESOURCE_REGEN', stat: 'dexterity', value: 15, isPercentage: true } },
+    { threshold: 15, description: "+20% Eld- och Vindresistans", effect: { type: 'RESISTANCE', element: Element.FIRE, value: 20, isPercentage: true } },
+    { threshold: 20, description: "+25% Volcanic Storm-skada", effect: { type: 'DAMAGE_BONUS', element: Element.VOLCANIC_STORM, value: 25, isPercentage: true } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Vulkanisk Storm", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'volcanic_storm_ultimate' } },
+  ],
+  [Element.ELECTRIFIED_MUD]: [
+    { threshold: 1, description: "+20% Jord- och Vattenskada", effect: { type: 'DAMAGE_BONUS', element: Element.EARTH, value: 20, isPercentage: true } },
+    { threshold: 5, description: "+15% Max Hälsa", effect: { type: 'STAT_BONUS', stat: 'constitution', value: 15, isPercentage: true } },
+    { threshold: 10, description: "+15% Rustning", effect: { type: 'STAT_BONUS', stat: 'rustning', value: 15, isPercentage: true } },
+    { threshold: 15, description: "+20% Jord- och Vattenresistans", effect: { type: 'RESISTANCE', element: Element.EARTH, value: 20, isPercentage: true } },
+    { threshold: 20, description: "+25% Electrified Mud-skada", effect: { type: 'DAMAGE_BONUS', element: Element.ELECTRIFIED_MUD, value: 25, isPercentage: true } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Elektrifierad Lera", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'electrified_mud_ultimate' } },
+  ],
+  [Element.VITRIFIED_STORM]: [
+    { threshold: 1, description: "+20% Vind- och Eldskada", effect: { type: 'DAMAGE_BONUS', element: Element.WIND, value: 20, isPercentage: true } },
+    { threshold: 5, description: "+15% Undvikandechans", effect: { type: 'STAT_BONUS', stat: 'undvikandechans', value: 15, isPercentage: true } },
+    { threshold: 10, description: "+15% Kritisk Skada", effect: { type: 'STAT_BONUS', stat: 'kritiskTräff', value: 15, isPercentage: true } },
+    { threshold: 15, description: "+20% Vind- och Eldresistans", effect: { type: 'RESISTANCE', element: Element.WIND, value: 20, isPercentage: true } },
+    { threshold: 20, description: "+25% Vitrified Storm-skada", effect: { type: 'DAMAGE_BONUS', element: Element.VITRIFIED_STORM, value: 25, isPercentage: true } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Förglasad Storm", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'vitrified_storm_ultimate' } },
+  ],
+};
 
-Jag kommer att åtgärda detta genom att:
+// Utility functions for card generation
+export const createCombatPayload = (playerLevel: number, element: Element, difficulty: 'easy' | 'medium' | 'hard' | 'boss', round: number): GameEvent => {
+    const baseHealth = 50 + (playerLevel * 10);
+    const baseDamage = 5 + (playerLevel * 2);
+    const baseArmor = 2 + Math.floor(playerLevel / 2);
 
-1.  **Uppdatera `PassiveTalent['effect']` och `ItemAffix['effect']` i `types.ts`** så att `APPLY_STATUS` effekten direkt tar `StatusEffect['type']` som en strängliteral för `status` egenskapen, och sedan inkluderar de andra egenskaperna (som `duration`, `value`, `damage`, `accuracyReduction`) direkt i `APPLY_STATUS` objektet. Detta gör att vi kan definiera hela statuseffekten inom `effect` objektet.
-2.  **Justera `UltimateAbility['effect']` i `types.ts`** för att inkludera de specifika strängliteralerna `'pushed_back'`, `'cleanse_debuffs_action'`, `'cleanse_all_debuffs_action'`, `'armor_reduction_buff'`, `'stunned_buff'`, `'frozen_buff'`, och `'damage_reduction_buff'` som möjliga `buff`-typer, utöver `StatusEffect['type']`. Detta löser felen där dessa strängar inte matchade `StatusEffect['type']`.
-3.  **Justera `constants.tsx`** för att matcha de nya typdefinitionerna.
+    let healthMultiplier = 1;
+    let damageMultiplier = 1;
+    let armorMultiplier = 1;
+    let enemyCount = 1;
+    let description = "Du möter en fiende!";
 
-Här är den uppdaterade koden:
+    switch (difficulty) {
+        case 'easy':
+            healthMultiplier = 0.8;
+            damageMultiplier = 0.8;
+            armorMultiplier = 0.8;
+            enemyCount = 1;
+            break;
+        case 'medium':
+            healthMultiplier = 1.0;
+            damageMultiplier = 1.0;
+            armorMultiplier = 1.0;
+            enemyCount = Math.random() > 0.7 ? 2 : 1;
+            break;
+        case 'hard':
+            healthMultiplier = 1.2;
+            damageMultiplier = 1.2;
+            armorMultiplier = 1.2;
+            enemyCount = Math.random() > 0.5 ? 2 : 1;
+            description = "En farlig fiende står i din väg!";
+            break;
+        case 'boss':
+            healthMultiplier = 2.5;
+            damageMultiplier = 1.8;
+            armorMultiplier = 1.5;
+            enemyCount = 1;
+            description = "En mäktig boss blockerar din väg!";
+            break;
+    }
 
-<dyad-write path="types.ts" description="Uppdaterar typdefinitioner för PassiveTalent, UltimateAbility och ItemAffix för att hantera nya effekttyper och buff-namn korrekt.">
-import type React from 'react';
+    const enemies: Enemy[] = Array.from({ length: enemyCount }).map((_, i) => {
+        const enemyElement = element; // For now, enemies match card element
+        const enemyName = `${Element[enemyElement]} Fiende ${i + 1}`;
+        const enemyIcon = ELEMENT_ICONS[enemyElement] || Icons.EnemyGoblin;
 
-export enum Element {
-  NEUTRAL,
-  FIRE,
-  EARTH,
-  WIND,
-  WATER,
-  MAGMA,
-  OBSIDIAN,
-  FIRESTORM,
-  HOT_AIR,
-  STEAM,
-  HOT_SPRINGS,
-  SAND,
-  EROSION,
-  MUD,
-  GROWTH,
-  ICE,
-  STORM,
-  VOLCANIC_STORM,
-  ELECTRIFIED_MUD,
-  VITRIFIED_STORM,
-}
+        return {
+            id: `enemy-${Date.now()}-${i}`,
+            name: enemyName,
+            level: playerLevel,
+            element: enemyElement,
+            stats: {
+                health: Math.floor(baseHealth * healthMultiplier),
+                maxHealth: Math.floor(baseHealth * healthMultiplier),
+                damage: Math.floor(baseDamage * damageMultiplier),
+                armor: Math.floor(baseArmor * armorMultiplier),
+            },
+            icon: enemyIcon,
+            resistances: {
+                [enemyElement]: 25, // 25% resistance to its own element
+            },
+        };
+    });
 
-export interface Skill {
-  id: string;
-  name: string;
-  description: string;
-  dependencies?: string[];
-  icon: React.FC;
-  x: number;
-  y: number;
-  element: Element;
-  maxRank: number;
-}
+    return {
+        title: `${Element[element]} Konfrontation`,
+        description: description,
+        element: element,
+        modifiers: [],
+        enemies: enemies,
+        rewards: {
+            xp: (50 * round) * enemyCount * (difficulty === 'boss' ? 3 : 1),
+            items: Array.from({ length: enemyCount }, () => generateRandomItem(playerLevel)),
+        },
+    };
+};
 
-export interface CharacterStats {
-  strength: number;
-  dexterity: number;
-  intelligence: number;
-  constitution: number;
-}
+export const createBossCombatPayload = (playerLevel: number, round: number): GameEvent => {
+    const bossElement = [Element.FIRE, Element.EARTH, Element.WIND, Element.WATER][Math.floor(Math.random() * 4)];
+    const bossName = `Den Uråldriga ${Element[bossElement]} Bossen`;
+    const bossIcon = ELEMENT_ICONS[bossElement] || Icons.EnemyGolem;
 
-export interface Resource {
-  current: number;
-  max: number;
-}
+    const baseHealth = 200 + (playerLevel * 50);
+    const baseDamage = 15 + (playerLevel * 5);
+    const baseArmor = 10 + (playerLevel * 2);
 
-export interface AetherResource extends Resource {
-  name: string;
-}
+    const boss: Enemy = {
+        id: `boss-${Date.now()}`,
+        name: bossName,
+        level: playerLevel,
+        element: bossElement,
+        stats: {
+            health: baseHealth,
+            maxHealth: baseHealth,
+            damage: baseDamage,
+            armor: baseArmor,
+        },
+        icon: bossIcon,
+        resistances: {
+            [bossElement]: 50, // Bosses are highly resistant to their own element
+            [Element.NEUTRAL]: -25, // But maybe weak to neutral attacks?
+        },
+        ability: Math.random() > 0.5 ? 'HASTE_SELF' : undefined, // Boss might have a special ability
+        onHitEffect: Math.random() > 0.5 ? { type: 'burning', duration: 2, damage: 5 } : undefined, // Example on-hit effect
+    };
 
-export type ArchetypeName = 'Pyromanten' | 'Stenväktaren' | 'Stormdansaren' | 'Tidvattenvävaren';
-export type SpecialResourceName = 'Hetta' | 'Styrka' | 'Energi' | 'Flöde';
+    return {
+        title: `Bossstrid: ${bossName}`,
+        description: `En uråldrig och mäktig ${Element[bossElement]} varelse blockerar din väg.`,
+        element: bossElement,
+        modifiers: [],
+        enemies: [boss],
+        rewards: {
+            xp: (200 * round) + (playerLevel * 50),
+            items: [generateRandomItem(playerLevel, 'Legendarisk')], // Bosses drop legendary items
+        },
+    };
+};
 
-export interface Archetype {
-  name: ArchetypeName;
-  description: string;
-  element: Element;
-  icon: React.FC;
-  statBonuses: Partial<CharacterStats>;
-  startingSkill: string;
-  resourceName: SpecialResourceName;
-}
+export const generateRandomItem = (playerLevel: number, rarity: Rarity = 'Vanlig'): Item => {
+    const itemTypes: { slot: EquipmentSlot | 'Föremål'; name: string[]; icon: React.FC; visual?: React.FC; }[] = [
+        { slot: 'Hjälm', name: ['Läderhuva', 'Järnhjälm', 'Magisk Hatt'], icon: Icons.Shield, visual: ItemVisuals.LeatherHelm },
+        { slot: 'Vapen 1', name: ['Rostigt Svärd', 'Stålsvärd', 'Magisk Stav'], icon: Icons.Fire, visual: ItemVisuals.RustySword },
+        { slot: 'Bröst', name: ['Läderbrynja', 'Järnharnesk'], icon: Icons.Earth, visual: ItemVisuals.LeatherArmor },
+        { slot: 'Stövlar', name: ['Läderstövlar', 'Järnstövlar'], icon: Icons.Wind, visual: ItemVisuals.LeatherHelm }, // Reusing helm visual for now
+    ];
 
-// --- UPDATERAD PassiveTalent interface ---
-export interface PassiveTalent {
-  id: string;
-  name: string;
-  description: string;
-  element: Element;
-  icon: React.FC;
-  effect:
-    | { type: 'COUNTER_ATTACK'; element?: Element; damage?: number; chance?: number; }
-    | { type: 'HEAL_BONUS'; value?: number; isPercentage?: boolean; }
-    | { type: 'RESOURCE_GAIN'; stat?: keyof CharacterStats | 'aether' | 'undvikandechans' | 'kritiskTräff' | 'skada' | 'rustning'; value?: number; isPercentage?: boolean; }
-    | { type: 'APPLY_STATUS'; status: StatusEffect['type']; chance: number; duration?: number; value?: number; isPercentage?: boolean; damage?: number; accuracyReduction?: number; } // Added damage, accuracyReduction
-    | { type: 'DEAL_ELEMENTAL_DAMAGE'; element: Element; damage: number; chance: number; }
-    | { type: 'STAT_BONUS'; stat: keyof CharacterStats | 'skada' | 'rustning' | 'undvikandechans' | 'kritiskTräff'; value: number; isPercentage?: boolean; };
-}
+    const randomType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+    const randomName = randomType.name[Math.floor(Math.random() * randomType.name.length)];
 
-// --- UPDATERAD UltimateAbility interface ---
-export interface UltimateAbility {
-  id: string;
-  name: string;
-  description: string;
-  element: Element;
-  icon: React.FC;
-  cooldown: number; // In turns
-  effect:
-    | { type: 'AOE_DAMAGE'; damage?: number; buff?: StatusEffect['type'] | 'pushed_back' | 'armor_reduction_buff' | 'stunned_buff' | 'frozen_buff' | 'cleanse_debuffs_action' | 'cleanse_all_debuffs_action'; duration?: number; value?: number; isPercentage?: boolean; }
-    | { type: 'MASS_HEAL'; heal?: number; buff?: StatusEffect['type'] | 'cleanse_debuffs_action' | 'cleanse_all_debuffs_action'; duration?: number; value?: number; isPercentage?: boolean; }
-    | { type: 'GLOBAL_BUFF'; buff?: StatusEffect['type'] | 'damage_reduction_buff'; duration?: number; value?: number; isPercentage?: boolean; }
-    | { type: 'SINGLE_TARGET_DAMAGE'; damage?: number; buff?: StatusEffect['type'] | 'frozen_buff'; duration?: number; value?: number; isPercentage?: boolean; };
-}
+    let stats: ItemStats = {};
+    let affix: ItemAffix | undefined = undefined;
 
-// --- UPDATERAD ElementalBonus interface ---
-export interface ElementalBonus {
-  threshold: number; // Points needed to unlock this bonus
-  description: string;
-  effect: {
-    type: 'STAT_BONUS' | 'RESOURCE_REGEN' | 'RESISTANCE' | 'DAMAGE_BONUS' | 'PASSIVE_TALENT' | 'ULTIMATE_ABILITY' | 'HEAL_BONUS';
-    stat?: keyof CharacterStats | 'skada' | 'rustning' | 'undvikandechans' | 'kritiskTräff' | 'damage' | 'armor' | 'aether';
-    element?: Element;
-    value?: number; // Flat value or percentage
-    isPercentage?: boolean;
-    talentId?: string; // For PASSIVE_TALENT
-    abilityId?: string; // For ULTIMATE_ABILITY
-  };
-}
+    const baseValue = Math.floor(playerLevel * 0.5) + 1;
 
-export interface Character {
-  name: string;
-  archetype: ArchetypeName;
-  level: number;
-  stats: CharacterStats;
-  resources: {
-    health: Resource;
-    aether: AetherResource;
-  };
-  experience: {
-    current: number;
-    max: number;
-  };
-  elementalAffinities: Partial<Record<Element, number>>; // New: Points in each element
-  unlockedPassiveTalents: string[]; // New: IDs of unlocked passive talents
-  unlockedUltimateAbilities: string[]; // New: IDs of unlocked ultimate abilities
-}
+    switch (randomType.slot) {
+        case 'Hjälm':
+            stats.rustning = baseValue + Math.floor(Math.random() * playerLevel);
+            break;
+        case 'Vapen 1':
+            stats.skada = baseValue + Math.floor(Math.random() * playerLevel);
+            if (Math.random() < 0.3) { // 30% chance for an affix
+                affix = {
+                    trigger: 'ON_HIT',
+                    effect: { type: 'DEAL_ELEMENTAL_DAMAGE', element: Element.FIRE, damage: Math.floor(baseValue * 0.5), chance: 20 },
+                    description: "Har en chans att bränna fienden vid träff."
+                };
+            }
+            break;
+        case 'Bröst':
+            stats.rustning = baseValue * 2 + Math.floor(Math.random() * playerLevel);
+            break;
+        case 'Stövlar':
+            stats.undvikandechans = Math.floor(baseValue * 0.2) + Math.floor(Math.random() * playerLevel * 0.1);
+            break;
+    }
 
-export type View = 'skillTree' | 'characterSheet' | 'inventory' | 'event' | 'deck' | 'debug';
+    const rarities: Rarity[] = ['Vanlig', 'Magisk', 'Sällsynt', 'Legendarisk'];
+    let finalRarity: Rarity = rarity;
+    if (rarity === 'Vanlig') { // Only randomize if not specified as legendary (for bosses)
+        const rarityRoll = Math.random();
+        if (rarityRoll > 0.95) finalRarity = 'Legendarisk';
+        else if (rarityRoll > 0.8) finalRarity = 'Sällsynt';
+        else if (rarityRoll > 0.5) finalRarity = 'Magisk';
+    }
 
-// --- Complex Inventory & Item System ---
+    // Apply rarity bonuses
+    if (finalRarity === 'Magisk') {
+        Object.keys(stats).forEach(key => (stats as any)[key] = Math.floor((stats as any)[key] || 0 * 1.2));
+    } else if (finalRarity === 'Sällsynt') {
+        Object.keys(stats).forEach(key => (stats as any)[key] = Math.floor((stats as any)[key] || 0 * 1.5));
+        if (!affix && Math.random() < 0.5) { // Higher chance for affix if rare and no affix yet
+             affix = {
+                trigger: 'ON_TAKE_DAMAGE',
+                effect: { type: 'APPLY_STATUS', status: 'retaliating', duration: 2, damage: Math.floor(baseValue * 0.8), chance: 30 },
+                description: "Har en chans att skada anfallare när du tar skada."
+            };
+        }
+    } else if (finalRarity === 'Legendarisk') {
+        Object.keys(stats).forEach(key => (stats as any)[key] = Math.floor((stats as any)[key] || 0 * 2.0));
+        // Ensure legendary items always have a powerful affix
+        affix = {
+            trigger: 'PASSIVE',
+            effect: { type: 'APPLY_STATUS', status: 'hasted', duration: 99, chance: 100 }, // Permanent haste
+            description: "Ger dig permanent Haste."
+        };
+    }
 
-export type Rarity = 'Vanlig' | 'Magisk' | 'Sällsynt' | 'Legendarisk';
-
-export type EquipmentSlot = 'Hjälm' | 'Bröst' | 'Vapen 1' | 'Vapen 2' | 'Handskar' | 'Bälte' | 'Byxor' | 'Stövlar';
-
-export interface ItemStats {
-  strength?: number;
-  dexterity?: number;
-  intelligence?: number;
-  constitution?: number;
-  skada?: number;
-  rustning?: number;
-  undvikandechans?: number;
-  kritiskTräff?: number;
-}
-
-export interface ItemAffix {
-  trigger: 'ON_HIT' | 'ON_TAKE_DAMAGE' | 'PASSIVE';
-  effect: {
-    type: 'DEAL_ELEMENTAL_DAMAGE';
-    element: Element;
-    damage: number;
-    chance: number;
-  } | {
-    type: 'APPLY_STATUS';
-    status: StatusEffect['type'];
-    chance: number;
-    duration?: number;
-    value?: number;
-    damage?: number; // Added for burning/poisoned
-    accuracyReduction?: number; // Added for steamed
-  };
-  description: string;
-}
-
-
-export interface Item {
-  id: string;
-  name: string;
-  rarity: Rarity;
-  slot: EquipmentSlot | 'Föremål';
-  stats: ItemStats;
-  icon: React.FC;
-  visual?: React.FC;
-  affix?: ItemAffix;
-}
-
-// --- Event & Combat System ---
-export interface AbilityRankData {
-  description: string;
-  resourceCost: number;
-  damageMultiplier?: number; // e.g., 1.2 for 120% of calculated base skill damage
-  dotDamage?: number;        // flat damage for DoT effects
-  healMultiplier?: number;   // e.g., 0.25 for 25% max HP
-  duration?: number;         // in turns for buffs/debuffs
-  chance?: number;           // e.g., 0.25 for 25% chance to apply effect
-}
-
-export interface PlayerAbility {
-  id: string; // Corresponds to skill ID
-  name: string;
-  element: Element;
-  isAoe?: boolean; // Flag for area-of-effect abilities
-  category?: 'damage' | 'heal' | 'buff' | 'cc';
-  ranks: AbilityRankData[];
-  cooldown?: number; // NEW: Cooldown in turns
-  currentCooldown?: number; // NEW: Current cooldown
-}
-
-export interface Enemy {
-  id: string;
-  name: string;
-  level: number;
-  element: Element;
-  stats: {
-    health: number;
-    maxHealth: number;
-    damage: number;
-    armor: number;
-  };
-  resistances?: Partial<Record<Element, number>>; // E.g. { [Element.FIRE]: 50, [Element.WATER]: -25 }
-  icon: React.FC;
-  ability?: 'HASTE_SELF';
-  onHitEffect?: 
-    | { type: 'burning'; duration: number; damage: number }
-    | { type: 'poison'; duration: number; damage: number }
-    | { type: 'slow'; duration: number };
-}
-
-// NEW: Environment effects
-export interface EnvironmentEffect {
-  description: string;
-  type: 'dot' | 'status_apply' | 'stat_modifier' | 'atb_modifier';
-  element?: Element; // Element associated with the effect (e.g., fire for burning ground)
-  value?: number; // Damage for dot, stat change for stat_modifier, ATB change (percentage)
-  status?: StatusEffect['type']; // For status_apply
-  statusDuration?: number;
-  statusChance?: number; // Chance to apply status
-  targetScope: 'all' | 'player' | 'enemies' | 'non_elemental' | 'elemental';
-  targetElement?: Element; // If scope is non_elemental/elemental
-}
-
-export interface Environment {
-  name: string;
-  description: string;
-  element: Element; // Primary element of the environment
-  effects: EnvironmentEffect[];
-}
-
-export interface EventModifier {
-  description: string;
-  effect: 'player_stat' | 'enemy_stat' | 'reward_bonus'; // Environment effects are now handled by the Environment interface
-  stat?: 'damage' | 'health' | 'armor' | 'crit' | 'dodge';
-  value?: number;
-  isPercentage?: boolean;
-}
-
-export interface GameEvent {
-  title: string;
-  description: string;
-  element: Element;
-  modifiers: EventModifier[];
-  environment?: Environment; // NEW: Optional environment for the combat
-  enemies: Enemy[];
-  rewards: {
-    xp: number;
-    items: Item[];
-  };
-}
-
-// --- UPDATERAD StatusEffect type ---
-export type StatusEffect = 
-  | { type: 'defending'; duration: number; value?: number; } // Added value for potential armor bonus
-  | { type: 'hasted'; duration: number }
-  | { type: 'burning'; duration: number; damage: number }
-  | { type: 'poisoned'; duration: number; damage: number }
-  | { type: 'slowed'; duration: number }
-  | { type: 'retaliating'; duration: number; damage: number }
-  | { type: 'blinded'; duration: number }
-  | { type: 'full_flow'; duration: number }
-  | { type: 'overheated'; duration: number }
-  | { type: 'rooted'; duration: number }
-  | { type: 'steamed'; duration: number; damage?: number; accuracyReduction?: number }
-  | { type: 'regenerating'; duration: number; heal: number }
-  | { type: 'armor_reduction'; duration: number; value: number; } // New: for reducing armor
-  | { type: 'stunned'; duration: number; } // New: for stunning
-  | { type: 'frozen'; duration: number; } // New: for freezing
-  | { type: 'damage_reduction'; duration: number; value: number; isPercentage?: boolean; }; // New: for global damage reduction
-
-
-export interface CombatLogMessage {
-  id: number;
-  text: string;
-  type: 'player' | 'enemy' | 'system' | 'reward';
-}
-
-// --- New Deck & Card System ---
-export type EventType = 'COMBAT' | 'CHOICE' | 'BOON' | 'CURSE';
-
-export interface Outcome {
-    log: string;
-    xp?: number;
-    healthChange?: number; // Can be negative. Number is direct value, not percentage.
-    items?: Item[];
-}
-
-export interface ChoiceOption {
-    buttonText: string;
-    description: string;
-    outcome: Outcome;
-}
-
-export interface EventCard {
-    id: string;
-    title: string;
-    description: string;
-    icon: React.FC;
-    element: Element;
-    type: EventType;
-    payload: GameEvent | { options: ChoiceOption[] } | Outcome;
-    isBoss?: boolean;
-}
+    return {
+        id: `item-${Date.now()}-${Math.random()}`,
+        name: randomName,
+        rarity: finalRarity,
+        slot: randomType.slot,
+        stats: stats,
+        icon: randomType.icon,
+        visual: randomType.visual,
+        affix: affix,
+    };
+};

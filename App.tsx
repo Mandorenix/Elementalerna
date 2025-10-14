@@ -8,8 +8,9 @@ import EventView from './components/EventView';
 import DeckView from './components/DeckView';
 import DebugView from './components/DebugView';
 import type { View, Character, CharacterStats, Item, EquipmentSlot, Archetype, GameEvent, EventCard, Outcome, PlayerAbility, ItemStats, Element } from './types';
-import { INITIAL_CHARACTER_BASE, SKILL_TREE_DATA, Icons, PLAYER_ABILITIES, ItemVisuals, generateRandomItem, ELEMENTAL_AFFINITY_BONUSES, PASSIVE_TALENTS, ULTIMATE_ABILITIES } from './constants';
+import { INITIAL_CHARACTER_BASE, SKILL_TREE_DATA, Icons, PLAYER_ABILITIES, ItemVisuals, ELEMENTAL_AFFINITY_BONUSES, PASSIVE_TALENTS, ULTIMATE_ABILITIES } from './constants';
 import { generateRandomCard, generateBossCard } from './utils/cardGenerator';
+import { generateRandomItem } from './constants'; // Import generateRandomItem from constants
 
 const initialEquipment: Record<EquipmentSlot, Item | null> = {
     'Hjälm': { id: 'start_helmet', name: 'Läderhuva', slot: 'Hjälm', rarity: 'Vanlig', stats: { rustning: 2 }, icon: Icons.Shield, visual: ItemVisuals.LeatherHelm },
@@ -36,7 +37,7 @@ function App() {
   const [character, setCharacter] = useState<Character | null>(null);
   const [skillPoints, setSkillPoints] = useState(0);
   const [attributePoints, setAttributePoints] = useState(0);
-  const [elementalPoints, setElementalPoints] = useState(0); // New state for elemental points
+  const [elementalPoints, setElementalPoints] = useState(0);
   const [unlockedSkills, setUnlockedSkills] = useState<Map<string, number>>(new Map());
   const [equipment, setEquipment] = useState<Record<EquipmentSlot, Item | null>>(initialEquipment);
   const [inventory, setInventory] = useState<Item[]>([]);
@@ -78,15 +79,15 @@ function App() {
           current: isEnergyArchetype ? maxAether : 0,
         }
       },
-      elementalAffinities: {}, // Initialize empty elemental affinities
-      unlockedPassiveTalents: [], // Initialize new property
-      unlockedUltimateAbilities: [], // Initialize new property
+      elementalAffinities: {},
+      unlockedPassiveTalents: [],
+      unlockedUltimateAbilities: [],
     };
     
     setCharacter(newCharacter);
     setSkillPoints(1);
     setAttributePoints(0);
-    setElementalPoints(0); // Reset elemental points
+    setElementalPoints(0);
     
     const initialSkills = new Map([['start', 1]]);
     if (archetype.startingSkill) {
@@ -132,13 +133,13 @@ function App() {
         let newMaxExp = prevChar.experience.max;
         let spGained = 0;
         let apGained = 0;
-        let epGained = 0; // New: Elemental points gained
+        let epGained = 0;
 
         while (newExp >= newMaxExp) {
             newLevel++;
             spGained++;
             apGained += 3;
-            epGained++; // Gain 1 elemental point per level
+            epGained++;
             newExp -= newMaxExp;
             newMaxExp = Math.floor(newMaxExp * 1.5);
         }
@@ -146,7 +147,7 @@ function App() {
         if (newLevel > prevChar.level) {
             setSkillPoints(sp => sp + spGained);
             setAttributePoints(ap => ap + apGained);
-            setElementalPoints(ep => ep + epGained); // Update elemental points
+            setElementalPoints(ep => ep + epGained);
         }
         
         return {
@@ -163,7 +164,6 @@ function App() {
     if (outcome.healthChange && character) {
         setCharacter(c => c ? { ...c, resources: { ...c.resources, health: { ...c.resources.health, current: Math.max(0, Math.min(c.resources.health.max, c.resources.health.current + outcome.healthChange)) }}} : null);
     }
-    // TODO: Add log message to a future game log panel
   }, [character, gainExperience, setInventory, setCharacter]);
 
   const handleDrawCard = useCallback(() => {
@@ -179,14 +179,12 @@ function App() {
     if (drawnCard.type === 'COMBAT') {
         setCurrentEvent(drawnCard.payload as GameEvent);
         setActiveView('event');
-        // NOTE: We do NOT clear drawnCard here. It will be cleared after combat.
     } else {
-        if (outcome) { // This is from a choice
+        if (outcome) {
             applyOutcome(outcome);
-        } else if (drawnCard.type === 'BOON' || drawnCard.type === 'CURSE') { // This is a simple boon/curse
+        } else if (drawnCard.type === 'BOON' || drawnCard.type === 'CURSE') {
             applyOutcome(drawnCard.payload as Outcome);
         }
-        // For non-combat cards, resolve them immediately.
         setDiscardPile(prev => [...prev, drawnCard]);
         setDrawnCard(null);
     }
@@ -235,7 +233,6 @@ function App() {
             let newUnlockedPassiveTalents = [...prevChar.unlockedPassiveTalents];
             let newUnlockedUltimateAbilities = [...prevChar.unlockedUltimateAbilities];
 
-            // Check for new bonuses unlocked at this new affinity level
             const bonusesForElement = ELEMENTAL_AFFINITY_BONUSES[element] || [];
             for (const bonus of bonusesForElement) {
                 if (newAffinity >= bonus.threshold) {
@@ -271,7 +268,6 @@ function App() {
     gainExperience(rewards.xp);
     setInventory(prev => [...prev, ...rewards.items]);
     
-    // After combat, restore health and reset the unique resource
     if (character) {
         const isEnergyArchetype = character.archetype === 'Stormdansaren';
         setCharacter(c => c ? ({
@@ -283,7 +279,6 @@ function App() {
         }) : null);
     }
 
-    // Reset state for next turn
     setCurrentEvent(null);
     setDrawnCard(null);
     setActiveView('deck');
@@ -323,7 +318,6 @@ function App() {
   const playerCombatStats = useMemo(() => {
       if (!character) return null;
 
-      // Define the initial value for reduce with explicit type
       const initialEquipmentStats: Required<ItemStats> = {
           strength: 0, 
           dexterity: 0, 
@@ -337,12 +331,8 @@ function App() {
 
       const equipmentStats = Object.values(equipment).reduce<Required<ItemStats>>((acc, item) => {
           if (item) {
-              // Explicitly cast item to Item here for clarity and to satisfy TS
               const typedItem = item as Item;
-              // Iterate over the known keys of ItemStats to ensure type safety.
               for (const key of Object.keys(initialEquipmentStats) as Array<keyof ItemStats>) {
-                  // Access typedItem.stats[key] directly. TypeScript now knows 'typedItem' is 'Item'
-                  // and 'key' is a valid key for 'ItemStats'.
                   const statValue = typedItem.stats[key];
                   if (statValue !== undefined) {
                       acc[key] += statValue; 
@@ -378,7 +368,7 @@ function App() {
   const debugAddXP = useCallback(() => gainExperience(100), [gainExperience]);
   const debugAddSkillPoint = useCallback(() => setSkillPoints(p => p + 1), [setSkillPoints]);
   const debugAddAttrPoint = useCallback(() => setAttributePoints(p => p + 1), [setAttributePoints]);
-  const debugAddElementalPoint = useCallback(() => setElementalPoints(p => p + 1), [setElementalPoints]); // New debug function
+  const debugAddElementalPoint = useCallback(() => setElementalPoints(p => p + 1), [setElementalPoints]);
   const debugAddItem = useCallback(() => {
       if (character) {
           setInventory(inv => [...inv, generateRandomItem(character.level)]);
@@ -420,11 +410,11 @@ function App() {
             attributePoints={attributePoints} 
             increaseStat={increaseStat} 
             onUnequipItem={unequipItem}
-            elementalPoints={elementalPoints} // Pass elemental points
-            elementalAffinities={character.elementalAffinities} // Pass elemental affinities
-            increaseElementalAffinity={increaseElementalAffinity} // Pass function
-            unlockedPassiveTalents={character.unlockedPassiveTalents} // Pass new prop
-            unlockedUltimateAbilities={character.unlockedUltimateAbilities} // Pass new prop
+            elementalPoints={elementalPoints}
+            elementalAffinities={character.elementalAffinities}
+            increaseElementalAffinity={increaseElementalAffinity}
+            unlockedPassiveTalents={character.unlockedPassiveTalents}
+            unlockedUltimateAbilities={character.unlockedUltimateAbilities}
         />;
       case 'inventory':
         return <Inventory items={inventory} onEquipItem={equipItem} />;
@@ -438,7 +428,7 @@ function App() {
           addDebugItem={debugAddItem}
           debugHealPlayer={debugHealPlayer}
           resetCharacter={handleResetCharacter}
-          addDebugElementalPoint={debugAddElementalPoint} // New debug button
+          addDebugElementalPoint={debugAddElementalPoint}
         />;
       default:
         return <SkillTree unlockedSkills={unlockedSkills} skillPoints={skillPoints} unlockSkill={unlockSkill} />;
@@ -451,7 +441,7 @@ function App() {
         <Footer 
             skillPoints={skillPoints} 
             attributePoints={attributePoints}
-            elementalPoints={elementalPoints} // Pass elemental points to footer
+            elementalPoints={elementalPoints}
             character={character}
             activeView={activeView} 
             setView={setActiveView}

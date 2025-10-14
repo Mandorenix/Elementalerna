@@ -1,5 +1,6 @@
 import type { EventCard, GameEvent, Outcome, Element, Item } from '../types';
-import { ELEMENT_ICONS, createCombatPayload, createBossCombatPayload, generateRandomItem, Icons } from '../constants';
+import { ELEMENT_ICONS, Icons } from '../constants';
+import { createCombatPayload, createBossCombatPayload, generateRandomItem } from '../constants'; // Import from constants
 
 // Re-map the enum to a plain object for easier iteration if needed, and to avoid circular dependencies
 const ElementMap = {

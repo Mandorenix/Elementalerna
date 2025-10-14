@@ -64,11 +64,10 @@ export interface Archetype {
   resourceName: SpecialResourceName;
 }
 
-// --- UPDATERAD PassiveTalent interface ---
 export interface PassiveTalent {
   id: string;
   name: string;
-  description?: string; // Gjort valfri
+  description?: string;
   element: Element;
   icon: React.FC;
   effect:
@@ -80,11 +79,10 @@ export interface PassiveTalent {
     | { type: 'STAT_BONUS'; stat: keyof CharacterStats | 'skada' | 'rustning' | 'undvikandechans' | 'kritiskTräff'; value: number; isPercentage?: boolean; };
 }
 
-// --- UPDATERAD UltimateAbility interface ---
 export interface UltimateAbility {
   id: string;
   name: string;
-  description?: string; // Gjort valfri
+  description?: string;
   element: Element;
   icon: React.FC;
   cooldown: number; // In turns
@@ -95,18 +93,22 @@ export interface UltimateAbility {
     | { type: 'SINGLE_TARGET_DAMAGE'; damage?: number; buff?: StatusEffect['type'] | 'frozen_buff'; duration?: number; value?: number; isPercentage?: boolean; };
 }
 
-// --- UPDATERAD ElementalBonus interface ---
 export interface ElementalBonus {
   threshold: number; // Points needed to unlock this bonus
-  description?: string; // Gjort valfri
+  description?: string;
   effect: {
-    type: 'STAT_BONUS' | 'RESOURCE_REGEN' | 'RESISTANCE' | 'DAMAGE_BONUS' | 'PASSIVE_TALENT' | 'ULTIMATE_ABILITY' | 'HEAL_BONUS';
+    type: 'STAT_BONUS' | 'RESOURCE_REGEN' | 'RESISTANCE' | 'DAMAGE_BONUS' | 'PASSIVE_TALENT' | 'ULTIMATE_ABILITY' | 'HEAL_BONUS' | 'APPLY_STATUS'; // Added APPLY_STATUS
     stat?: keyof CharacterStats | 'skada' | 'rustning' | 'undvikandechans' | 'kritiskTräff' | 'damage' | 'armor' | 'aether';
     element?: Element;
     value?: number; // Flat value or percentage
     isPercentage?: boolean;
     talentId?: string; // For PASSIVE_TALENT
     abilityId?: string; // For ULTIMATE_ABILITY
+    status?: StatusEffect['type']; // Added for APPLY_STATUS
+    duration?: number; // Added for APPLY_STATUS
+    chance?: number; // Added for APPLY_STATUS
+    damage?: number; // Added for APPLY_STATUS (e.g., burning)
+    accuracyReduction?: number; // Added for APPLY_STATUS (e.g., steamed)
   };
 }
 
@@ -123,14 +125,12 @@ export interface Character {
     current: number;
     max: number;
   };
-  elementalAffinities: Partial<Record<Element, number>>; // New: Points in each element
-  unlockedPassiveTalents: string[]; // New: IDs of unlocked passive talents
-  unlockedUltimateAbilities: string[]; // New: IDs of unlocked ultimate abilities
+  elementalAffinities: Partial<Record<Element, number>>;
+  unlockedPassiveTalents: string[];
+  unlockedUltimateAbilities: string[];
 }
 
 export type View = 'skillTree' | 'characterSheet' | 'inventory' | 'event' | 'deck' | 'debug';
-
-// --- Complex Inventory & Item System ---
 
 export type Rarity = 'Vanlig' | 'Magisk' | 'Sällsynt' | 'Legendarisk';
 
@@ -160,12 +160,11 @@ export interface ItemAffix {
     chance: number;
     duration?: number;
     value?: number;
-    damage?: number; // Added for burning/poisoned
-    accuracyReduction?: number; // Added for steamed
+    damage?: number;
+    accuracyReduction?: number;
   };
   description: string;
 }
-
 
 export interface Item {
   id: string;
@@ -178,26 +177,25 @@ export interface Item {
   affix?: ItemAffix;
 }
 
-// --- Event & Combat System ---
 export interface AbilityRankData {
   description: string;
   resourceCost: number;
-  damageMultiplier?: number; // e.g., 1.2 for 120% of calculated base skill damage
-  dotDamage?: number;        // flat damage for DoT effects
-  healMultiplier?: number;   // e.g., 0.25 for 25% max HP
-  duration?: number;         // in turns for buffs/debuffs
-  chance?: number;           // e.g., 0.25 for 25% chance to apply effect
+  damageMultiplier?: number;
+  dotDamage?: number;
+  healMultiplier?: number;
+  duration?: number;
+  chance?: number;
 }
 
 export interface PlayerAbility {
-  id: string; // Corresponds to skill ID
+  id: string;
   name: string;
   element: Element;
-  isAoe?: boolean; // Flag for area-of-effect abilities
+  isAoe?: boolean;
   category?: 'damage' | 'heal' | 'buff' | 'cc';
   ranks: AbilityRankData[];
-  cooldown?: number; // NEW: Cooldown in turns
-  currentCooldown?: number; // NEW: Current cooldown
+  cooldown?: number;
+  currentCooldown?: number;
 }
 
 export interface Enemy {
@@ -211,7 +209,7 @@ export interface Enemy {
     damage: number;
     armor: number;
   };
-  resistances?: Partial<Record<Element, number>>; // E.g. { [Element.FIRE]: 50, [Element.WATER]: -25 }
+  resistances?: Partial<Record<Element, number>>;
   icon: React.FC;
   ability?: 'HASTE_SELF';
   onHitEffect?: 
@@ -220,29 +218,28 @@ export interface Enemy {
     | { type: 'slow'; duration: number };
 }
 
-// NEW: Environment effects
 export interface EnvironmentEffect {
   description: string;
   type: 'dot' | 'status_apply' | 'stat_modifier' | 'atb_modifier';
-  element?: Element; // Element associated with the effect (e.g., fire for burning ground)
-  value?: number; // Damage for dot, stat change for stat_modifier, ATB change (percentage)
-  status?: StatusEffect['type']; // For status_apply
+  element?: Element;
+  value?: number;
+  status?: StatusEffect['type'];
   statusDuration?: number;
-  statusChance?: number; // Chance to apply status
+  statusChance?: number;
   targetScope: 'all' | 'player' | 'enemies' | 'non_elemental' | 'elemental';
-  targetElement?: Element; // If scope is non_elemental/elemental
+  targetElement?: Element;
 }
 
 export interface Environment {
   name: string;
   description: string;
-  element: Element; // Primary element of the environment
+  element: Element;
   effects: EnvironmentEffect[];
 }
 
 export interface EventModifier {
   description: string;
-  effect: 'player_stat' | 'enemy_stat' | 'reward_bonus'; // Environment effects are now handled by the Environment interface
+  effect: 'player_stat' | 'enemy_stat' | 'reward_bonus';
   stat?: 'damage' | 'health' | 'armor' | 'crit' | 'dodge';
   value?: number;
   isPercentage?: boolean;
@@ -253,7 +250,7 @@ export interface GameEvent {
   description: string;
   element: Element;
   modifiers: EventModifier[];
-  environment?: Environment; // NEW: Optional environment for the combat
+  environment?: Environment;
   enemies: Enemy[];
   rewards: {
     xp: number;
@@ -261,9 +258,8 @@ export interface GameEvent {
   };
 }
 
-// --- UPDATERAD StatusEffect type ---
 export type StatusEffect = 
-  | { type: 'defending'; duration: number; value?: number; } // Added value for potential armor bonus
+  | { type: 'defending'; duration: number; value?: number; }
   | { type: 'hasted'; duration: number }
   | { type: 'burning'; duration: number; damage: number }
   | { type: 'poisoned'; duration: number; damage: number }
@@ -275,11 +271,10 @@ export type StatusEffect =
   | { type: 'rooted'; duration: number }
   | { type: 'steamed'; duration: number; damage?: number; accuracyReduction?: number }
   | { type: 'regenerating'; duration: number; heal: number }
-  | { type: 'armor_reduction'; duration: number; value: number; } // New: for reducing armor
-  | { type: 'stunned'; duration: number; } // New: for stunning
-  | { type: 'frozen'; duration: number; } // New: for freezing
-  | { type: 'damage_reduction'; duration: number; value: number; isPercentage?: boolean; }; // New: for global damage reduction
-
+  | { type: 'armor_reduction'; duration: number; value: number; }
+  | { type: 'stunned'; duration: number; }
+  | { type: 'frozen'; duration: number; }
+  | { type: 'damage_reduction'; duration: number; value: number; isPercentage?: boolean; };
 
 export interface CombatLogMessage {
   id: number;
@@ -287,13 +282,12 @@ export interface CombatLogMessage {
   type: 'player' | 'enemy' | 'system' | 'reward';
 }
 
-// --- New Deck & Card System ---
 export type EventType = 'COMBAT' | 'CHOICE' | 'BOON' | 'CURSE';
 
 export interface Outcome {
     log: string;
     xp?: number;
-    healthChange?: number; // Can be negative. Number is direct value, not percentage.
+    healthChange?: number;
     items?: Item[];
 }
 

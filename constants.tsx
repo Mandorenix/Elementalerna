@@ -18,7 +18,7 @@ export const Icons = {
     Wind: createIcon(["M3 5h1V4h8v1h1v2h-1v1h-1v1H5V8H4V7H3V5z M10 8h1V7h-1v1z M5 7h1V6H5v1z"], "#0ea5e9"),
     Push: createIcon(["M4 7h1v2H4V7z M6 7h1v2H6V7z M8 7h1v2H8V7z M10 7h1v2h-1V7z M12 6h-1v4h1V6z"], "#38bdf8"),
     Water: createIcon(["M8 7C6 7 5 8 5 9s1 2 3 2 3-1 3-1-1-3-3-3z M8 13c-2 0-3-1-3-2s1-2 3-2v1c-1 0-1 0-1 1s0 1 1 1 1 0 1-1v-1c2 0 3 1 3 2s-1 2-3 2z"], "#3b82f6"),
-    Slow: createIcon(["M8 15l-3-3h2V9h2v3h2l-3 3z M8 1l3 3h-2v3H7V4H5l3-3z"], "#60a5fa"),
+    Slow: createIcon(["M8 15l-3-3h2V9h2v3h2l-3 3z M8 1l3 3h-2V7H7V4H5l3-3z"], "#60a5fa"),
     Poison: createIcon(["M8 1C5 1 3 3 3 6c0 1 0 1 1 2s1 2 3 3c2-1 2-2 3-3s1-1 1-2c0-3-2-5-5-5z M6 6h1v1H6V6z m3 0h1v1H9V6z M8 9c-1 0-1-1-1-1h2c0 0 0 1-1 1z"], "#84cc16"),
     // New status icons
     FullFlow: createIcon(["M8 7C6 7 5 8 5 9s1 2 3 2 3-1 3-1-1-3-3-3z M8 4l-2-2h1v2h2V2h1L8 4z"], "#22d3ee"),
@@ -28,7 +28,7 @@ export const Icons = {
     // New Tier 1.5 Icons
     Fireball: createIcon(["M8 1c-2 2-3 4-3 6s1 4 3 4 3-2 3-4-1-4-3-6zm0 2c-1 1-1 2-1 3s0 2 1 3 1-2 1-3-0-2-1-3z"], "#f87171"),
     Earthquake: createIcon(["M2 8h2V7h1v2h2V7h2v2h2V7h1v1h2v1H2z M3 10h10v-1H3v1z"], "#a16207"),
-    Cyclone: createIcon(["M8 4c-2 0-4 2-4 4h2c0-1 1-2 2-2s2 1 2 2h2c0-2-2-4-4-4z m0 8c2 0 4-2 4-4h-2c0 1-1 2-2 2s-2-1-2-2H4c0 2 2 4 4 4z"], "#38bdf8"),
+    Cyclone: createIcon(["M8 4c-2 0-4 2-4 4h2c0-1 1-2 2-2s2 1 2 2h2c0 2-2 4-4 4z m0 8c2 0 4-2 4-4h-2c0 1-1 2-2 2s-2-1-2-2H4c0 2 2 4 4 4z"], "#38bdf8"),
     TidalWave: createIcon(["M2 8c1-1 2-2 4-2s3 1 4 2v2c-1 1-2 2-4 2s-3-1-4-2V8z M2 12h8v-1H2v1z"], "#60a5fa"),
     // Hybrid Icons
     Magma: createIcon(["M3 6h1v1h1v1h1v1h1v1h2v-1h1V9h1V8h1V7h1V6H3z M8 11V9h2v2H8z M6 11V9h2v2H6z"], "#d97706"),
@@ -654,6 +654,204 @@ export const ENEMY_TEMPLATES: Record<string, {
         stats: { baseHealth: 150, baseDamage: 15, baseArmor: 10 },
         resistances: { [Element.FIRE]: 90, [Element.EARTH]: 50, [Element.WATER]: -100, [Element.NEUTRAL]: 25 },
         onHitEffect: { type: 'burning', duration: 4, damage: 5 }
+    },
+    
+    // Additional enemies for each element
+    // Fire enemies
+    'fire_imp': { 
+        name: "Eldimp", 
+        icon: Icons.EnemyGoblin, 
+        element: Element.FIRE, 
+        stats: { baseHealth: 15, baseDamage: 6, baseArmor: 0 },
+        resistances: { [Element.FIRE]: 50, [Element.WATER]: -25 },
+        onHitEffect: { type: 'burning', duration: 2, damage: 2 }
+    },
+    'fire_wyrm': { 
+        name: "Eldorm", 
+        icon: Icons.EnemyFireElemental, 
+        element: Element.FIRE, 
+        stats: { baseHealth: 60, baseDamage: 8, baseArmor: 4 },
+        resistances: { [Element.FIRE]: 75, [Element.WATER]: -50 },
+        onHitEffect: { type: 'burning', duration: 3, damage: 4 }
+    },
+    
+    // Earth enemies
+    'earth_troll': { 
+        name: "Jordtroll", 
+        icon: Icons.EnemyGolem, 
+        element: Element.EARTH, 
+        stats: { baseHealth: 70, baseDamage: 7, baseArmor: 6 },
+        resistances: { [Element.EARTH]: 50, [Element.WIND]: -25 }
+    },
+    'crystal_golem': { 
+        name: "Kristallgolem", 
+        icon: Icons.EnemyRockTitan, 
+        element: Element.EARTH, 
+        stats: { baseHealth: 80, baseDamage: 6, baseArmor: 10 },
+        resistances: { [Element.EARTH]: 75, [Element.WIND]: -25, [Element.NEUTRAL]: 20 }
+    },
+    
+    // Wind enemies
+    'wind_djinn': { 
+        name: "Vinddjinn", 
+        icon: Icons.EnemyStormSylph, 
+        element: Element.WIND, 
+        stats: { baseHealth: 30, baseDamage: 9, baseArmor: 1 },
+        resistances: { [Element.WIND]: 50, [Element.EARTH]: -25 },
+        ability: 'HASTE_SELF'
+    },
+    'tempest': { 
+        name: "Stormande", 
+        icon: Icons.EnemyStormSylph, 
+        element: Element.WIND, 
+        stats: { baseHealth: 40, baseDamage: 10, baseArmor: 2 },
+        resistances: { [Element.WIND]: 50, [Element.EARTH]: -25 },
+        ability: 'HASTE_SELF'
+    },
+    
+    // Water enemies
+    'water_nymph': { 
+        name: "Vattennymf", 
+        icon: Icons.EnemySprite, 
+        element: Element.WATER, 
+        stats: { baseHealth: 35, baseDamage: 5, baseArmor: 2 },
+        resistances: { [Element.WATER]: 50, [Element.FIRE]: -25 },
+        onHitEffect: { type: 'slow', duration: 2 }
+    },
+    'tidal_elemental': { 
+        name: "Tidvattenelemental", 
+        icon: Icons.EnemyIceElemental, 
+        element: Element.WATER, 
+        stats: { baseHealth: 55, baseDamage: 7, baseArmor: 4 },
+        resistances: { [Element.WATER]: 75, [Element.FIRE]: -50 },
+        onHitEffect: { type: 'slow', duration: 3 }
+    },
+    
+    // Magma enemies
+    'lava_spawn': { 
+        name: "Lavaväsen", 
+        icon: Icons.EnemyFireElemental, 
+        element: Element.MAGMA, 
+        stats: { baseHealth: 45, baseDamage: 7, baseArmor: 3 },
+        resistances: { [Element.FIRE]: 50, [Element.EARTH]: 25, [Element.WATER]: -75 },
+        onHitEffect: { type: 'burning', duration: 2, damage: 3 }
+    },
+    
+    // Obsidian enemies
+    'obsidian_shard': { 
+        name: "Obsidianskärva", 
+        icon: Icons.EnemyObsidianGolem, 
+        element: Element.OBSIDIAN, 
+        stats: { baseHealth: 35, baseDamage: 9, baseArmor: 8 },
+        resistances: { [Element.FIRE]: 25, [Element.EARTH]: 25, [Element.WIND]: -50 }
+    },
+    
+    // Firestorm enemies
+    'flame_whirlwind': { 
+        name: "Flammande Virvelvind", 
+        icon: Icons.EnemyStormSylph, 
+        element: Element.FIRESTORM, 
+        stats: { baseHealth: 40, baseDamage: 8, baseArmor: 2 },
+        resistances: { [Element.FIRE]: 25, [Element.WIND]: 25, [Element.WATER]: -50 },
+        onHitEffect: { type: 'burning', duration: 2, damage: 2 }
+    },
+    
+    // Steam enemies
+    'steam_construct': { 
+        name: "Ångkonstrukt", 
+        icon: Icons.EnemyIceElemental, 
+        element: Element.STEAM, 
+        stats: { baseHealth: 50, baseDamage: 6, baseArmor: 3 },
+        resistances: { [Element.FIRE]: 25, [Element.WATER]: 25, [Element.EARTH]: -25 },
+        onHitEffect: { type: 'slow', duration: 2 }
+    },
+    
+    // Sand enemies
+    'sand_elemental': { 
+        name: "Sandelemental", 
+        icon: Icons.EnemySandWurm, 
+        element: Element.SAND, 
+        stats: { baseHealth: 55, baseDamage: 8, baseArmor: 2 },
+        resistances: { [Element.EARTH]: 50, [Element.WIND]: 25, [Element.WATER]: -50 },
+        onHitEffect: { type: 'slow', duration: 3 }
+    },
+    
+    // Erosion enemies
+    'corrosive_spirit': { 
+        name: "Frätande Ande", 
+        icon: Icons.EnemySprite, 
+        element: Element.EROSION, 
+        stats: { baseHealth: 30, baseDamage: 7, baseArmor: 1 },
+        resistances: { [Element.EARTH]: 25, [Element.WIND]: 25, [Element.WATER]: -25 }
+    },
+    
+    // Mud enemies
+    'bog_crawler': { 
+        name: "Träskkrypare", 
+        icon: Icons.EnemySlime, 
+        element: Element.MUD, 
+        stats: { baseHealth: 45, baseDamage: 5, baseArmor: 4 },
+        resistances: { [Element.EARTH]: 25, [Element.WATER]: 25, [Element.FIRE]: -50 },
+        onHitEffect: { type: 'slow', duration: 3 }
+    },
+    
+    // Growth enemies
+    'thorn_beast': { 
+        name: "Törnbest", 
+        icon: Icons.EnemyToxicTreant, 
+        element: Element.GROWTH, 
+        stats: { baseHealth: 60, baseDamage: 6, baseArmor: 5 },
+        resistances: { [Element.EARTH]: 25, [Element.WATER]: 25, [Element.FIRE]: -50 },
+        onHitEffect: { type: 'poison', duration: 3, damage: 3 }
+    },
+    
+    // Ice enemies
+    'frost_wolf': { 
+        name: "Frostvarg", 
+        icon: Icons.EnemyIceElemental, 
+        element: Element.ICE, 
+        stats: { baseHealth: 40, baseDamage: 7, baseArmor: 3 },
+        resistances: { [Element.WATER]: 50, [Element.WIND]: 25, [Element.FIRE]: -75 },
+        onHitEffect: { type: 'slow', duration: 3 }
+    },
+    
+    // Storm enemies
+    'lightning_elemental': { 
+        name: "Blixtelemental", 
+        icon: Icons.EnemyStormSylph, 
+        element: Element.STORM, 
+        stats: { baseHealth: 35, baseDamage: 9, baseArmor: 1 },
+        resistances: { [Element.WIND]: 50, [Element.WATER]: 25, [Element.EARTH]: -50 },
+        ability: 'HASTE_SELF'
+    },
+    
+    // Volcanic Storm enemies
+    'volcanic_wyrm': { 
+        name: "Vulkanisk Orm", 
+        icon: Icons.VolcanicStorm, 
+        element: Element.VOLCANIC_STORM, 
+        stats: { baseHealth: 100, baseDamage: 12, baseArmor: 6 },
+        resistances: { [Element.FIRE]: 75, [Element.EARTH]: 25, [Element.WATER]: -100 },
+        onHitEffect: { type: 'burning', duration: 3, damage: 5 }
+    },
+    
+    // Electrified Mud enemies
+    'shock_slime': { 
+        name: "Chockslim", 
+        icon: Icons.EnemyElectrifiedSlime, 
+        element: Element.ELECTRIFIED_MUD, 
+        stats: { baseHealth: 35, baseDamage: 8, baseArmor: 2 },
+        resistances: { [Element.WATER]: 25, [Element.WIND]: 25, [Element.FIRE]: -50 },
+        onHitEffect: { type: 'poison', duration: 2, damage: 4 }
+    },
+    
+    // Vitrified Storm enemies
+    'glass_elemental': { 
+        name: "Glaselemental", 
+        icon: Icons.VitrifiedStorm, 
+        element: Element.VITRIFIED_STORM, 
+        stats: { baseHealth: 70, baseDamage: 9, baseArmor: 4 },
+        resistances: { [Element.EARTH]: 50, [Element.WIND]: 25, [Element.WATER]: -25 }
     }
 };
 

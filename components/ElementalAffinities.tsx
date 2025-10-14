@@ -83,7 +83,13 @@ const ElementalAffinityTooltip: React.FC<{ element: Element; currentPoints: numb
 };
 
 const ElementalAffinities: React.FC<ElementalAffinitiesProps> = ({ elementalAffinities, elementalPoints, increaseElementalAffinity }) => {
-    const baseElements = [Element.FIRE, Element.EARTH, Element.WIND, Element.WATER];
+    // Get all elements that have defined bonuses, excluding NEUTRAL for display purposes
+    const allElementsWithBonuses = Object.keys(ELEMENTAL_AFFINITY_BONUSES)
+        .map(key => Number(key) as Element)
+        .filter(element => element !== Element.NEUTRAL);
+
+    // Sort elements by their enum value for consistent display order
+    const sortedElements = allElementsWithBonuses.sort((a, b) => a - b);
 
     return (
         <div className="p-4 bg-black/30 pixelated-border flex flex-col">
@@ -96,7 +102,7 @@ const ElementalAffinities: React.FC<ElementalAffinitiesProps> = ({ elementalAffi
                 )}
             </div>
             <div className="grid grid-cols-2 gap-4">
-                {baseElements.map(element => {
+                {sortedElements.map(element => {
                     const currentPoints = elementalAffinities[element] || 0;
                     const Icon = ELEMENT_ICONS[element];
                     const theme = elementThemes[element];
@@ -115,7 +121,7 @@ const ElementalAffinities: React.FC<ElementalAffinitiesProps> = ({ elementalAffi
                                 disabled={!canIncrease}
                                 className={`w-12 h-12 border-2 ${theme} flex items-center justify-center text-2xl 
                                     ${canIncrease ? 'hover:bg-green-500/20 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
-                                aria-label={`Öka ${Element[element]} affinitet`}
+                                aria-label={`Öka ${Element[element].replace('_', ' ')} affinitet`}
                             >
                                 <Icon />
                             </button>

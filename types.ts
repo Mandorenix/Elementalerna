@@ -64,22 +64,23 @@ export interface Archetype {
   resourceName: SpecialResourceName;
 }
 
+// --- UPDATERAD PassiveTalent interface ---
 export interface PassiveTalent {
   id: string;
   name: string;
   description: string;
   element: Element;
   icon: React.FC;
-  effect: {
-    type: 'COUNTER_ATTACK' | 'HEAL_BONUS' | 'RESOURCE_GAIN';
-    element?: Element; // For counter-attack element
-    damage?: number;
-    chance?: number; // For counter-attack chance
-    value?: number; // For heal bonus percentage or resource gain
-    isPercentage?: boolean;
-  };
+  effect:
+    | { type: 'COUNTER_ATTACK'; element?: Element; damage?: number; chance?: number; }
+    | { type: 'HEAL_BONUS'; value?: number; isPercentage?: boolean; }
+    | { type: 'RESOURCE_GAIN'; stat?: keyof CharacterStats | 'aether' | 'undvikandechans' | 'kritiskTräff' | 'skada' | 'rustning'; value?: number; isPercentage?: boolean; }
+    | { type: 'APPLY_STATUS'; status: StatusEffect['type']; chance: number; duration?: number; value?: number; isPercentage?: boolean; } // Added duration, value, isPercentage for status
+    | { type: 'DEAL_ELEMENTAL_DAMAGE'; element: Element; damage: number; chance: number; }
+    | { type: 'STAT_BONUS'; stat: keyof CharacterStats | 'skada' | 'rustning' | 'undvikandechans' | 'kritiskTräff'; value: number; isPercentage?: boolean; };
 }
 
+// --- UPDATERAD UltimateAbility interface ---
 export interface UltimateAbility {
   id: string;
   name: string;
@@ -87,22 +88,20 @@ export interface UltimateAbility {
   element: Element;
   icon: React.FC;
   cooldown: number; // In turns
-  effect: {
-    type: 'AOE_DAMAGE' | 'MASS_HEAL' | 'GLOBAL_BUFF';
-    damage?: number;
-    heal?: number;
-    buff?: StatusEffect['type'];
-    duration?: number;
-    value?: number; // For buff value
-  };
+  effect:
+    | { type: 'AOE_DAMAGE'; damage?: number; buff?: StatusEffect['type'] | 'pushed_back' | 'armor_reduction_buff' | 'stunned_buff' | 'frozen_buff' | 'cleanse_debuffs_action' | 'cleanse_all_debuffs_action'; duration?: number; value?: number; isPercentage?: boolean; }
+    | { type: 'MASS_HEAL'; heal?: number; buff?: StatusEffect['type'] | 'cleanse_debuffs_action' | 'cleanse_all_debuffs_action'; duration?: number; value?: number; isPercentage?: boolean; }
+    | { type: 'GLOBAL_BUFF'; buff?: StatusEffect['type'] | 'damage_reduction_buff'; duration?: number; value?: number; isPercentage?: boolean; }
+    | { type: 'SINGLE_TARGET_DAMAGE'; damage?: number; buff?: StatusEffect['type'] | 'frozen_buff'; duration?: number; value?: number; isPercentage?: boolean; };
 }
 
+// --- UPDATERAD ElementalBonus interface ---
 export interface ElementalBonus {
   threshold: number; // Points needed to unlock this bonus
   description: string;
   effect: {
-    type: 'STAT_BONUS' | 'RESOURCE_REGEN' | 'RESISTANCE' | 'DAMAGE_BONUS' | 'PASSIVE_TALENT' | 'ULTIMATE_ABILITY';
-    stat?: keyof CharacterStats | 'skada' | 'rustning' | 'undvikandechans' | 'kritiskTräff' | 'damage' | 'armor';
+    type: 'STAT_BONUS' | 'RESOURCE_REGEN' | 'RESISTANCE' | 'DAMAGE_BONUS' | 'PASSIVE_TALENT' | 'ULTIMATE_ABILITY' | 'HEAL_BONUS';
+    stat?: keyof CharacterStats | 'skada' | 'rustning' | 'undvikandechans' | 'kritiskTräff' | 'damage' | 'armor' | 'aether';
     element?: Element;
     value?: number; // Flat value or percentage
     isPercentage?: boolean;
@@ -157,8 +156,10 @@ export interface ItemAffix {
     chance: number;
   } | {
     type: 'APPLY_STATUS';
-    status: StatusEffect;
+    status: StatusEffect['type']; // Changed to StatusEffect['type']
     chance: number;
+    duration?: number; // Added duration
+    value?: number; // Added value for statuses like armor_reduction
   };
   description: string;
 }
@@ -258,19 +259,24 @@ export interface GameEvent {
   };
 }
 
+// --- UPDATERAD StatusEffect type ---
 export type StatusEffect = 
-  | { type: 'defending'; duration: number }
+  | { type: 'defending'; duration: number; value?: number; } // Added value for potential armor bonus
   | { type: 'hasted'; duration: number }
   | { type: 'burning'; duration: number; damage: number }
   | { type: 'poisoned'; duration: number; damage: number }
   | { type: 'slowed'; duration: number }
   | { type: 'retaliating'; duration: number; damage: number }
-  | { type: 'blinded'; duration: number } // NEW
+  | { type: 'blinded'; duration: number }
   | { type: 'full_flow'; duration: number }
   | { type: 'overheated'; duration: number }
-  | { type: 'rooted'; duration: number } // NEW
-  | { type: 'steamed'; duration: number; damage?: number; accuracyReduction?: number } // NEW: for ångmoln
-  | { type: 'regenerating'; duration: number; heal: number };
+  | { type: 'rooted'; duration: number }
+  | { type: 'steamed'; duration: number; damage?: number; accuracyReduction?: number }
+  | { type: 'regenerating'; duration: number; heal: number }
+  | { type: 'armor_reduction'; duration: number; value: number; } // New: for reducing armor
+  | { type: 'stunned'; duration: number; } // New: for stunning
+  | { type: 'frozen'; duration: number; } // New: for freezing
+  | { type: 'damage_reduction'; duration: number; value: number; isPercentage?: boolean; }; // New: for global damage reduction
 
 
 export interface CombatLogMessage {

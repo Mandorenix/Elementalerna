@@ -7,7 +7,7 @@ import CharacterSelection from './components/CharacterSelection';
 import EventView from './components/EventView';
 import DeckView from './components/DeckView';
 import DebugView from './components/DebugView';
-import type { View, Character, CharacterStats, Item, EquipmentSlot, Archetype, GameEvent, EventCard, Outcome, PlayerAbility, ItemStats, Element, UltimateAbility } from './types';
+import type { View, Character, CharacterStats, Item, EquipmentSlot, Archetype, GameEvent, EventCard, Outcome, PlayerAbility, ItemStats, Element } from './types';
 import { INITIAL_CHARACTER_BASE, SKILL_TREE_DATA, Icons, PLAYER_ABILITIES, ItemVisuals, ELEMENTAL_AFFINITY_BONUSES, PASSIVE_TALENTS, ULTIMATE_ABILITIES } from './constants';
 import { generateRandomCard, generateBossCard, generateRandomItem } from './utils/cardGenerator'; // Corrected import for generateRandomItem
 
@@ -81,9 +81,6 @@ function App() {
       elementalAffinities: {},
       unlockedPassiveTalents: [],
       unlockedUltimateAbilities: [],
-      activeAbilities: [], // Initialize active abilities
-      equippedItems: Object.values(initialEquipment).filter(Boolean) as Item[], // Initialize equipped items
-      statusEffects: [], // Initialize status effects
     };
     
     setCharacter(newCharacter);
@@ -244,10 +241,9 @@ function App() {
                             console.log(`Unlocked passive talent: ${PASSIVE_TALENTS[bonus.effect.talentId].name}`);
                         }
                     } else if (bonus.effect.type === 'ULTIMATE_ABILITY' && bonus.effect.abilityId) {
-                        const ultimateAbility = ULTIMATE_ABILITIES[bonus.effect.abilityId];
-                        if (ultimateAbility && !newUnlockedUltimateAbilities.some(ua => ua.id === ultimateAbility.id)) {
-                            newUnlockedUltimateAbilities.push(ultimateAbility);
-                            console.log(`Unlocked ultimate ability: ${ultimateAbility.name}`);
+                        if (!newUnlockedUltimateAbilities.includes(bonus.effect.abilityId)) {
+                            newUnlockedUltimateAbilities.push(bonus.effect.abilityId);
+                            console.log(`Unlocked ultimate ability: ${ULTIMATE_ABILITIES[bonus.effect.abilityId].name}`);
                         }
                     }
                 }
@@ -417,7 +413,7 @@ function App() {
             elementalAffinities={character.elementalAffinities}
             increaseElementalAffinity={increaseElementalAffinity}
             unlockedPassiveTalents={character.unlockedPassiveTalents}
-            unlockedUltimateAbilities={character.unlockedUltimateAbilities.map(ua => ua.id)} // Pass only IDs for now
+            unlockedUltimateAbilities={character.unlockedUltimateAbilities}
         />;
       case 'inventory':
         return <Inventory items={inventory} onEquipItem={equipItem} />;

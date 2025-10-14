@@ -1,5 +1,5 @@
 import React from 'react';
-import type { EventCard, ChoiceOption, Outcome } from '../types';
+import type { EventCard, ChoiceOption, Outcome, PuzzleChallenge, MerchantOffer, Item } from '../types';
 import { elementThemes } from '../constants';
 import { Element } from '../types';
 
@@ -31,7 +31,7 @@ const DiscardPile: React.FC<{ count: number, onStartNextRound: () => void, canSt
     </div>
 );
 
-const DrawnCard: React.FC<{ card: EventCard; onResolve: (outcome?: Outcome) => void; }> = ({ card, onResolve }) => {
+const DrawnCard: React.FC<{ card: EventCard; onResolve: (outcome?: Outcome, item?: Item) => void; playerCurrency: number; playerStats: any; elementalAffinities: Partial<Record<Element, number>>; }> = ({ card, onResolve, playerCurrency, playerStats, elementalAffinities }) => {
     const theme = elementThemes[card.element] || elementThemes[Element.NEUTRAL];
     const Icon = card.icon;
     const isBoss = card.isBoss;
@@ -67,6 +67,54 @@ const DrawnCard: React.FC<{ card: EventCard; onResolve: (outcome?: Outcome) => v
                         ))}
                      </div>
                 );
+            case 'PUZZLE':
+                const puzzle = card.payload as PuzzleChallenge;
+                const handlePuzzleOption = (optionIndex: number) => {
+                    const option = puzzle.options?.[optionIndex];
+                    if (!option) return;
+
+                    let success = false;
+                    if (puzzle.statCheck) {
+                        success = playerStats.totalStats[puzzle.statCheck] >= puzzle.threshold;
+                    } else if (puzzle.elementalCheck) {
+                        success = (elementalAffinities[puzzle.elementalCheck] || 0) >= puzzle.threshold;
+                    }
+
+                    onResolve(success ? puzzle.successOutcome : puzzle.failureOutcome);
+                };
+
+                return (
+                    <div className="flex flex-col space-y-2 mt-auto">
+                        <p className="text-xs text-gray-300 mb-2">{puzzle.challengeText}</p>
+                        {puzzle.options?.map((opt, i) => (
+                            <button key={i} onClick={() => handlePuzzleOption(i)} className="w-full px-2 py-2 border-2 text-xs bg-blue-800/50 border-blue-600 hover:border-blue-400 text-blue-300 transition-colors text-center">
+                                <p className="font-bold">{opt.buttonText}</p>
+                                <p className="text-[10px] text-gray-400">{opt.description}</p>
+                            </button>
+                        ))}
+                    </div>
+                );
+            case 'MERCHANT':
+                const merchant = card.payload as MerchantOffer;
+                return (
+                    <div className="flex flex-col space-y-2 mt-auto">
+                        <p className="text-xs text-gray-300 mb-2">Välkommen, resenär! Se mina varor:</p>
+                        {merchant.itemsForSale.map((item, i) => (
+                            <button 
+                                key={i} 
+                                onClick={() => onResolve(merchant.onPurchase(item), item)} 
+                                disabled={playerCurrency < (item.price || 0)}
+                                className={`w-full px-2 py-2 border-2 text-xs ${playerCurrency >= (item.price || 0) ? 'bg-green-800/50 border-green-600 hover:border-green-400 text-green-300' : 'bg-gray-800/50 border-gray-600 text-gray-500 cursor-not-allowed'} transition-colors text-center`}
+                            >
+                                <p className="font-bold">{item.name}</p>
+                                <p className="text-[10px] text-gray-400">{item.price} Guld</p>
+                            </button>
+                        ))}
+                        <button onClick={() => onResolve(merchant.onLeave)} className="w-full px-2 py-2 border-2 text-xs bg-red-800/50 border-red-600 hover:border-red-400 text-red-300 transition-colors text-center">
+                            Lämna
+                        </button>
+                    </div>
+                );
         }
     }
 
@@ -90,11 +138,14 @@ interface DeckViewProps {
     drawnCard: EventCard | null;
     onDraw: () => void;
     onStartNextRound: () => void;
-    onResolve: (outcome?: Outcome) => void;
+    onResolve: (outcome?: Outcome, item?: Item) => void;
+    playerCurrency: number; // New prop
+    playerStats: any; // New prop for stat checks
+    elementalAffinities: Partial<Record<Element, number>>; // New prop for elemental checks
 }
 
 
-const DeckView: React.FC<DeckViewProps> = ({ roundLevel, deck, discardPile, drawnCard, onDraw, onStartNextRound, onResolve }) => {
+const DeckView: React.FC<DeckViewProps> = ({ roundLevel, deck, discardPile, drawnCard, onDraw, onStartNextRound, onResolve, playerCurrency, playerStats, elementalAffinities }) => {
     return (
         <div className="flex-grow w-full h-full p-6 text-white flex flex-col overflow-hidden">
             <div className="text-center mb-8">
@@ -107,7 +158,13 @@ const DeckView: React.FC<DeckViewProps> = ({ roundLevel, deck, discardPile, draw
                 
                 <div className="w-64 h-96 flex items-center justify-center">
                     {drawnCard 
-                        ? <DrawnCard card={drawnCard} onResolve={onResolve} />
+                        ? <DrawnCard 
+                            card={drawnCard} 
+                            onResolve={onResolve} 
+                            playerCurrency={playerCurrency} 
+                            playerStats={playerStats} 
+                            elementalAffinities={elementalAffinities} 
+                          />
                         : <div className="text-gray-600">Dra ett kort...</div>
                     }
                 </div>

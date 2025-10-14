@@ -1,5 +1,5 @@
-import React from 'react'; // Added React import
-import { Element, type EventCard, type GameEvent, type Outcome, type Item, type ItemStats, type ItemAffix, type EquipmentSlot, type Rarity, type Enemy } from '../types'; // Changed Element to be imported as a value
+import React from 'react';
+import { Element, type EventCard, type GameEvent, type Outcome, type Item, type ItemStats, type ItemAffix, type EquipmentSlot, type Rarity, type Enemy, type PuzzleChallenge, type MerchantOffer, type CharacterStats } from '../types';
 import { ELEMENT_ICONS, Icons, ItemVisuals } from '../constants';
 
 // Re-map the enum to a plain object for easier iteration if needed, and to avoid circular dependencies
@@ -114,6 +114,48 @@ const CHOICE_SCENARIOS = [
     }),
 ];
 
+// --- New Puzzle Card Scenarios ---
+const PUZZLE_SCENARIOS = [
+    (playerLevel: number, round: number, element: Element): PuzzleChallenge => ({
+        challengeText: `En uråldrig runa blockerar din väg. Du måste lösa dess gåta för att passera.`,
+        statCheck: 'intelligence',
+        threshold: 5 + playerLevel + round,
+        successOutcome: { log: "Du löste gåtan! Vägen öppnas och du känner dig stärkt.", xp: 50 * round, healthChange: 10 },
+        failureOutcome: { log: "Gåtan var för svår. Du tar skada när du försöker tvinga dig förbi.", healthChange: -20 - (round * 5) },
+        options: [
+            { buttonText: "Försök lösa gåtan (Intelligens)", description: "Använd din visdom för att tyda runan." },
+            { buttonText: "Försök tvinga dig förbi (Styrka)", description: "Använd råstyrka för att bryta igenom." },
+        ]
+    }),
+    (playerLevel: number, round: number, element: Element): PuzzleChallenge => ({
+        challengeText: `En magisk barriär av ${Element[element]}-energi spärrar vägen. Du måste hitta ett sätt att neutralisera den.`,
+        elementalCheck: element,
+        threshold: 3 + Math.floor(playerLevel / 2) + round, // Elemental affinity check
+        successOutcome: { log: `Du kanaliserar din ${Element[element]}-affinitet och barriären upplöses!`, xp: 75 * round, items: [generateRandomItem(playerLevel)] },
+        failureOutcome: { log: `Barriären slår tillbaka! Du tar skada och måste hitta en annan väg.`, healthChange: -30 - (round * 10) },
+        options: [
+            { buttonText: `Använd ${Element[element]}-affinitet`, description: `Försök att matcha barriärens energi.` },
+            { buttonText: "Sök efter en omväg", description: "Undvik konfrontation med barriären." },
+        ]
+    }),
+];
+
+// --- New Merchant Card Scenarios ---
+const MERCHANT_SCENARIOS = [
+    (playerLevel: number, round: number): MerchantOffer => ({
+        itemsForSale: [
+            generateRandomItem(playerLevel, 'Magisk'),
+            generateRandomItem(playerLevel, 'Vanlig'),
+            generateRandomItem(playerLevel, 'Sällsynt'),
+        ].map(item => ({ ...item, price: Math.floor(item.rarity === 'Vanlig' ? 20 : item.rarity === 'Magisk' ? 50 : 100 + (playerLevel * 10)) })),
+        currencyName: "Guld",
+        playerCurrency: 0, // This will be updated by App.tsx
+        onPurchase: (item: Item) => ({ log: `Du köpte ${item.name} för ${item.price} Guld.`, items: [item] }),
+        onLeave: { log: "Du lämnar handlaren." }
+    })
+];
+
+
 // --- Card Generation Logic ---
 
 export const generateRandomCard = (playerLevel: number, round: number = 1): EventCard => {
@@ -125,10 +167,12 @@ export const generateRandomCard = (playerLevel: number, round: number = 1): Even
     
     // 2. Determine Card Type (weighted)
     const typeRoll = Math.random();
-    let type: 'COMBAT' | 'BOON' | 'CURSE' | 'CHOICE' = 'COMBAT';
+    let type: 'COMBAT' | 'BOON' | 'CURSE' | 'CHOICE' | 'PUZZLE' | 'MERCHANT' = 'COMBAT';
     if (typeRoll > 0.9) type = 'CURSE';
     else if (typeRoll > 0.75) type = 'BOON';
-    else if (typeRoll > 0.5) type = 'CHOICE';
+    else if (typeRoll > 0.55) type = 'CHOICE'; // Reduced chance for choice to make room for new types
+    else if (typeRoll > 0.4) type = 'PUZZLE'; // New type
+    else if (typeRoll > 0.3) type = 'MERCHANT'; // New type
 
     // 3. Generate Payload based on Type and Element
     let payload: EventCard['payload'];
@@ -171,6 +215,18 @@ export const generateRandomCard = (playerLevel: number, round: number = 1): Even
             description = scenario.description;
             payload = scenario.payload;
             break;
+        case 'PUZZLE': // New Puzzle Card
+            const puzzleScenario = getRandom(PUZZLE_SCENARIOS)(playerLevel, round, primaryElement);
+            title = `Gåtan av ${Element[primaryElement]}`;
+            description = puzzleScenario.challengeText;
+            payload = puzzleScenario;
+            break;
+        case 'MERCHANT': // New Merchant Card
+            const merchantOffer = getRandom(MERCHANT_SCENARIOS)(playerLevel, round);
+            title = `Vandrande Handlare`;
+            description = "En mystisk handlare dyker upp med sällsynta varor.";
+            payload = merchantOffer;
+            break;
     }
 
     return {
@@ -184,7 +240,7 @@ export const generateRandomCard = (playerLevel: number, round: number = 1): Even
     };
 };
 
-export const generateBossCard = (playerLevel: number, round: number = 1): EventCard => {
+export const generateBossCard = (playerLevel: number, round: number): EventCard => {
     const payload = createBossCombatPayload(playerLevel, round);
     return {
         id: `boss-${Date.now()}`,
@@ -258,14 +314,42 @@ export const createCombatPayload = (playerLevel: number, element: Element, diffi
             resistances: {
                 [enemyElement]: 25, // 25% resistance to its own element
             },
+            // More complex enemy behaviors
+            behavior: Math.random() > 0.7 ? 'ATTACK_LOWEST_HP' : 'ATTACK_PLAYER',
+            onHitEffect: Math.random() > 0.3 ? { type: 'poison', duration: 2, damage: 3 + Math.floor(playerLevel / 5) } : undefined,
         };
     });
+
+    // Add dynamic environment effects based on element and round
+    const environment = Math.random() > 0.6 ? { // 40% chance for an environment effect
+        name: `${Element[element]}s Aura`,
+        description: `En aura av ${Element[element]}-energi genomsyrar striden.`,
+        element: element,
+        effects: [
+            {
+                description: `Alla tar ${2 + Math.floor(round / 2)} ${Element[element]}-skada varje runda.`,
+                type: 'dot',
+                element: element,
+                value: 2 + Math.floor(round / 2),
+                targetScope: 'all',
+            },
+            {
+                description: `Fiender har en chans att bli förlamade.`,
+                type: 'status_apply',
+                status: 'paralyzed',
+                statusDuration: 1,
+                statusChance: 10 + (round * 2),
+                targetScope: 'enemies',
+            }
+        ]
+    } : undefined;
 
     return {
         title: `${Element[element]} Konfrontation`,
         description: description,
         element: element,
         modifiers: [],
+        environment: environment, // Add environment here
         enemies: enemies,
         rewards: {
             xp: (50 * round) * enemyCount * (difficulty === 'boss' ? 3 : 1),
@@ -301,6 +385,23 @@ export const createBossCombatPayload = (playerLevel: number, round: number): Gam
         },
         specialAbility: Math.random() > 0.5 ? 'HASTE_SELF' : undefined, // Boss might have a special ability
         onHitEffect: Math.random() > 0.5 ? { type: 'burning', duration: 2, damage: 5 } : undefined, // Example on-hit effect
+        // Boss phases for more complex encounters
+        phases: [
+            {
+                name: "Rasande",
+                threshold: 0.5, // Below 50% HP
+                newBehavior: 'ATTACK_HIGHEST_DAMAGE_PLAYER',
+                statusEffectsToApplyToSelf: [{ type: 'hasted', duration: 99 }],
+                description: "Bossen blir rasande och attackerar den starkaste fienden!"
+            },
+            {
+                name: "Försvar",
+                threshold: 0.2, // Below 20% HP
+                newBehavior: 'BUFF_SELF',
+                statusEffectsToApplyToSelf: [{ type: 'defending', duration: 99, value: 50 }],
+                description: "Bossen drar sig tillbaka och förstärker sitt försvar!"
+            }
+        ]
     };
 
     return {

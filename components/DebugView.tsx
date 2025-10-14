@@ -4,10 +4,11 @@ interface DebugViewProps {
     addDebugXP: () => void;
     addDebugSkillPoint: () => void;
     addDebugAttrPoint: () => void;
-    addDebugElementalPoint: () => void; // New prop
+    addDebugElementalPoint: () => void;
     addDebugItem: () => void;
     debugHealPlayer: () => void;
     resetCharacter: () => void;
+    addDebugGold: () => void; // New prop
 }
 
 const DebugButton: React.FC<{ onClick: () => void; children: React.ReactNode; }> = ({ onClick, children }) => (
@@ -26,10 +27,11 @@ const DebugView: React.FC<DebugViewProps> = (props) => {
                         <DebugButton onClick={props.addDebugXP}>+100 XP</DebugButton>
                         <DebugButton onClick={props.addDebugSkillPoint}>+1 Skill Point</DebugButton>
                         <DebugButton onClick={props.addDebugAttrPoint}>+1 Attribute Point</DebugButton>
-                        <DebugButton onClick={props.addDebugElementalPoint}>+1 Elemental Point</DebugButton> {/* New button */}
+                        <DebugButton onClick={props.addDebugElementalPoint}>+1 Elemental Point</DebugButton>
                         <DebugButton onClick={props.addDebugItem}>Add Random Item</DebugButton>
                         <DebugButton onClick={props.debugHealPlayer}>Heal Player</DebugButton>
                         <DebugButton onClick={props.resetCharacter}>Reset Character (Hard)</DebugButton>
+                        <DebugButton onClick={props.addDebugGold}>+100 Gold</DebugButton> {/* New button */}
                     </div>
                 </div>
             </div>

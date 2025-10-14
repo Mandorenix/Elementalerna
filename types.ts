@@ -176,6 +176,7 @@ export interface Item {
   icon: React.FC;
   visual?: React.FC;
   affix?: ItemAffix;
+  price?: number; // New: for merchant
 }
 
 export interface AbilityRankData {
@@ -277,6 +278,22 @@ export interface EventModifier {
   isPercentage?: boolean;
 }
 
+// New: Outcome interface
+export interface Outcome {
+  log: string;
+  xp?: number;
+  items?: Item[];
+  healthChange?: number;
+  goldChange?: number; // New: for merchant
+}
+
+// New: ChoiceOption interface
+export interface ChoiceOption {
+  buttonText: string;
+  description: string;
+  outcome: Outcome;
+}
+
 export interface GameEvent {
   title: string;
   description: string;
@@ -305,9 +322,9 @@ export type StatusEffect =
   | { type: 'regenerating'; duration: number; heal: number }
   | { type: 'armor_reduction'; duration: number; value: number; }
   | { type: 'stunned'; duration: number; }
-  | { type: 'frozen'; duration: number; }
+  | { type: 'frozen'; duration: number; } // New
+  | { type: 'paralyzed'; duration: number; chanceToMissTurn: number; } // New
   | { type: 'damage_reduction'; duration: number; value: number; isPercentage?: boolean; }
-  | { type: 'paralyzed'; duration: number; } // New
   | { type: 'bleeding'; duration: number; damage: number; } // New
   | { type: 'frightened'; duration: number; chanceToMissTurn: number; chanceToAttackRandom: number; } // New
   | { type: 'reflecting'; duration: number; element: Element; value: number; } // New
@@ -319,19 +336,24 @@ export interface CombatLogMessage {
   type: 'player' | 'enemy' | 'system' | 'reward';
 }
 
-export type EventType = 'COMBAT' | 'CHOICE' | 'BOON' | 'CURSE';
+export type EventType = 'COMBAT' | 'CHOICE' | 'BOON' | 'CURSE' | 'PUZZLE' | 'MERCHANT'; // New event types
 
-export interface Outcome {
-    log: string;
-    xp?: number;
-    healthChange?: number;
-    items?: Item[];
+export interface PuzzleChallenge {
+    challengeText: string;
+    statCheck?: keyof CharacterStats;
+    elementalCheck?: Element;
+    threshold: number; // Value needed for stat/affinity check
+    successOutcome: Outcome;
+    failureOutcome: Outcome;
+    options?: ChoiceOption[]; // Optional choices for puzzle
 }
 
-export interface ChoiceOption {
-    buttonText: string;
-    description: string;
-    outcome: Outcome;
+export interface MerchantOffer {
+    itemsForSale: Item[];
+    currencyName: string; // e.g., "Guld"
+    playerCurrency: number; // How much player has
+    onPurchase: (item: Item) => Outcome;
+    onLeave: Outcome;
 }
 
 export interface EventCard {
@@ -341,6 +363,6 @@ export interface EventCard {
     icon: React.FC;
     element: Element;
     type: EventType;
-    payload: GameEvent | { options: ChoiceOption[] } | Outcome;
+    payload: GameEvent | { options: ChoiceOption[] } | Outcome | PuzzleChallenge | MerchantOffer; // Updated payload
     isBoss?: boolean;
 }

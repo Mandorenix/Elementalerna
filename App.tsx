@@ -41,6 +41,7 @@ function App() {
   const [equipment, setEquipment] = useState<Record<EquipmentSlot, Item | null>>(initialEquipment);
   const [inventory, setInventory] = useState<Item[]>([]);
   const [activeView, setActiveView] = useState<View>('skillTree');
+  const [gold, setGold] = useState(100); // New: Player's gold
   
   // New Deck State
   const [deck, setDeck] = useState<EventCard[]>([]);
@@ -87,6 +88,7 @@ function App() {
     setSkillPoints(1);
     setAttributePoints(0);
     setElementalPoints(0);
+    setGold(100); // Reset gold
     
     const initialSkills = new Map([['start', 1]]);
     if (archetype.startingSkill) {
@@ -157,13 +159,16 @@ function App() {
     });
   }, [character, setCharacter, setSkillPoints, setAttributePoints, setElementalPoints]);
 
-  const applyOutcome = useCallback((outcome: Outcome) => {
+  const applyOutcome = useCallback((outcome: Outcome, purchasedItem?: Item) => {
     if (outcome.xp) gainExperience(outcome.xp);
     if (outcome.items) setInventory(prev => [...prev, ...outcome.items]);
     if (outcome.healthChange && character) {
         setCharacter(c => c ? { ...c, resources: { ...c.resources, health: { ...c.resources.health, current: Math.max(0, Math.min(c.resources.health.max, c.resources.health.current + outcome.healthChange)) }}} : null);
     }
-  }, [character, gainExperience, setInventory, setCharacter]);
+    if (purchasedItem && purchasedItem.price) {
+        setGold(prevGold => prevGold - purchasedItem.price);
+    }
+  }, [character, gainExperience, setInventory, setCharacter, setGold]);
 
   const handleDrawCard = useCallback(() => {
     if (drawnCard || deck.length === 0) return;
@@ -172,20 +177,25 @@ function App() {
     setDrawnCard(nextCard);
   }, [deck, drawnCard, setDeck, setDrawnCard]);
 
-  const handleResolveCard = useCallback((outcome?: Outcome) => {
+  const handleResolveCard = useCallback((outcome?: Outcome, purchasedItem?: Item) => {
     if (!drawnCard) return;
 
-    if (drawnCard.type === 'COMBAT') {
-        setCurrentEvent(drawnCard.payload as GameEvent);
-        setActiveView('event');
-    } else {
-        if (outcome) {
-            applyOutcome(outcome);
-        } else if (drawnCard.type === 'BOON' || drawnCard.type === 'CURSE') {
-            applyOutcome(drawnCard.payload as Outcome);
-        }
-        setDiscardPile(prev => [...prev, drawnCard]);
-        setDrawnCard(null);
+    switch (drawnCard.type) {
+        case 'COMBAT':
+            setCurrentEvent(drawnCard.payload as GameEvent);
+            setActiveView('event');
+            break;
+        case 'BOON':
+        case 'CURSE':
+        case 'CHOICE':
+        case 'PUZZLE': // Handle puzzle outcome
+        case 'MERCHANT': // Handle merchant outcome
+            if (outcome) {
+                applyOutcome(outcome, purchasedItem);
+            }
+            setDiscardPile(prev => [...prev, drawnCard]);
+            setDrawnCard(null);
+            break;
     }
   }, [drawnCard, applyOutcome, setCurrentEvent, setActiveView, setDiscardPile, setDrawnCard]);
 
@@ -360,6 +370,7 @@ function App() {
         crit: (totalStats.dexterity * 0.2) + equipmentStats.kritiskTräff,
         intelligence: totalStats.intelligence,
         abilities: playerAbilities,
+        totalStats: totalStats, // Added for puzzle checks
       };
   }, [character, equipment, playerAbilities]);
 
@@ -385,6 +396,7 @@ function App() {
         }) : null);
       }
   }, [character, setCharacter]);
+  const debugAddGold = useCallback(() => setGold(g => g + 100), [setGold]); // New debug function
 
   if (!character) {
       return (
@@ -411,14 +423,25 @@ function App() {
             onUnequipItem={unequipItem}
             elementalPoints={elementalPoints}
             elementalAffinities={character.elementalAffinities}
-            increaseElementalAffinity={increaseElementalAffinity}
             unlockedPassiveTalents={character.unlockedPassiveTalents}
             unlockedUltimateAbilities={character.unlockedUltimateAbilities}
+            increaseElementalAffinity={increaseElementalAffinity}
         />;
       case 'inventory':
         return <Inventory items={inventory} onEquipItem={equipItem} />;
       case 'deck':
-        return <DeckView roundLevel={roundLevel} deck={deck} discardPile={discardPile} drawnCard={drawnCard} onDraw={handleDrawCard} onStartNextRound={handleStartNextRound} onResolve={handleResolveCard} />;
+        return <DeckView 
+            roundLevel={roundLevel} 
+            deck={deck} 
+            discardPile={discardPile} 
+            drawnCard={drawnCard} 
+            onDraw={handleDrawCard} 
+            onStartNextRound={handleStartNextRound} 
+            onResolve={handleResolveCard} 
+            playerCurrency={gold} // Pass gold to DeckView
+            playerStats={playerCombatStats} // Pass player stats for puzzle checks
+            elementalAffinities={character.elementalAffinities} // Pass elemental affinities for puzzle checks
+        />;
       case 'debug':
         return <DebugView 
           addDebugXP={debugAddXP}
@@ -428,6 +451,7 @@ function App() {
           debugHealPlayer={debugHealPlayer}
           resetCharacter={handleResetCharacter}
           addDebugElementalPoint={debugAddElementalPoint}
+          addDebugGold={debugAddGold} // New debug button
         />;
       default:
         return <SkillTree unlockedSkills={unlockedSkills} skillPoints={skillPoints} unlockSkill={unlockSkill} />;

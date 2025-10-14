@@ -552,9 +552,8 @@ const EventView: React.FC<{
           switch(abilityInfo.id) {
             case 'fire_1':
             case 'fire_3':
-            case 'wind_3':
                if(target && rankData.damageMultiplier) {
-                 // Reaction: Water + Burning = Steamed (already implemented)
+                 // Reaction: Water + Burning = Steamed
                  const isBurning = target.statusEffects.some(e => e.type === 'burning');
                  if (abilityInfo.element === Element.WATER && isBurning) {
                      addLogMessage(`${target.name}s eld släcktes av vattnet och skapade ånga!`);
@@ -563,12 +562,12 @@ const EventView: React.FC<{
                      });
                      const newStatus: StatusEffect = { type: 'steamed', duration: 2, damage: Math.floor(baseSkillDamage * 0.2), accuracyReduction: 20 };
                      updateActorState(target.id, {
-                         statusEffects: [...target.statusEffects.filter(e => e.type !== 'steamed'), newStatus]
+                         statusEffects: [...target.statusEffects.filter(e => e.type !== 'steamed' && e.type !== 'burning'), newStatus]
                      });
                      addDamagePopup(newStatus.damage!.toString(), target.id, 'status_damage');
                      await sleep(500);
                  } 
-                 // Reaction: Fire + Slowed = Steamed (already implemented)
+                 // Reaction: Fire + Slowed = Steamed
                  else if (abilityInfo.element === Element.FIRE && target.statusEffects.some(e => e.type === 'slowed')) {
                      addLogMessage(`${target.name}s kyla förångades av elden!`);
                      updateActorState(target.id, {
@@ -586,6 +585,47 @@ const EventView: React.FC<{
                  }
                }
                break;
+            case 'wind_3': // Cyklon
+                if (target && rankData.damageMultiplier) {
+                    // Reaction: Wind + Rooted/Slowed (from Mud) = Blinded
+                    const isRootedOrSlowedByMud = target.statusEffects.some(e => e.type === 'rooted' || (e.type === 'slowed' && event.element === Element.MUD)); // Assuming Mud environment for slowed
+                    if (isRootedOrSlowedByMud) {
+                        addLogMessage(`Vinden torkar ut leran och bländar ${target.name}!`);
+                        updateActorState(target.id, {
+                            statusEffects: target.statusEffects.filter(e => e.type !== 'rooted' && e.type !== 'slowed')
+                        });
+                        const newStatus: StatusEffect = { type: 'blinded', duration: 2 };
+                        updateActorState(target.id, {
+                            statusEffects: [...target.statusEffects.filter(e => e.type !== 'blinded'), newStatus]
+                        });
+                        await sleep(500);
+                    }
+                    // NEW Reaction: Wind + Burning = Intensified Burn
+                    const existingBurning = target.statusEffects.find(e => e.type === 'burning');
+                    if (abilityInfo.element === Element.WIND && existingBurning && existingBurning.type === 'burning') {
+                        addLogMessage(`Vinden fläktar elden och intensifierar bränningen på ${target.name}!`);
+                        // Remove old burning, deal immediate bonus damage, apply stronger burn
+                        updateActorState(target.id, {
+                            statusEffects: target.statusEffects.filter(e => e.type !== 'burning')
+                        });
+                        const bonusFireDamage = Math.floor(existingBurning.damage * 1.5); // 50% more immediate damage
+                        const newBurnDamage = Math.floor(existingBurning.damage * 1.2); // 20% stronger DoT
+                        
+                        // Deal immediate bonus damage
+                        await performAttack(player.id, target.id, bonusFireDamage, Element.FIRE, true);
+                        
+                        // Apply new, stronger burning status
+                        const newBurningStatus: StatusEffect = { type: 'burning', duration: 3, damage: newBurnDamage };
+                        updateActorState(target.id, {
+                            statusEffects: [...target.statusEffects.filter(e => e.type !== 'burning'), newBurningStatus]
+                        });
+                        addLogMessage(`${target.name} tar ${bonusFireDamage} bonus eldskada och brinner nu för ${newBurnDamage} per runda!`);
+                        await sleep(500);
+                    } else {
+                        await performAttack(player.id, target.id, baseSkillDamage * rankData.damageMultiplier, abilityInfo.element, true);
+                    }
+                }
+                break;
             case 'ice':
                if(target && rankData.damageMultiplier) await performAttack(player.id, target.id, baseSkillDamage * rankData.damageMultiplier, abilityInfo.element, true, () => {
                  if (rankData.duration) {
@@ -605,7 +645,7 @@ const EventView: React.FC<{
               break;
             case 'earth_1': // Stenhud
               if (rankData.duration) {
-                // Reaction: Earth + Poisoned = Cleansed (already implemented)
+                // Reaction: Earth + Poisoned = Cleansed
                 if (player.statusEffects.some(e => e.type === 'poisoned')) {
                     addLogMessage(`Jordens kraft renar dig från giftet!`);
                     updateActorState(player.id, {
@@ -634,24 +674,6 @@ const EventView: React.FC<{
                 await sleep(500);
               }
               break;
-            case 'wind_3': // Cyklon
-                if (target && rankData.damageMultiplier) {
-                    // Reaction: Wind + Rooted/Slowed (from Mud) = Blinded (already implemented)
-                    const isRootedOrSlowedByMud = target.statusEffects.some(e => e.type === 'rooted' || (e.type === 'slowed' && event.element === Element.MUD)); // Assuming Mud environment for slowed
-                    if (isRootedOrSlowedByMud) {
-                        addLogMessage(`Vinden torkar ut leran och bländar ${target.name}!`);
-                        updateActorState(target.id, {
-                            statusEffects: target.statusEffects.filter(e => e.type !== 'rooted' && e.type !== 'slowed')
-                        });
-                        const newStatus: StatusEffect = { type: 'blinded', duration: 2 };
-                        updateActorState(target.id, {
-                            statusEffects: [...target.statusEffects.filter(e => e.type !== 'blinded'), newStatus]
-                        });
-                        await sleep(500);
-                    }
-                    await performAttack(player.id, target.id, baseSkillDamage * rankData.damageMultiplier, abilityInfo.element, true);
-                }
-                break;
             case 'water_1': // Läka
               if (rankData.healMultiplier) {
                 healAmount = Math.floor(player.maxHp * rankData.healMultiplier + playerStats.intelligence);

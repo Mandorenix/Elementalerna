@@ -59,7 +59,7 @@ const CharacterSelection: React.FC<{ onSelectArchetype: (archetype: Archetype) =
 
             {/* Rad med klickbara ikoner */}
             <div className="flex justify-center space-x-4 mb-8">
-                {Object.values(ARCHETYPES).map(archetype => (
+                {ARCHETYPES.map(archetype => (
                     <ArchetypeIcon
                         key={archetype.name}
                         archetype={archetype}

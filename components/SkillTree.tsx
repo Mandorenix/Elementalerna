@@ -28,7 +28,7 @@ const SkillTree: React.FC<SkillTreeProps> = ({ unlockedSkills, skillPoints, unlo
     return skill.dependencies.every(depId => (unlockedSkills.get(depId) || 0) > 0);
   };
 
-  const skillMap = SKILL_TREE_DATA; // SKILL_TREE_DATA is already a Record
+  const skillMap = new Map(SKILL_TREE_DATA.map(s => [s.id, s]));
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
@@ -90,8 +90,8 @@ const SkillTree: React.FC<SkillTreeProps> = ({ unlockedSkills, skillPoints, unlo
         <div
           className="relative"
           style={{
-            width: `${Object.values(SKILL_TREE_DATA).reduce((max, s) => Math.max(max, s.x), 0) * CELL_WIDTH + CELL_WIDTH}px`, // Dynamic width
-            height: `${Object.values(SKILL_TREE_DATA).reduce((max, s) => Math.max(max, s.y), 0) * CELL_HEIGHT + CELL_HEIGHT}px`, // Dynamic height
+            width: `${MAX_COLS * CELL_WIDTH}px`,
+            height: `${MAX_ROWS * CELL_HEIGHT}px`,
             transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
             transformOrigin: '0 0',
             transition: isDragging ? 'none' : 'transform 0.1s ease-out',
@@ -99,10 +99,10 @@ const SkillTree: React.FC<SkillTreeProps> = ({ unlockedSkills, skillPoints, unlo
         >
           {/* SVG for drawing lines */}
           <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-0" >
-            {Object.values(SKILL_TREE_DATA).map(skill => { // Iterate over values
+            {SKILL_TREE_DATA.map(skill => {
               if (!skill.dependencies) return null;
               return skill.dependencies.map(depId => {
-                const parent = skillMap[depId]; // Access as object property
+                const parent = skillMap.get(depId);
                 if (!parent) return null;
                 
                 const isParentUnlocked = (unlockedSkills.get(parent.id) || 0) > 0;
@@ -125,7 +125,7 @@ const SkillTree: React.FC<SkillTreeProps> = ({ unlockedSkills, skillPoints, unlo
           </svg>
 
           {/* Skill Nodes */}
-          {Object.values(SKILL_TREE_DATA).map(skill => { // Iterate over values
+          {SKILL_TREE_DATA.map(skill => {
             const currentRank = unlockedSkills.get(skill.id) || 0;
             const isUnlocked = currentRank > 0;
             const isMaxed = currentRank === skill.maxRank;

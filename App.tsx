@@ -7,9 +7,9 @@ import CharacterSelection from './components/CharacterSelection';
 import EventView from './components/EventView';
 import DeckView from './components/DeckView';
 import DebugView from './components/DebugView';
-import type { View, Character, CharacterStats, Item, EquipmentSlot, Archetype, GameEvent, EventCard, Outcome, PlayerAbility, ItemStats, Element, UltimateAbility } from './types';
-import { INITIAL_CHARACTER_BASE, SKILL_TREE_DATA, Icons, PLAYER_ABILITIES, ItemVisuals, ELEMENTAL_AFFINITY_BONUSES, PASSIVE_TALENTS, ULTIMATE_ABILITIES, ARCHETYPES } from './constants';
-import { generateRandomCard, generateBossCard, generateRandomItem } from './utils/cardGenerator';
+import type { View, Character, CharacterStats, Item, EquipmentSlot, Archetype, GameEvent, EventCard, Outcome, PlayerAbility, ItemStats, Element } from './types';
+import { INITIAL_CHARACTER_BASE, SKILL_TREE_DATA, Icons, PLAYER_ABILITIES, ItemVisuals, ELEMENTAL_AFFINITY_BONUSES, PASSIVE_TALENTS, ULTIMATE_ABILITIES } from './constants';
+import { generateRandomCard, generateBossCard, generateRandomItem } from './utils/cardGenerator'; // Corrected import for generateRandomItem
 
 const initialEquipment: Record<EquipmentSlot, Item | null> = {
     'Hjälm': { id: 'start_helmet', name: 'Läderhuva', slot: 'Hjälm', rarity: 'Vanlig', stats: { rustning: 2 }, icon: Icons.Shield, visual: ItemVisuals.LeatherHelm },
@@ -27,6 +27,7 @@ const CARDS_PER_ROUND = 8;
 const generateNewRoundDeck = (playerLevel: number, round: number): EventCard[] => {
     const regularCards = Array.from({ length: CARDS_PER_ROUND - 1 }, () => generateRandomCard(playerLevel, round));
     const bossCard = generateBossCard(playerLevel, round);
+    // The boss card is the last one in the deck array, so it will be the last one drawn.
     return [...regularCards, bossCard];
 };
 
@@ -36,11 +37,12 @@ function App() {
   const [skillPoints, setSkillPoints] = useState(0);
   const [attributePoints, setAttributePoints] = useState(0);
   const [elementalPoints, setElementalPoints] = useState(0);
-  const [unlockedSkills, setUnlockedSkills] = useState<Map<string, number>>(new Map());
+  const [unlockedSkills, setUnlockedSkills] = useState<Map<string, number>>(new Map()); // Corrected useState initialization
   const [equipment, setEquipment] = useState<Record<EquipmentSlot, Item | null>>(initialEquipment);
   const [inventory, setInventory] = useState<Item[]>([]);
   const [activeView, setActiveView] = useState<View>('skillTree');
   
+  // New Deck State
   const [deck, setDeck] = useState<EventCard[]>([]);
   const [discardPile, setDiscardPile] = useState<EventCard[]>([]);
   const [drawnCard, setDrawnCard] = useState<EventCard | null>(null);
@@ -62,7 +64,6 @@ function App() {
 
     const newCharacter: Character = {
       ...INITIAL_CHARACTER_BASE,
-      id: `char-${Date.now()}`,
       name: archetype.name,
       archetype: archetype.name,
       stats: newStats,
@@ -80,9 +81,6 @@ function App() {
       elementalAffinities: {},
       unlockedPassiveTalents: [],
       unlockedUltimateAbilities: [],
-      activeAbilities: [],
-      equippedItems: Object.values(initialEquipment).filter(Boolean) as Item[],
-      statusEffects: [],
     };
     
     setCharacter(newCharacter);
@@ -94,7 +92,7 @@ function App() {
     if (archetype.startingSkill) {
       initialSkills.set(archetype.startingSkill, 1);
     }
-    setUnlockedSkills(initialSkills);
+    setUnlockedSkills(initialSkills); // Corrected usage
     
     setEquipment(initialEquipment);
     setInventory([]);
@@ -104,48 +102,26 @@ function App() {
     setDeck(generateNewRoundDeck(1, 1));
     setDiscardPile([]);
     setActiveView('deck');
-  }, []);
+  }, [INITIAL_CHARACTER_BASE, setCharacter, setSkillPoints, setAttributePoints, setElementalPoints, setUnlockedSkills, setEquipment, setInventory, setCurrentEvent, setDrawnCard, setRoundLevel, setDeck, setDiscardPile, setActiveView]);
 
   const handleResetCharacter = useCallback(() => {
     setCharacter(null);
-  }, []);
+  }, [setCharacter]);
 
   const unlockSkill = useCallback((skillId: string) => {
-    const skillData = SKILL_TREE_DATA[skillId];
+    const skillData = SKILL_TREE_DATA.find(s => s.id === skillId);
     if (!skillData) return;
 
     const currentRank = unlockedSkills.get(skillId) || 0;
     if (skillPoints > 0 && currentRank < skillData.maxRank) {
         setSkillPoints(sp => sp - 1);
-        setUnlockedSkills(prevSkills => {
+        setUnlockedSkills(prevSkills => { // Corrected usage
             const newSkills = new Map(prevSkills);
             newSkills.set(skillId, currentRank + 1);
             return newSkills;
         });
-        // Add the ability to activeAbilities if it's a player ability
-        if (character && PLAYER_ABILITIES[skillId]) {
-            setCharacter(prevChar => {
-                if (!prevChar) return null;
-                const existingAbilityIndex = prevChar.activeAbilities.findIndex(ab => ab.id === skillId);
-                if (existingAbilityIndex !== -1) {
-                    // Update rank of existing ability
-                    const updatedAbilities = [...prevChar.activeAbilities];
-                    updatedAbilities[existingAbilityIndex] = {
-                        ...updatedAbilities[existingAbilityIndex],
-                        ranks: PLAYER_ABILITIES[skillId].ranks, // Ensure ranks are up-to-date
-                    };
-                    return { ...prevChar, activeAbilities: updatedAbilities };
-                } else {
-                    // Add new ability
-                    return {
-                        ...prevChar,
-                        activeAbilities: [...prevChar.activeAbilities, { ...PLAYER_ABILITIES[skillId], currentCooldown: 0 }],
-                    };
-                }
-            });
-        }
     }
-  }, [skillPoints, unlockedSkills, setSkillPoints, setUnlockedSkills, SKILL_TREE_DATA, character, setCharacter]);
+  }, [skillPoints, unlockedSkills, setSkillPoints, setUnlockedSkills, SKILL_TREE_DATA]);
   
   const gainExperience = useCallback((amount: number) => {
     if (!character) return;
@@ -265,10 +241,9 @@ function App() {
                             console.log(`Unlocked passive talent: ${PASSIVE_TALENTS[bonus.effect.talentId].name}`);
                         }
                     } else if (bonus.effect.type === 'ULTIMATE_ABILITY' && bonus.effect.abilityId) {
-                        const ultimateAbility = ULTIMATE_ABILITIES[bonus.effect.abilityId];
-                        if (ultimateAbility && !newUnlockedUltimateAbilities.some(ua => ua.id === ultimateAbility.id)) {
-                            newUnlockedUltimateAbilities.push(ultimateAbility);
-                            console.log(`Unlocked ultimate ability: ${ultimateAbility.name}`);
+                        if (!newUnlockedUltimateAbilities.includes(bonus.effect.abilityId)) {
+                            newUnlockedUltimateAbilities.push(bonus.effect.abilityId);
+                            console.log(`Unlocked ultimate ability: ${ULTIMATE_ABILITIES[bonus.effect.abilityId].name}`);
                         }
                     }
                 }
@@ -332,12 +307,12 @@ function App() {
   const playerAbilities = useMemo(() => {
     const abilities: PlayerAbility[] = [];
     unlockedSkills.forEach((rank, skillId) => {
-        if (rank > 0 && PLAYER_ABILITIES[skillId]) {
+        if (rank > 0 && PLAYER_ABILITIES[skillId]) { // 'rank' is now correctly typed as number
             abilities.push(PLAYER_ABILITIES[skillId]);
         }
     });
     return abilities;
-  }, [unlockedSkills]);
+  }, [unlockedSkills, PLAYER_ABILITIES]);
 
   const playerCombatStats = useMemo(() => {
       if (!character) return null;
@@ -421,7 +396,7 @@ function App() {
 
   const renderActiveView = () => {
     if (currentEvent && playerCombatStats) {
-      return <EventView event={currentEvent} character={character} playerStats={playerCombatStats} onComplete={handleCombatCompletion} equipment={equipment} unlockedSkills={unlockedSkills} setCharacter={setCharacter} />
+      return <EventView event={currentEvent} character={character} playerStats={playerCombatStats} onComplete={handleCombatCompletion} equipment={equipment} unlockedSkills={unlockedSkills} />
     }
 
     switch (activeView) {
@@ -438,7 +413,7 @@ function App() {
             elementalAffinities={character.elementalAffinities}
             increaseElementalAffinity={increaseElementalAffinity}
             unlockedPassiveTalents={character.unlockedPassiveTalents}
-            unlockedUltimateAbilities={character.unlockedUltimateAbilities.map(ua => ua.id)}
+            unlockedUltimateAbilities={character.unlockedUltimateAbilities}
         />;
       case 'inventory':
         return <Inventory items={inventory} onEquipItem={equipItem} />;

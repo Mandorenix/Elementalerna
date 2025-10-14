@@ -146,7 +146,7 @@ export const ELEMENT_ICONS: Record<Element, React.FC> = {
     [Element.STORM]: Icons.Storm,
     [Element.VOLCANIC_STORM]: Icons.VolcanicStorm,
     [Element.ELECTRIFIED_MUD]: Icons.ElectrifiedMud,
-    [Element.VITRIFIED_STORM]: Icons.Vitrified_Storm,
+    [Element.VITRIFIED_STORM]: Icons.VitrifiedStorm, // FIX: Corrected icon name
 };
 
 export const elementThemes = {

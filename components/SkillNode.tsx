@@ -3,6 +3,7 @@ import Tooltip from './Tooltip';
 import type { Skill } from '../types';
 import { Element } from '../types';
 import { elementThemes } from '../constants';
+import ElementalVFX from './ElementalVFX'; // Import the new VFX component
 
 interface SkillNodeProps {
   skill: Skill;
@@ -59,11 +60,15 @@ const SkillNode: React.FC<SkillNodeProps> = ({ skill, currentRank, isUnlocked, c
             aria-label={`Färdighet: ${skill.name}`}
             disabled={!canUnlock && !isUnlocked}
         >
-            <div className={isUnlocked || canUnlock ? "" : "opacity-50"}>
+            {/* Elemental VFX */}
+            {(isUnlocked || canUnlock) && skill.element !== Element.NEUTRAL && (
+                <ElementalVFX element={skill.element} size={isMaxed ? 1.2 : 1} intensity={isMaxed ? 1.5 : 1} />
+            )}
+            <div className={`relative z-10 ${isUnlocked || canUnlock ? "" : "opacity-50"}`}>
               <Icon />
             </div>
             {isUnlocked && skill.maxRank > 1 && (
-                <div className="absolute -bottom-1 -right-1 bg-black/80 border border-yellow-500 text-yellow-300 text-[10px] font-bold w-6 h-4 flex items-center justify-center rounded-sm">
+                <div className="absolute -bottom-1 -right-1 bg-black/80 border border-yellow-500 text-yellow-300 text-[10px] font-bold w-6 h-4 flex items-center justify-center rounded-sm z-20">
                     {currentRank}
                 </div>
             )}

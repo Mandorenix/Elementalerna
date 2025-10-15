@@ -1,19 +1,24 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useImperativeHandle, forwardRef } from 'react';
 import * as THREE from 'three';
-import { Element, EventCard } from '../types';
-import { ELEMENT_ICONS, elementThemes } from '../constants';
+import { Element, EventCard } from '../types'; // Lade till EventCard här
+import { elementThemes } from '../constants';
 
 interface CardAnimationCanvasProps {
     deckCount: number;
-    discardCount: number; // New prop for discard pile count
+    discardCount: number;
     drawnCardData: EventCard | null;
-    resolvedCardsInMiddle: EventCard[]; // New prop for cards in the middle stack
+    resolvedCardsInMiddle: EventCard[];
     onDrawCard: () => void;
     onCardAnimationComplete: (card: EventCard) => void;
-    onAllCardsMovedToDiscard: () => void; // New callback for when all cards move to discard
+    onAllCardsMovedToDiscard: () => void;
 }
 
-const CardAnimationCanvas: React.FC<CardAnimationCanvasProps> = ({
+// Extend the ref type for CardAnimationCanvas
+export interface CardAnimationCanvasRef {
+    animateCardsToDiscard: () => Promise<void>;
+}
+
+const CardAnimationCanvas = forwardRef<CardAnimationCanvasRef, CardAnimationCanvasProps>(({
     deckCount,
     discardCount,
     drawnCardData,
@@ -21,16 +26,16 @@ const CardAnimationCanvas: React.FC<CardAnimationCanvasProps> = ({
     onDrawCard,
     onCardAnimationComplete,
     onAllCardsMovedToDiscard,
-}) => {
-    const mountRef = useRef<HTMLDivElement>(null);
+}, ref) => { // 'ref' is now the ref passed from the parent
+    const internalMountRef = useRef<HTMLDivElement>(null); // This is the ref for the internal DOM element
     const scene = useRef(new THREE.Scene());
     const camera = useRef(new THREE.PerspectiveCamera(75, 1, 0.1, 1000));
     const renderer = useRef<THREE.WebGLRenderer | null>(null);
 
-    const deckGroup = useRef(new THREE.Group()); // Group for the deck stack
-    const drawnCardAnimatingMesh = useRef<THREE.Mesh | null>(null); // The single card currently animating
-    const middleStackGroup = useRef(new THREE.Group()); // Group for resolved cards in the middle
-    const discardPileGroup = useRef(new THREE.Group()); // Group for the discard pile
+    const deckGroup = useRef(new THREE.Group());
+    const drawnCardAnimatingMesh = useRef<THREE.Mesh | null>(null);
+    const middleStackGroup = useRef(new THREE.Group());
+    const discardPileGroup = useRef(new THREE.Group());
 
     const [isAnimatingDraw, setIsAnimatingDraw] = useState(false);
     const [isAnimatingToDiscard, setIsAnimatingToDiscard] = useState(false);
@@ -38,17 +43,15 @@ const CardAnimationCanvas: React.FC<CardAnimationCanvasProps> = ({
     const cardWidth = 1.5;
     const cardHeight = 2.2;
     const cardDepth = 0.05;
-    const cardStackOffset = 0.01; // Small offset for stacking cards
+    const cardStackOffset = 0.01;
 
-    // Load textures for card back
     const textureLoader = new THREE.TextureLoader();
-    const cardBackTexture = textureLoader.load('/card_back.png'); // You'll need to add this image
+    const cardBackTexture = textureLoader.load('/card_back.png');
 
-    // Function to create a simple colored texture for card front based on element
     const createElementalCardFrontTexture = useCallback((element: Element) => {
         const themeClass = elementThemes[element] || elementThemes[Element.NEUTRAL];
         const colorMatch = themeClass.match(/border-([a-z]+-\d+)/);
-        let color = '#cccccc'; // Default gray
+        let color = '#cccccc';
         if (colorMatch) {
             switch (colorMatch[1]) {
                 case 'red-500': color = '#ef4444'; break;
@@ -76,7 +79,7 @@ const CardAnimationCanvas: React.FC<CardAnimationCanvasProps> = ({
 
         const canvas = document.createElement('canvas');
         canvas.width = 256;
-        canvas.height = 256 * (cardHeight / cardWidth); // Maintain aspect ratio
+        canvas.height = 256 * (cardHeight / cardWidth);
         const ctx = canvas.getContext('2d');
         if (!ctx) return new THREE.Texture();
 
@@ -86,55 +89,48 @@ const CardAnimationCanvas: React.FC<CardAnimationCanvasProps> = ({
         ctx.lineWidth = 5;
         ctx.strokeRect(0, 0, canvas.width, canvas.height);
 
-        // Add element icon (simplified for now, just a colored square)
         ctx.fillStyle = 'white';
         ctx.fillRect(canvas.width / 4, canvas.height / 4, canvas.width / 2, canvas.height / 2);
         ctx.fillStyle = color;
         ctx.fillRect(canvas.width / 4 + 5, canvas.height / 4 + 5, canvas.width / 2 - 10, canvas.height / 2 - 10);
-
 
         return new THREE.CanvasTexture(canvas);
     }, [cardHeight, cardWidth, elementThemes]);
 
 
     useEffect(() => {
-        if (!mountRef.current) return;
+        if (!internalMountRef.current) return; // Use internalMountRef here
 
-        // Initialize Renderer
         renderer.current = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.current.setClearColor(0x000000, 0); // Transparent background
-        mountRef.current.appendChild(renderer.current.domElement);
+        renderer.current.setClearColor(0x000000, 0);
+        internalMountRef.current.appendChild(renderer.current.domElement); // Use internalMountRef here
 
-        // Camera setup (adjusted for better view of left deck, middle, right discard)
-        camera.current.position.set(0, 1.5, 4); // Slightly higher, further back
+        camera.current.position.set(0, 1.5, 4);
         camera.current.lookAt(0, 0, 0);
 
-        // Lighting
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         scene.current.add(ambientLight);
         const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
         directionalLight.position.set(0, 5, 5);
         scene.current.add(directionalLight);
 
-        // Add groups to scene
         scene.current.add(deckGroup.current);
         scene.current.add(middleStackGroup.current);
         scene.current.add(discardPileGroup.current);
 
-        // Initial deck visual (a single mesh representing the stack)
         const cardGeometry = new THREE.BoxGeometry(cardWidth, cardHeight, cardDepth);
         const cardBackMaterial = new THREE.MeshBasicMaterial({ map: cardBackTexture });
         const cardSideMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
 
         const deckVisualMesh = new THREE.Mesh(cardGeometry, [
-            cardSideMaterial, // Right
-            cardSideMaterial, // Left
-            cardBackMaterial, // Top (visible part of the stack)
-            cardBackMaterial, // Bottom
-            cardBackMaterial, // Front
-            cardSideMaterial, // Back
+            cardSideMaterial,
+            cardSideMaterial,
+            cardBackMaterial,
+            cardBackMaterial,
+            cardBackMaterial,
+            cardSideMaterial,
         ]);
-        deckVisualMesh.position.set(-2.5, 0, 0); // Position the deck on the left
+        deckVisualMesh.position.set(-2.5, 0, 0);
         deckGroup.current.add(deckVisualMesh);
 
         const animate = () => {
@@ -146,9 +142,9 @@ const CardAnimationCanvas: React.FC<CardAnimationCanvasProps> = ({
         animate();
 
         const handleResize = () => {
-            if (mountRef.current && renderer.current) {
-                const width = mountRef.current.clientWidth;
-                const height = mountRef.current.clientHeight;
+            if (internalMountRef.current && renderer.current) { // Use internalMountRef here
+                const width = internalMountRef.current.clientWidth;
+                const height = internalMountRef.current.clientHeight;
                 renderer.current.setSize(width, height);
                 camera.current.aspect = width / height;
                 camera.current.updateProjectionMatrix();
@@ -156,35 +152,31 @@ const CardAnimationCanvas: React.FC<CardAnimationCanvasProps> = ({
         };
 
         window.addEventListener('resize', handleResize);
-        handleResize(); // Initial resize
+        handleResize();
 
         return () => {
             window.removeEventListener('resize', handleResize);
-            if (mountRef.current && renderer.current) {
-                mountRef.current.removeChild(renderer.current.domElement);
+            if (internalMountRef.current && renderer.current) { // Use internalMountRef here
+                internalMountRef.current.removeChild(renderer.current.domElement);
                 renderer.current.dispose();
             }
         };
     }, [cardBackTexture]);
 
-    // Update deck visual thickness
     useEffect(() => {
         if (deckGroup.current.children.length > 0) {
             const deckVisualMesh = deckGroup.current.children[0] as THREE.Mesh;
-            deckVisualMesh.scale.z = Math.max(0.1, deckCount * cardStackOffset * 5); // Scale thickness based on count
-            deckVisualMesh.position.z = -deckVisualMesh.scale.z / 2; // Adjust position to keep front aligned
+            deckVisualMesh.scale.z = Math.max(0.1, deckCount * cardStackOffset * 5);
+            deckVisualMesh.position.z = -deckVisualMesh.scale.z / 2;
             deckVisualMesh.visible = deckCount > 0;
         }
     }, [deckCount]);
 
-    // Update middle stack visuals
     useEffect(() => {
-        // Clear existing cards in the middle stack
         while (middleStackGroup.current.children.length > 0) {
             middleStackGroup.current.remove(middleStackGroup.current.children[0]);
         }
 
-        // Add new cards to the middle stack
         resolvedCardsInMiddle.forEach((card, index) => {
             const cardGeometry = new THREE.BoxGeometry(cardWidth, cardHeight, cardDepth);
             const cardFrontTexture = createElementalCardFrontTexture(card.element);
@@ -193,78 +185,73 @@ const CardAnimationCanvas: React.FC<CardAnimationCanvasProps> = ({
             const cardSideMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
 
             const cardMesh = new THREE.Mesh(cardGeometry, [
-                cardSideMaterial, // Right
-                cardSideMaterial, // Left
-                cardFrontMaterial, // Top
-                cardBackMaterial, // Bottom
-                cardFrontMaterial, // Front
-                cardSideMaterial, // Back
+                cardSideMaterial,
+                cardSideMaterial,
+                cardFrontMaterial,
+                cardBackMaterial,
+                cardFrontMaterial,
+                cardSideMaterial,
             ]);
 
-            cardMesh.position.set(0, 0, index * cardStackOffset); // Stack in the middle
-            cardMesh.rotation.y = Math.PI; // Ensure it's flipped to show front
+            cardMesh.position.set(0, 0, index * cardStackOffset);
+            cardMesh.rotation.y = Math.PI;
             middleStackGroup.current.add(cardMesh);
         });
     }, [resolvedCardsInMiddle, createElementalCardFrontTexture, cardBackTexture]);
 
-    // Update discard pile visuals
     useEffect(() => {
-        // Clear existing cards in the discard pile
         while (discardPileGroup.current.children.length > 0) {
             discardPileGroup.current.remove(discardPileGroup.current.children[0]);
         }
 
-        // Add new cards to the discard pile
         for (let i = 0; i < discardCount; i++) {
             const cardGeometry = new THREE.BoxGeometry(cardWidth, cardHeight, cardDepth);
             const cardBackMaterial = new THREE.MeshBasicMaterial({ map: cardBackTexture });
             const cardSideMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
 
             const cardMesh = new THREE.Mesh(cardGeometry, [
-                cardSideMaterial, // Right
-                cardSideMaterial, // Left
-                cardBackMaterial, // Top
-                cardBackMaterial, // Bottom
-                cardBackMaterial, // Front
-                cardSideMaterial, // Back
+                cardSideMaterial,
+                cardSideMaterial,
+                cardBackMaterial,
+                cardBackMaterial,
+                cardBackMaterial,
+                cardSideMaterial,
             ]);
 
-            cardMesh.position.set(2.5, 0, i * cardStackOffset); // Stack on the right
+            cardMesh.position.set(2.5, 0, i * cardStackOffset);
             discardPileGroup.current.add(cardMesh);
         }
     }, [discardCount, cardBackTexture]);
 
 
-    // Handle card drawing animation
     const triggerDrawAnimation = useCallback(async () => {
         if (isAnimatingDraw || deckCount === 0 || !deckGroup.current.children[0]) return;
 
         setIsAnimatingDraw(true);
-        onDrawCard(); // Trigger the game logic to draw a card
+        onDrawCard();
 
         const cardGeometry = new THREE.BoxGeometry(cardWidth, cardHeight, cardDepth);
         const cardBackMaterial = new THREE.MeshBasicMaterial({ map: cardBackTexture });
         const cardSideMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
 
-        // Create a new mesh for the card being animated
         drawnCardAnimatingMesh.current = new THREE.Mesh(cardGeometry, [
-            cardSideMaterial, // Right
-            cardSideMaterial, // Left
-            cardBackMaterial, // Top
-            cardBackMaterial, // Bottom
-            cardBackMaterial, // Front (initially back)
-            cardSideMaterial, // Back
+            cardSideMaterial,
+            cardSideMaterial,
+            cardBackMaterial,
+            cardBackMaterial,
+            cardBackMaterial,
+            cardSideMaterial,
         ]);
         scene.current.add(drawnCardAnimatingMesh.current);
 
         const startPos = deckGroup.current.children[0].position.clone().add(deckGroup.current.position);
-        const midPos = new THREE.Vector3(0, 1, 0); // Mid-air position
-        const endPos = new THREE.Vector3(0, 0, resolvedCardsInMiddle.length * cardStackOffset); // Landing position in middle stack
+        const midPos = new THREE.Vector3(0, 1, 0);
+        const endPos = new THREE.Vector3(0, 0, resolvedCardsInMiddle.length * cardStackOffset);
 
         drawnCardAnimatingMesh.current.position.copy(startPos);
         drawnCardAnimatingMesh.current.rotation.set(0, 0, 0);
 
-        const duration = 1000; // milliseconds
+        const duration = 1000;
         const startTime = Date.now();
 
         while (Date.now() - startTime < duration) {
@@ -272,20 +259,17 @@ const CardAnimationCanvas: React.FC<CardAnimationCanvasProps> = ({
             const progress = elapsed / duration;
 
             if (drawnCardAnimatingMesh.current) {
-                // Lift and move
                 drawnCardAnimatingMesh.current.position.lerpVectors(startPos, midPos, progress * 2);
                 if (progress > 0.5) {
                     drawnCardAnimatingMesh.current.position.lerpVectors(midPos, endPos, (progress - 0.5) * 2);
                 }
 
-                // Rotate (flip)
                 drawnCardAnimatingMesh.current.rotation.y = Math.PI * progress;
 
-                // Update materials for flipping effect
                 if (progress > 0.5 && drawnCardData) {
                     const cardFrontTexture = createElementalCardFrontTexture(drawnCardData.element);
                     const frontMaterial = new THREE.MeshBasicMaterial({ map: cardFrontTexture });
-                    (drawnCardAnimatingMesh.current.material as THREE.Material[])[4] = frontMaterial; // Front face
+                    (drawnCardAnimatingMesh.current.material as THREE.Material[])[4] = frontMaterial;
                 } else {
                     (drawnCardAnimatingMesh.current.material as THREE.Material[])[4] = cardBackMaterial;
                 }
@@ -293,11 +277,10 @@ const CardAnimationCanvas: React.FC<CardAnimationCanvasProps> = ({
             await new Promise(resolve => requestAnimationFrame(resolve));
         }
 
-        // Ensure final state
         if (drawnCardAnimatingMesh.current) {
             drawnCardAnimatingMesh.current.position.copy(endPos);
-            drawnCardAnimatingMesh.current.rotation.y = Math.PI; // Fully flipped
-            scene.current.remove(drawnCardAnimatingMesh.current); // Remove animating mesh
+            drawnCardAnimatingMesh.current.rotation.y = Math.PI;
+            scene.current.remove(drawnCardAnimatingMesh.current);
             drawnCardAnimatingMesh.current = null;
         }
 
@@ -307,19 +290,18 @@ const CardAnimationCanvas: React.FC<CardAnimationCanvasProps> = ({
         }
     }, [isAnimatingDraw, deckCount, onDrawCard, drawnCardData, onCardAnimationComplete, resolvedCardsInMiddle.length, cardBackTexture, createElementalCardFrontTexture]);
 
-    // Function to animate all cards from middle to discard pile
     const animateCardsToDiscard = useCallback(async () => {
         if (isAnimatingToDiscard || resolvedCardsInMiddle.length === 0) return;
 
         setIsAnimatingToDiscard(true);
 
-        const cardsToAnimate = [...middleStackGroup.current.children]; // Get all cards from middle
-        const durationPerCard = 200; // milliseconds
+        const cardsToAnimate = [...middleStackGroup.current.children];
+        const durationPerCard = 200;
 
         for (let i = 0; i < cardsToAnimate.length; i++) {
             const cardMesh = cardsToAnimate[i] as THREE.Mesh;
             const startPos = cardMesh.position.clone().add(middleStackGroup.current.position);
-            const endPos = new THREE.Vector3(2.5, 0, (discardCount + i) * cardStackOffset); // Land on discard pile
+            const endPos = new THREE.Vector3(2.5, 0, (discardCount + i) * cardStackOffset);
 
             const startTime = Date.now();
             while (Date.now() - startTime < durationPerCard) {
@@ -328,24 +310,24 @@ const CardAnimationCanvas: React.FC<CardAnimationCanvasProps> = ({
                 cardMesh.position.lerpVectors(startPos, endPos, progress);
                 await new Promise(resolve => requestAnimationFrame(resolve));
             }
-            cardMesh.position.copy(endPos); // Ensure final position
-            cardMesh.rotation.y = 0; // Flip back to show card back
-            (cardMesh.material as THREE.Material[])[4] = new THREE.MeshBasicMaterial({ map: cardBackTexture }); // Set to back texture
-            discardPileGroup.current.add(cardMesh); // Move to discard group
-            middleStackGroup.current.remove(cardMesh); // Remove from middle group
+            cardMesh.position.copy(endPos);
+            cardMesh.rotation.y = 0;
+            (cardMesh.material as THREE.Material[])[4] = new THREE.MeshBasicMaterial({ map: cardBackTexture });
+            discardPileGroup.current.add(cardMesh);
+            middleStackGroup.current.remove(cardMesh);
         }
 
         setIsAnimatingToDiscard(false);
-        onAllCardsMovedToDiscard(); // Notify parent that all cards are moved
+        onAllCardsMovedToDiscard();
     }, [isAnimatingToDiscard, resolvedCardsInMiddle.length, discardCount, cardBackTexture, onAllCardsMovedToDiscard]);
 
-    // Expose animateCardsToDiscard to parent component
-    React.useImperativeHandle(mountRef, () => ({
+    // Expose animateCardsToDiscard to parent component using the 'ref' from forwardRef
+    useImperativeHandle(ref, () => ({
         animateCardsToDiscard,
     }));
 
     return (
-        <div ref={mountRef} className="w-full h-full relative">
+        <div ref={internalMountRef} className="w-full h-full relative"> {/* Use internalMountRef here */}
             <button
                 onClick={triggerDrawAnimation}
                 disabled={isAnimatingDraw || deckCount === 0}
@@ -360,6 +342,6 @@ const CardAnimationCanvas: React.FC<CardAnimationCanvasProps> = ({
             )}
         </div>
     );
-};
+});
 
 export default CardAnimationCanvas;

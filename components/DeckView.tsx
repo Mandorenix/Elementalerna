@@ -1,12 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Element, type EventCard, type ChoiceOption, type Outcome, type PuzzleChallenge, type MerchantOffer, type Item } from '../types';
 import { elementThemes } from '../constants';
-import CardAnimationCanvas from './CardAnimationCanvas'; // Import the new 3D canvas
-
-// Extend the ref type for CardAnimationCanvas
-interface CardAnimationCanvasRef {
-    animateCardsToDiscard: () => Promise<void>;
-}
+import CardAnimationCanvas, { CardAnimationCanvasRef } from './CardAnimationCanvas'; // Import CardAnimationCanvasRef type
 
 const DiscardPile: React.FC<{ count: number, onStartNextRound: () => void, canStartNextRound: boolean }> = ({ count, onStartNextRound, canStartNextRound }) => (
     <div className="flex flex-col items-center">

@@ -1,7 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Element, type EventCard, type ChoiceOption, type Outcome, type PuzzleChallenge, type MerchantOffer, type Item } from '../types';
+import React from 'react';
+import type { EventCard, ChoiceOption, Outcome, PuzzleChallenge, MerchantOffer, Item } from '../types';
 import { elementThemes } from '../constants';
-import CardAnimationCanvas, { CardAnimationCanvasRef } from './CardAnimationCanvas'; // Import CardAnimationCanvasRef type
+import { Element } from '../types';
+
+const CardBack: React.FC<{ count: number, onClick: () => void }> = ({ count, onClick }) => (
+    <div className="flex flex-col items-center">
+        <button 
+            onClick={onClick}
+            disabled={count === 0}
+            className="w-48 h-64 bg-black/50 pixelated-border-gold flex flex-col items-center justify-center text-yellow-300 cursor-pointer hover:bg-yellow-500/10 disabled:cursor-not-allowed disabled:hover:bg-black/50 disabled:border-gray-600 disabled:text-gray-500 transition-all"
+        >
+            <div className="text-5xl font-bold">?</div>
+            <div className="mt-4 text-xs">Dra ett kort</div>
+        </button>
+        <div className="mt-2 text-sm text-gray-400">{count} kort kvar</div>
+    </div>
+);
 
 const DiscardPile: React.FC<{ count: number, onStartNextRound: () => void, canStartNextRound: boolean }> = ({ count, onStartNextRound, canStartNextRound }) => (
     <div className="flex flex-col items-center">
@@ -17,7 +31,7 @@ const DiscardPile: React.FC<{ count: number, onStartNextRound: () => void, canSt
     </div>
 );
 
-const DrawnCardDetails: React.FC<{ card: EventCard; onResolve: (outcome?: Outcome, item?: Item) => void; playerCurrency: number; playerStats: any; elementalAffinities: Partial<Record<Element, number>>; }> = ({ card, onResolve, playerCurrency, playerStats, elementalAffinities }) => {
+const DrawnCard: React.FC<{ card: EventCard; onResolve: (outcome?: Outcome, item?: Item) => void; playerCurrency: number; playerStats: any; elementalAffinities: Partial<Record<Element, number>>; }> = ({ card, onResolve, playerCurrency, playerStats, elementalAffinities }) => {
     const theme = elementThemes[card.element] || elementThemes[Element.NEUTRAL];
     const Icon = card.icon;
     const isBoss = card.isBoss;
@@ -125,48 +139,13 @@ interface DeckViewProps {
     onDraw: () => void;
     onStartNextRound: () => void;
     onResolve: (outcome?: Outcome, item?: Item) => void;
-    playerCurrency: number;
-    playerStats: any;
-    elementalAffinities: Partial<Record<Element, number>>;
+    playerCurrency: number; // New prop
+    playerStats: any; // New prop for stat checks
+    elementalAffinities: Partial<Record<Element, number>>; // New prop for elemental checks
 }
 
 
 const DeckView: React.FC<DeckViewProps> = ({ roundLevel, deck, discardPile, drawnCard, onDraw, onStartNextRound, onResolve, playerCurrency, playerStats, elementalAffinities }) => {
-    const [showDrawnCardDetails, setShowDrawnCardDetails] = useState(false);
-    const [resolvedCardsInMiddle, setResolvedCardsInMiddle] = useState<EventCard[]>([]);
-    const cardAnimationCanvasRef = useRef<CardAnimationCanvasRef>(null);
-
-    // When a card is drawn (from App.tsx), prepare to show its details
-    useEffect(() => {
-        if (drawnCard) {
-            setShowDrawnCardDetails(true);
-        } else {
-            setShowDrawnCardDetails(false);
-        }
-    }, [drawnCard]);
-
-    const handleCardAnimationComplete = (card: EventCard) => {
-        // Add the newly drawn card to the middle stack
-        setResolvedCardsInMiddle(prev => [...prev, card]);
-    };
-
-    const handleResolveCardAndHideDetails = (outcome?: Outcome, item?: Item) => {
-        onResolve(outcome, item);
-        setShowDrawnCardDetails(false); // Hide details after resolving
-        // The card remains in resolvedCardsInMiddle until the round ends
-    };
-
-    const handleAllCardsMovedToDiscard = () => {
-        setResolvedCardsInMiddle([]); // Clear middle stack after moving to discard
-        onStartNextRound(); // Start the next round logic in App.tsx
-    };
-
-    const handleStartNextRoundClick = async () => {
-        if (cardAnimationCanvasRef.current) {
-            await cardAnimationCanvasRef.current.animateCardsToDiscard();
-        }
-    };
-
     return (
         <div className="flex-grow w-full h-full p-6 text-white flex flex-col overflow-hidden">
             <div className="text-center mb-8">
@@ -174,42 +153,23 @@ const DeckView: React.FC<DeckViewProps> = ({ roundLevel, deck, discardPile, draw
                 <p className="text-sm text-gray-400">Dra ett kort från ödets väv och möt dess konsekvenser.</p>
             </div>
 
-            <div className="flex-grow flex items-center justify-center space-x-12 relative">
-                {/* 3D Card Animation Canvas */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <CardAnimationCanvas
-                        ref={cardAnimationCanvasRef} // Attach ref
-                        deckCount={deck.length}
-                        discardCount={discardPile.length}
-                        drawnCardData={drawnCard}
-                        resolvedCardsInMiddle={resolvedCardsInMiddle}
-                        onDrawCard={onDraw}
-                        onCardAnimationComplete={handleCardAnimationComplete}
-                        onAllCardsMovedToDiscard={handleAllCardsMovedToDiscard}
-                    />
-                </div>
+            <div className="flex-grow flex items-center justify-center space-x-12">
+                <CardBack count={deck.length} onClick={onDraw} />
                 
-                {/* Discard Pile (still 2D) */}
-                <div className="absolute right-12 bottom-12">
-                    <DiscardPile 
-                        count={discardPile.length + resolvedCardsInMiddle.length} // Total cards that will be in discard
-                        onStartNextRound={handleStartNextRoundClick} 
-                        canStartNextRound={deck.length === 0 && !drawnCard && resolvedCardsInMiddle.length > 0} 
-                    />
-                </div>
-
-                {/* Drawn Card Details (2D UI, shown after 3D animation) */}
-                {showDrawnCardDetails && drawnCard && (
-                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
-                        <DrawnCardDetails 
+                <div className="w-64 h-96 flex items-center justify-center">
+                    {drawnCard 
+                        ? <DrawnCard 
                             card={drawnCard} 
-                            onResolve={handleResolveCardAndHideDetails} 
+                            onResolve={onResolve} 
                             playerCurrency={playerCurrency} 
                             playerStats={playerStats} 
                             elementalAffinities={elementalAffinities} 
-                        />
-                    </div>
-                )}
+                          />
+                        : <div className="text-gray-600">Dra ett kort...</div>
+                    }
+                </div>
+
+                <DiscardPile count={discardPile.length} onStartNextRound={onStartNextRound} canStartNextRound={deck.length === 0 && !drawnCard} />
             </div>
         </div>
     );

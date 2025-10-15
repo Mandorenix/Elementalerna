@@ -1,7 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import type { EventCard, ChoiceOption, Outcome, PuzzleChallenge, MerchantOffer, Item, Element } from '../types';
+import React, { useState, useEffect, useRef } from 'react';
+import { Element, type EventCard, type ChoiceOption, type Outcome, type PuzzleChallenge, type MerchantOffer, type Item } from '../types';
 import { elementThemes } from '../constants';
 import CardAnimationCanvas from './CardAnimationCanvas'; // Import the new 3D canvas
+
+// Extend the ref type for CardAnimationCanvas
+interface CardAnimationCanvasRef {
+    animateCardsToDiscard: () => Promise<void>;
+}
 
 const DiscardPile: React.FC<{ count: number, onStartNextRound: () => void, canStartNextRound: boolean }> = ({ count, onStartNextRound, canStartNextRound }) => (
     <div className="flex flex-col items-center">
@@ -133,6 +138,8 @@ interface DeckViewProps {
 
 const DeckView: React.FC<DeckViewProps> = ({ roundLevel, deck, discardPile, drawnCard, onDraw, onStartNextRound, onResolve, playerCurrency, playerStats, elementalAffinities }) => {
     const [showDrawnCardDetails, setShowDrawnCardDetails] = useState(false);
+    const [resolvedCardsInMiddle, setResolvedCardsInMiddle] = useState<EventCard[]>([]);
+    const cardAnimationCanvasRef = useRef<CardAnimationCanvasRef>(null);
 
     // When a card is drawn (from App.tsx), prepare to show its details
     useEffect(() => {
@@ -144,15 +151,25 @@ const DeckView: React.FC<DeckViewProps> = ({ roundLevel, deck, discardPile, draw
     }, [drawnCard]);
 
     const handleCardAnimationComplete = (card: EventCard) => {
-        // This function is called by CardAnimationCanvas when the 3D animation finishes.
-        // The `drawnCard` state in App.tsx should already be updated by `onDraw`.
-        // We just need to ensure the UI shows the details.
-        setShowDrawnCardDetails(true);
+        // Add the newly drawn card to the middle stack
+        setResolvedCardsInMiddle(prev => [...prev, card]);
     };
 
     const handleResolveCardAndHideDetails = (outcome?: Outcome, item?: Item) => {
         onResolve(outcome, item);
         setShowDrawnCardDetails(false); // Hide details after resolving
+        // The card remains in resolvedCardsInMiddle until the round ends
+    };
+
+    const handleAllCardsMovedToDiscard = () => {
+        setResolvedCardsInMiddle([]); // Clear middle stack after moving to discard
+        onStartNextRound(); // Start the next round logic in App.tsx
+    };
+
+    const handleStartNextRoundClick = async () => {
+        if (cardAnimationCanvasRef.current) {
+            await cardAnimationCanvasRef.current.animateCardsToDiscard();
+        }
     };
 
     return (
@@ -166,16 +183,24 @@ const DeckView: React.FC<DeckViewProps> = ({ roundLevel, deck, discardPile, draw
                 {/* 3D Card Animation Canvas */}
                 <div className="absolute inset-0 flex items-center justify-center">
                     <CardAnimationCanvas
+                        ref={cardAnimationCanvasRef} // Attach ref
                         deckCount={deck.length}
+                        discardCount={discardPile.length}
                         drawnCardData={drawnCard}
+                        resolvedCardsInMiddle={resolvedCardsInMiddle}
                         onDrawCard={onDraw}
                         onCardAnimationComplete={handleCardAnimationComplete}
+                        onAllCardsMovedToDiscard={handleAllCardsMovedToDiscard}
                     />
                 </div>
                 
                 {/* Discard Pile (still 2D) */}
                 <div className="absolute right-12 bottom-12">
-                    <DiscardPile count={discardPile.length} onStartNextRound={onStartNextRound} canStartNextRound={deck.length === 0 && !drawnCard} />
+                    <DiscardPile 
+                        count={discardPile.length + resolvedCardsInMiddle.length} // Total cards that will be in discard
+                        onStartNextRound={handleStartNextRoundClick} 
+                        canStartNextRound={deck.length === 0 && !drawnCard && resolvedCardsInMiddle.length > 0} 
+                    />
                 </div>
 
                 {/* Drawn Card Details (2D UI, shown after 3D animation) */}

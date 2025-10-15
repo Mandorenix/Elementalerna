@@ -789,7 +789,7 @@
       /* Elemental Text Effects */
       .element-text-base {
         display: inline-block;
-        font-size: 4rem; /* Minskad storlek */
+        font-size: clamp(2.5rem, 6vw, 4.5rem); /* Responsiv storlek */
         font-weight: bold;
         -webkit-background-clip: text;
         background-clip: text;
@@ -797,16 +797,17 @@
         text-fill-color: transparent;
         /* Förbättrad pixelated text-shadow */
         text-shadow: 
-          -2px -2px 0px rgba(0,0,0,0.9), /* Tydligare svart outline */
-          2px -2px 0px rgba(0,0,0,0.9),
-          -2px 2px 0px rgba(0,0,0,0.9),
-          2px 2px 0px rgba(0,0,0,0.9),
-          -4px 0px 0px rgba(0,0,0,0.7), /* Extra lager för djup */
-          4px 0px 0px rgba(0,0,0,0.7);
+          -3px -3px 0px black, /* Tydligare svart outline */
+          3px -3px 0px black,
+          -3px 3px 0px black,
+          3px 3px 0px black,
+          -6px 0px 0px rgba(0,0,0,0.6), /* Extra lager för djup */
+          6px 0px 0px rgba(0,0,0,0.6);
         line-height: 1;
         padding: 0 5px; /* Small padding to prevent clipping */
         background-size: 200% 100%; /* For animation */
         position: relative; /* För scanline-effekt */
+        color: white; /* Fallback färg */
       }
 
       /* Scanline-effekt */
@@ -817,7 +818,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(rgba(0,0,0,0.1) 50%, transparent 50%); /* Minskad opacitet */
+        background: linear-gradient(rgba(0,0,0,0.05) 50%, transparent 50%); /* Ännu mer subtil opacitet */
         background-size: 100% 4px; /* Justera höjden på linjerna */
         animation: scanline-flicker 0.3s steps(1) infinite;
         pointer-events: none;
@@ -825,9 +826,9 @@
       }
 
       @keyframes scanline-flicker {
-        0% { opacity: 0.5; } /* Minskad opacitet */
-        50% { opacity: 0.4; } /* Minskad opacitet */
-        100% { opacity: 0.5; }
+        0% { opacity: 0.3; } /* Minskad opacitet */
+        50% { opacity: 0.2; } /* Minskad opacitet */
+        100% { opacity: 0.3; }
       }
 
       /* Fire Effect */
@@ -836,9 +837,9 @@
         animation: fire-flicker 2s infinite alternate;
       }
       @keyframes fire-flicker {
-        0% { background-position: 0% 50%; filter: brightness(1.2) saturate(1.2); } /* Mer intensiv */
-        50% { background-position: 100% 50%; filter: brightness(1.7) saturate(1.7); } /* Ännu mer intensiv */
-        100% { background-position: 0% 50%; filter: brightness(1.2) saturate(1.2); }
+        0% { background-position: 0% 50%; filter: brightness(1.5) saturate(1.5); } /* Mer intensiv */
+        50% { background-position: 100% 50%; filter: brightness(2.0) saturate(2.0); } /* Ännu mer intensiv */
+        100% { background-position: 0% 50%; filter: brightness(1.5) saturate(1.5); }
       }
 
       /* Water Effect */
@@ -847,9 +848,9 @@
         animation: water-flow 3s infinite linear;
       }
       @keyframes water-flow {
-        0% { background-position: 0% 0%; filter: brightness(1.1) saturate(1.1); } /* Subtil förstärkning */
-        50% { filter: brightness(1.3) saturate(1.3); } /* Mer förstärkning */
-        100% { background-position: 200% 0%; filter: brightness(1.1) saturate(1.1); }
+        0% { background-position: 0% 0%; filter: brightness(1.3) saturate(1.3); } /* Subtil förstärkning */
+        50% { filter: brightness(1.5) saturate(1.5); } /* Mer förstärkning */
+        100% { background-position: 200% 0%; filter: brightness(1.3) saturate(1.3); }
       }
 
       /* Wind Effect */
@@ -858,9 +859,9 @@
         animation: wind-swirl 2.5s infinite alternate;
       }
       @keyframes wind-swirl {
-        0% { background-position: 0% 0%; transform: translateY(0px); filter: brightness(1.1) saturate(1.1); } /* Subtil förstärkning */
-        50% { background-position: 100% 0%; transform: translateY(-2px); filter: brightness(1.3) saturate(1.3); } /* Mer förstärkning */
-        100% { background-position: 0% 0%; transform: translateY(0px); filter: brightness(1.1) saturate(1.1); }
+        0% { background-position: 0% 0%; transform: translateY(0px); filter: brightness(1.3) saturate(1.3); } /* Subtil förstärkning */
+        50% { background-position: 100% 0%; transform: translateY(-2px); filter: brightness(1.5) saturate(1.5); } /* Mer förstärkning */
+        100% { background-position: 0% 0%; transform: translateY(0px); filter: brightness(1.3) saturate(1.3); }
       }
 
       /* Earth Effect */
@@ -869,9 +870,9 @@
         animation: earth-shift 4s infinite alternate;
       }
       @keyframes earth-shift {
-        0% { background-position: 0% 0%; transform: translateX(0px); filter: brightness(1.1) saturate(1.1); } /* Subtil förstärkning */
-        50% { background-position: 100% 0%; transform: translateX(5px); filter: brightness(1.3) saturate(1.3); } /* Mer förstärkning */
-        100% { transform: translateX(0px); filter: brightness(1.1) saturate(1.1); }
+        0% { background-position: 0% 0%; transform: translateX(0px); filter: brightness(1.3) saturate(1.3); } /* Subtil förstärkning */
+        50% { background-position: 100% 0%; transform: translateX(5px); filter: brightness(1.5) saturate(1.5); } /* Mer förstärkning */
+        100% { transform: translateX(0px); filter: brightness(1.3) saturate(1.3); }
       }
 
       /* SVG Elemental Orb Animations */

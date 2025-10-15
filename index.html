@@ -785,6 +785,64 @@
         50% { opacity: 0.1; }
         100% { transform: translateY(100%); opacity: 0; }
       }
+
+      /* Elemental Text Effects */
+      .element-text-base {
+        display: inline-block;
+        font-size: 7rem; /* Adjust as needed */
+        font-weight: bold;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-fill-color: transparent;
+        text-shadow: 4px 4px 0px rgba(0,0,0,0.7); /* Pixelated shadow */
+        line-height: 1;
+        padding: 0 5px; /* Small padding to prevent clipping */
+        background-size: 200% 100%; /* For animation */
+      }
+
+      /* Fire Effect */
+      .element-fire-text {
+        background-image: linear-gradient(to right, #ff4500, #ffa500, #ff6347);
+        animation: fire-flicker 2s infinite alternate;
+      }
+      @keyframes fire-flicker {
+        0% { background-position: 0% 50%; filter: brightness(1); }
+        50% { background-position: 100% 50%; filter: brightness(1.2); }
+        100% { background-position: 0% 50%; filter: brightness(1); }
+      }
+
+      /* Water Effect */
+      .element-water-text {
+        background-image: linear-gradient(to right, #00bfff, #1e90ff, #4682b4);
+        animation: water-flow 3s infinite linear;
+      }
+      @keyframes water-flow {
+        0% { background-position: 0% 0%; }
+        100% { background-position: 200% 0%; }
+      }
+
+      /* Wind Effect */
+      .element-wind-text {
+        background-image: linear-gradient(to right, #e0ffff, #add8e6, #87ceeb);
+        animation: wind-swirl 2.5s infinite alternate;
+      }
+      @keyframes wind-swirl {
+        0% { background-position: 0% 0%; transform: translateY(0px); }
+        50% { background-position: 100% 0%; transform: translateY(-2px); }
+        100% { background-position: 0% 0%; transform: translateY(0px); }
+      }
+
+      /* Earth Effect */
+      .element-earth-text {
+        background-image: linear-gradient(to right, #8b4513, #a0522d, #556b2f);
+        animation: earth-shift 4s infinite alternate;
+      }
+      @keyframes earth-shift {
+        0% { background-position: 0% 0%; transform: translateX(0px); }
+        50% { background-position: 100% 0%; transform: translateX(5px); }
+        100% { background-position: 0% 0%; transform: translateX(0px); }
+      }
     </style>
   <script type="importmap">
 {

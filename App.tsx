@@ -7,6 +7,7 @@ import CharacterSelection from './components/CharacterSelection';
 import EventView from './components/EventView';
 import DeckView from './components/DeckView';
 import DebugView from './components/DebugView';
+import MainMenu from './components/MainMenu'; // Import the new MainMenu component
 import type { View, Character, CharacterStats, Item, EquipmentSlot, Archetype, GameEvent, EventCard, Outcome, PlayerAbility, ItemStats, Element } from './types';
 import { INITIAL_CHARACTER_BASE, SKILL_TREE_DATA, Icons, PLAYER_ABILITIES, ItemVisuals, ELEMENTAL_AFFINITY_BONUSES, PASSIVE_TALENTS, ULTIMATE_ABILITIES } from './constants';
 import { generateRandomCard, generateBossCard, generateRandomItem } from './utils/cardGenerator'; // Corrected import for generateRandomItem
@@ -42,6 +43,7 @@ function App() {
   const [inventory, setInventory] = useState<Item[]>([]);
   const [activeView, setActiveView] = useState<View>('skillTree');
   const [gold, setGold] = useState(100); // New: Player's gold
+  const [gameStarted, setGameStarted] = useState(false); // New state for main menu
   
   // New Deck State
   const [deck, setDeck] = useState<EventCard[]>([]);
@@ -50,6 +52,9 @@ function App() {
   const [currentEvent, setCurrentEvent] = useState<GameEvent | null>(null);
   const [roundLevel, setRoundLevel] = useState(1);
 
+  const handleStartGame = useCallback(() => {
+    setGameStarted(true);
+  }, []);
 
   const handleSelectArchetype = useCallback((archetype: Archetype) => {
     const baseStats = INITIAL_CHARACTER_BASE.stats;
@@ -108,7 +113,8 @@ function App() {
 
   const handleResetCharacter = useCallback(() => {
     setCharacter(null);
-  }, [setCharacter]);
+    setGameStarted(false); // Go back to main menu on reset
+  }, [setCharacter, setGameStarted]);
 
   const unlockSkill = useCallback((skillId: string) => {
     const skillData = SKILL_TREE_DATA.find(s => s.id === skillId);
@@ -397,6 +403,14 @@ function App() {
       }
   }, [character, setCharacter]);
   const debugAddGold = useCallback(() => setGold(g => g + 100), [setGold]); // New debug function
+
+  if (!gameStarted) {
+    return (
+      <main className="text-gray-100 h-screen w-screen flex flex-col font-['Press_Start_2P'] overflow-hidden">
+        <MainMenu onStartGame={handleStartGame} />
+      </main>
+    );
+  }
 
   if (!character) {
       return (

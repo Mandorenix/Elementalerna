@@ -1,21 +1,7 @@
-import React from 'react';
-import type { EventCard, ChoiceOption, Outcome, PuzzleChallenge, MerchantOffer, Item } from '../types';
+import React, { useState, useEffect } from 'react';
+import type { EventCard, ChoiceOption, Outcome, PuzzleChallenge, MerchantOffer, Item, Element } from '../types';
 import { elementThemes } from '../constants';
-import { Element } from '../types';
-
-const CardBack: React.FC<{ count: number, onClick: () => void }> = ({ count, onClick }) => (
-    <div className="flex flex-col items-center">
-        <button 
-            onClick={onClick}
-            disabled={count === 0}
-            className="w-48 h-64 bg-black/50 pixelated-border-gold flex flex-col items-center justify-center text-yellow-300 cursor-pointer hover:bg-yellow-500/10 disabled:cursor-not-allowed disabled:hover:bg-black/50 disabled:border-gray-600 disabled:text-gray-500 transition-all"
-        >
-            <div className="text-5xl font-bold">?</div>
-            <div className="mt-4 text-xs">Dra ett kort</div>
-        </button>
-        <div className="mt-2 text-sm text-gray-400">{count} kort kvar</div>
-    </div>
-);
+import CardAnimationCanvas from './CardAnimationCanvas'; // Import the new 3D canvas
 
 const DiscardPile: React.FC<{ count: number, onStartNextRound: () => void, canStartNextRound: boolean }> = ({ count, onStartNextRound, canStartNextRound }) => (
     <div className="flex flex-col items-center">
@@ -31,7 +17,7 @@ const DiscardPile: React.FC<{ count: number, onStartNextRound: () => void, canSt
     </div>
 );
 
-const DrawnCard: React.FC<{ card: EventCard; onResolve: (outcome?: Outcome, item?: Item) => void; playerCurrency: number; playerStats: any; elementalAffinities: Partial<Record<Element, number>>; }> = ({ card, onResolve, playerCurrency, playerStats, elementalAffinities }) => {
+const DrawnCardDetails: React.FC<{ card: EventCard; onResolve: (outcome?: Outcome, item?: Item) => void; playerCurrency: number; playerStats: any; elementalAffinities: Partial<Record<Element, number>>; }> = ({ card, onResolve, playerCurrency, playerStats, elementalAffinities }) => {
     const theme = elementThemes[card.element] || elementThemes[Element.NEUTRAL];
     const Icon = card.icon;
     const isBoss = card.isBoss;
@@ -139,13 +125,36 @@ interface DeckViewProps {
     onDraw: () => void;
     onStartNextRound: () => void;
     onResolve: (outcome?: Outcome, item?: Item) => void;
-    playerCurrency: number; // New prop
-    playerStats: any; // New prop for stat checks
-    elementalAffinities: Partial<Record<Element, number>>; // New prop for elemental checks
+    playerCurrency: number;
+    playerStats: any;
+    elementalAffinities: Partial<Record<Element, number>>;
 }
 
 
 const DeckView: React.FC<DeckViewProps> = ({ roundLevel, deck, discardPile, drawnCard, onDraw, onStartNextRound, onResolve, playerCurrency, playerStats, elementalAffinities }) => {
+    const [showDrawnCardDetails, setShowDrawnCardDetails] = useState(false);
+
+    // When a card is drawn (from App.tsx), prepare to show its details
+    useEffect(() => {
+        if (drawnCard) {
+            setShowDrawnCardDetails(true);
+        } else {
+            setShowDrawnCardDetails(false);
+        }
+    }, [drawnCard]);
+
+    const handleCardAnimationComplete = (card: EventCard) => {
+        // This function is called by CardAnimationCanvas when the 3D animation finishes.
+        // The `drawnCard` state in App.tsx should already be updated by `onDraw`.
+        // We just need to ensure the UI shows the details.
+        setShowDrawnCardDetails(true);
+    };
+
+    const handleResolveCardAndHideDetails = (outcome?: Outcome, item?: Item) => {
+        onResolve(outcome, item);
+        setShowDrawnCardDetails(false); // Hide details after resolving
+    };
+
     return (
         <div className="flex-grow w-full h-full p-6 text-white flex flex-col overflow-hidden">
             <div className="text-center mb-8">
@@ -153,23 +162,34 @@ const DeckView: React.FC<DeckViewProps> = ({ roundLevel, deck, discardPile, draw
                 <p className="text-sm text-gray-400">Dra ett kort från ödets väv och möt dess konsekvenser.</p>
             </div>
 
-            <div className="flex-grow flex items-center justify-center space-x-12">
-                <CardBack count={deck.length} onClick={onDraw} />
+            <div className="flex-grow flex items-center justify-center space-x-12 relative">
+                {/* 3D Card Animation Canvas */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <CardAnimationCanvas
+                        deckCount={deck.length}
+                        drawnCardData={drawnCard}
+                        onDrawCard={onDraw}
+                        onCardAnimationComplete={handleCardAnimationComplete}
+                    />
+                </div>
                 
-                <div className="w-64 h-96 flex items-center justify-center">
-                    {drawnCard 
-                        ? <DrawnCard 
+                {/* Discard Pile (still 2D) */}
+                <div className="absolute right-12 bottom-12">
+                    <DiscardPile count={discardPile.length} onStartNextRound={onStartNextRound} canStartNextRound={deck.length === 0 && !drawnCard} />
+                </div>
+
+                {/* Drawn Card Details (2D UI, shown after 3D animation) */}
+                {showDrawnCardDetails && drawnCard && (
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+                        <DrawnCardDetails 
                             card={drawnCard} 
-                            onResolve={onResolve} 
+                            onResolve={handleResolveCardAndHideDetails} 
                             playerCurrency={playerCurrency} 
                             playerStats={playerStats} 
                             elementalAffinities={elementalAffinities} 
-                          />
-                        : <div className="text-gray-600">Dra ett kort...</div>
-                    }
-                </div>
-
-                <DiscardPile count={discardPile.length} onStartNextRound={onStartNextRound} canStartNextRound={deck.length === 0 && !drawnCard} />
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );

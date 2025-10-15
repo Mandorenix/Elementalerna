@@ -1,4 +1,6 @@
 import React from 'react';
+import AnimatedElementalBackground from './AnimatedElementalBackground'; // Importera den nya komponenten
+import { Element } from '../types'; // Importera Element enum
 
 interface MainMenuProps {
   onStartGame: () => void;
@@ -7,8 +9,11 @@ interface MainMenuProps {
 const MainMenu: React.FC<MainMenuProps> = ({ onStartGame }) => {
   return (
     <div className="flex-grow w-full h-full flex flex-col items-center justify-center text-white font-['Press_Start_2P'] relative overflow-hidden">
+      {/* Animerad elementär bakgrund */}
+      <AnimatedElementalBackground element={Element.NEUTRAL} /> {/* Använd NEUTRAL för en generell effekt */}
+
       {/* En subtil bakgrundsgradient för att ge djup */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black opacity-70"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black opacity-70 z-0"></div>
 
       <div className="relative z-10 text-center">
         <h1 className="text-7xl mb-12 leading-tight relative z-10 flex justify-center">

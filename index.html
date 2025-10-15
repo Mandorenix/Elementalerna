@@ -843,6 +843,50 @@
         50% { background-position: 100% 0%; transform: translateX(5px); }
         100% { transform: translateX(0px); }
       }
+
+      /* SVG Elemental Orb Animations */
+      @keyframes orb-float {
+        0% { transform: translate(0, 0) scale(0.8); opacity: 0.5; }
+        25% { transform: translate(5px, -10px) scale(1); opacity: 0.7; }
+        50% { transform: translate(0, -20px) scale(1.2); opacity: 0.9; }
+        75% { transform: translate(-5px, -10px) scale(1); opacity: 0.7; }
+        100% { transform: translate(0, 0) scale(0.8); opacity: 0.5; }
+      }
+
+      .element-orb {
+        animation: orb-float 8s ease-in-out infinite;
+        transform-origin: center center;
+      }
+      .element-orb-1 { animation-duration: 10s; animation-delay: 0s; }
+      .element-orb-2 { animation-duration: 9s; animation-delay: 2s; }
+      .element-orb-3 { animation-duration: 11s; animation-delay: 4s; }
+      .element-orb-4 { animation-duration: 8.5s; animation-delay: 6s; }
+      .element-orb-5 { animation-duration: 9.5s; animation-delay: 8s; }
+
+      /* Define CSS variables for element colors for SVG fill */
+      :root {
+        --red-500: #ef4444;
+        --green-500: #22c55e;
+        --sky-500: #0ea5e9;
+        --blue-500: #3b82f6;
+        --orange-500: #f97316;
+        --slate-500: #64748b;
+        --amber-500: #f59e0b;
+        --yellow-500: #facc15;
+        --yellow-400: #facc15;
+        --yellow-200: #fde047;
+        --rose-400: #fb7185;
+        --yellow-700: #a16207;
+        --amber-700: #b45309;
+        --stone-600: #57534e;
+        --lime-600: #4d7c0f;
+        --cyan-400: #22d3ee;
+        --indigo-500: #6366f1;
+        --red-600: #dc2626;
+        --lime-500: #84cc16;
+        --teal-500: #14b8a6;
+        --purple-500: #a855f7; /* Neutral fallback */
+      }
     </style>
   <script type="importmap">
 {

@@ -461,7 +461,7 @@
         background: linear-gradient(to right, transparent 0%, rgba(105, 105, 105, 0.1) 50%, transparent 100%);
         animation: rock-erosion 18s linear infinite alternate;
       }
-      @keyframes mountain-wind {
+      @keyframes rock-shift {
         0% { transform: translateX(0); }
         100% { transform: translateX(3%); }
       }
@@ -818,7 +818,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(rgba(0,0,0,0.05) 50%, transparent 50%); /* Ännu mer subtil opacitet */
+        background: linear-gradient(rgba(0,0,0,0.03) 50%, transparent 50%); /* Ännu mer subtil opacitet */
         background-size: 100% 4px; /* Justera höjden på linjerna */
         animation: scanline-flicker 0.3s steps(1) infinite;
         pointer-events: none;
@@ -826,9 +826,9 @@
       }
 
       @keyframes scanline-flicker {
-        0% { opacity: 0.3; } /* Minskad opacitet */
-        50% { opacity: 0.2; } /* Minskad opacitet */
-        100% { opacity: 0.3; }
+        0% { opacity: 0.2; } /* Minskad opacitet */
+        50% { opacity: 0.1; } /* Minskad opacitet */
+        100% { opacity: 0.2; }
       }
 
       /* Fire Effect */
@@ -837,9 +837,9 @@
         animation: fire-flicker 2s infinite alternate;
       }
       @keyframes fire-flicker {
-        0% { background-position: 0% 50%; filter: brightness(1.5) saturate(1.5); } /* Mer intensiv */
-        50% { background-position: 100% 50%; filter: brightness(2.0) saturate(2.0); } /* Ännu mer intensiv */
-        100% { background-position: 0% 50%; filter: brightness(1.5) saturate(1.5); }
+        0% { background-position: 0% 50%; filter: brightness(2.0) saturate(2.0); } /* Mer intensiv */
+        50% { background-position: 100% 50%; filter: brightness(3.0) saturate(3.0); } /* Ännu mer intensiv */
+        100% { background-position: 0% 50%; filter: brightness(2.0) saturate(2.0); }
       }
 
       /* Water Effect */
@@ -848,9 +848,9 @@
         animation: water-flow 3s infinite linear;
       }
       @keyframes water-flow {
-        0% { background-position: 0% 0%; filter: brightness(1.3) saturate(1.3); } /* Subtil förstärkning */
-        50% { filter: brightness(1.5) saturate(1.5); } /* Mer förstärkning */
-        100% { background-position: 200% 0%; filter: brightness(1.3) saturate(1.3); }
+        0% { background-position: 0% 0%; filter: brightness(1.5) saturate(1.5); } /* Subtil förstärkning */
+        50% { filter: brightness(2.0) saturate(2.0); } /* Mer förstärkning */
+        100% { background-position: 200% 0%; filter: brightness(1.5) saturate(1.5); }
       }
 
       /* Wind Effect */
@@ -859,9 +859,9 @@
         animation: wind-swirl 2.5s infinite alternate;
       }
       @keyframes wind-swirl {
-        0% { background-position: 0% 0%; transform: translateY(0px); filter: brightness(1.3) saturate(1.3); } /* Subtil förstärkning */
-        50% { background-position: 100% 0%; transform: translateY(-2px); filter: brightness(1.5) saturate(1.5); } /* Mer förstärkning */
-        100% { background-position: 0% 0%; transform: translateY(0px); filter: brightness(1.3) saturate(1.3); }
+        0% { background-position: 0% 0%; transform: translateY(0px); filter: brightness(1.5) saturate(1.5); } /* Subtil förstärkning */
+        50% { background-position: 100% 0%; transform: translateY(-2px); filter: brightness(2.0) saturate(2.0); } /* Mer förstärkning */
+        100% { background-position: 0% 0%; transform: translateY(0px); filter: brightness(1.5) saturate(1.5); }
       }
 
       /* Earth Effect */
@@ -870,9 +870,9 @@
         animation: earth-shift 4s infinite alternate;
       }
       @keyframes earth-shift {
-        0% { background-position: 0% 0%; transform: translateX(0px); filter: brightness(1.3) saturate(1.3); } /* Subtil förstärkning */
-        50% { background-position: 100% 0%; transform: translateX(5px); filter: brightness(1.5) saturate(1.5); } /* Mer förstärkning */
-        100% { transform: translateX(0px); filter: brightness(1.3) saturate(1.3); }
+        0% { background-position: 0% 0%; transform: translateX(0px); filter: brightness(1.5) saturate(1.5); } /* Subtil förstärkning */
+        50% { background-position: 100% 0%; transform: translateX(5px); filter: brightness(2.0) saturate(2.0); } /* Mer förstärkning */
+        100% { transform: translateX(0px); filter: brightness(1.5) saturate(1.5); }
       }
 
       /* SVG Elemental Orb Animations */

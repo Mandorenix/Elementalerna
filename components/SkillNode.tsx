@@ -3,7 +3,7 @@ import Tooltip from './Tooltip';
 import type { Skill } from '../types';
 import { Element } from '../types';
 import { elementThemes } from '../constants';
-import ElementalVFX from './ElementalVFX'; // Import the new VFX component
+// ElementalVFX importeras inte längre här
 
 interface SkillNodeProps {
   skill: Skill;
@@ -11,9 +11,11 @@ interface SkillNodeProps {
   isUnlocked: boolean;
   canUnlock: boolean;
   onUnlock: () => void;
+  // Ny prop för att indikera om VFX ska renderas av föräldern
+  renderVFX?: boolean; 
 }
 
-const SkillNode: React.FC<SkillNodeProps> = ({ skill, currentRank, isUnlocked, canUnlock, onUnlock }) => {
+const SkillNode: React.FC<SkillNodeProps> = ({ skill, currentRank, isUnlocked, canUnlock, onUnlock, renderVFX = true }) => {
   const [isHovered, setIsHovered] = useState(false);
   
   const isMaxed = currentRank === skill.maxRank;
@@ -60,10 +62,7 @@ const SkillNode: React.FC<SkillNodeProps> = ({ skill, currentRank, isUnlocked, c
             aria-label={`Färdighet: ${skill.name}`}
             disabled={!canUnlock && !isUnlocked}
         >
-            {/* Elemental VFX */}
-            {(isUnlocked || canUnlock) && skill.element !== Element.NEUTRAL && (
-                <ElementalVFX element={skill.element} size={isMaxed ? 1.2 : 1} intensity={isMaxed ? 1.5 : 1} />
-            )}
+            {/* Elemental VFX renderas nu av SkillTree */}
             <div className={`relative z-10 ${isUnlocked || canUnlock ? "" : "opacity-50"}`}>
               <Icon />
             </div>

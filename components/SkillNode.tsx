@@ -3,7 +3,6 @@ import Tooltip from './Tooltip';
 import type { Skill } from '../types';
 import { Element } from '../types';
 import { elementThemes } from '../constants';
-// ElementalVFX importeras inte längre här
 
 interface SkillNodeProps {
   skill: Skill;
@@ -11,11 +10,9 @@ interface SkillNodeProps {
   isUnlocked: boolean;
   canUnlock: boolean;
   onUnlock: () => void;
-  // Ny prop för att indikera om VFX ska renderas av föräldern
-  renderVFX?: boolean; 
 }
 
-const SkillNode: React.FC<SkillNodeProps> = ({ skill, currentRank, isUnlocked, canUnlock, onUnlock, renderVFX = true }) => {
+const SkillNode: React.FC<SkillNodeProps> = ({ skill, currentRank, isUnlocked, canUnlock, onUnlock }) => {
   const [isHovered, setIsHovered] = useState(false);
   
   const isMaxed = currentRank === skill.maxRank;
@@ -62,12 +59,11 @@ const SkillNode: React.FC<SkillNodeProps> = ({ skill, currentRank, isUnlocked, c
             aria-label={`Färdighet: ${skill.name}`}
             disabled={!canUnlock && !isUnlocked}
         >
-            {/* Elemental VFX renderas nu av SkillTree */}
-            <div className={`relative z-10 ${isUnlocked || canUnlock ? "" : "opacity-50"}`}>
+            <div className={isUnlocked || canUnlock ? "" : "opacity-50"}>
               <Icon />
             </div>
             {isUnlocked && skill.maxRank > 1 && (
-                <div className="absolute -bottom-1 -right-1 bg-black/80 border border-yellow-500 text-yellow-300 text-[10px] font-bold w-6 h-4 flex items-center justify-center rounded-sm z-20">
+                <div className="absolute -bottom-1 -right-1 bg-black/80 border border-yellow-500 text-yellow-300 text-[10px] font-bold w-6 h-4 flex items-center justify-center rounded-sm">
                     {currentRank}
                 </div>
             )}

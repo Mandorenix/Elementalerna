@@ -2,9 +2,6 @@ import React, { useState, useRef, useCallback } from 'react';
 import SkillNode from './SkillNode';
 import { SKILL_TREE_DATA } from '../constants';
 import type { Skill } from '../types';
-import { Canvas } from '@react-three/fiber'; // Importera Canvas
-import ElementalParticleEffect from './ElementalParticleEffect'; // Importera den nya komponenten
-import { Element } from '../types'; // Importera Element enum
 
 interface SkillTreeProps {
   unlockedSkills: Map<string, number>;
@@ -14,19 +11,19 @@ interface SkillTreeProps {
 
 const MAX_COLS = 29;
 const MAX_ROWS = 17;
-const CELL_WIDTH = 60; // Motsvarar Tailwind's w-16, plus lite mellanrum
-const CELL_HEIGHT = 80; // Motsvarar Tailwind's h-16, plus lite mellanrum
+const CELL_WIDTH = 60; // Corresponds to Tailwind's w-16, plus some gap
+const CELL_HEIGHT = 80; // Corresponds to Tailwind's h-16, plus some gap
 
 const SkillTree: React.FC<SkillTreeProps> = ({ unlockedSkills, skillPoints, unlockSkill }) => {
   const [zoom, setZoom] = useState(0.8);
-  const [position, setPosition] = useState({ x: -200, y: -100 }); // Startar något centrerad
+  const [position, setPosition] = useState({ x: -200, y: -100 }); // Start slightly centered
   const [isDragging, setIsDragging] = useState(false);
   const startDragPos = useRef({ x: 0, y: 0 });
   const treeContainerRef = useRef<HTMLDivElement>(null);
   
   const canUnlock = (skill: Skill) => {
     const currentRank = unlockedSkills.get(skill.id) || 0;
-    if (currentRank > 0) return true; // Kan alltid uppgradera om upplåst
+    if (currentRank > 0) return true; // Can always upgrade if unlocked
     if (!skill.dependencies || skill.dependencies.length === 0) return true;
     return skill.dependencies.every(depId => (unlockedSkills.get(depId) || 0) > 0);
   };
@@ -40,7 +37,7 @@ const SkillTree: React.FC<SkillTreeProps> = ({ unlockedSkills, skillPoints, unlo
   }, []);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button !== 0) return; // Dra endast med vänster musknapp
+    if (e.button !== 0) return; // Only drag with left mouse button
     setIsDragging(true);
     startDragPos.current = {
       x: e.clientX - position.x,
@@ -90,42 +87,6 @@ const SkillTree: React.FC<SkillTreeProps> = ({ unlockedSkills, skillPoints, unlo
         onMouseUp={handleMouseUpOrLeave}
         onMouseLeave={handleMouseUpOrLeave}
       >
-        {/* Enkel Canvas för alla Three.js-effekter */}
-        <Canvas 
-          className="absolute inset-0 z-0" 
-          camera={{ position: [0, 0, 10], fov: 75 }} // Justera kameraposition för 2D-layout
-          dpr={[1, 2]} // Ställ in enhetens pixelratio
-          linear // Använd linjärt färgutrymme
-          flat // Använd platt tonmappning
-        >
-          <ambientLight intensity={0.5} />
-          <pointLight position={[10, 10, 10]} />
-          {SKILL_TREE_DATA.map(skill => {
-            const currentRank = unlockedSkills.get(skill.id) || 0;
-            const isUnlocked = currentRank > 0;
-            const isMaxed = currentRank === skill.maxRank;
-
-            if ((isUnlocked || canUnlock(skill)) && skill.element !== Element.NEUTRAL) {
-              // Beräkna 3D-position baserat på 2D-rutnätskoordinater
-              // Justera för nodens centrum och trädets totala position/zoom
-              const vfxX = (skill.x * CELL_WIDTH + CELL_WIDTH / 2) - (MAX_COLS * CELL_WIDTH / 2);
-              const vfxY = -(skill.y * CELL_HEIGHT + CELL_HEIGHT / 2) + (MAX_ROWS * CELL_HEIGHT / 2); // Invertera Y för Three.js
-              const vfxZ = 0; // Håll på samma plan
-
-              return (
-                <ElementalParticleEffect
-                  key={`vfx-${skill.id}`}
-                  element={skill.element}
-                  position={[vfxX * 0.01, vfxY * 0.01, vfxZ]} // Skala ner för att passa Three.js-enheter
-                  size={isMaxed ? 1.2 : 1}
-                  intensity={isMaxed ? 1.5 : 1}
-                />
-              );
-            }
-            return null;
-          })}
-        </Canvas>
-
         <div
           className="relative"
           style={{
@@ -136,7 +97,7 @@ const SkillTree: React.FC<SkillTreeProps> = ({ unlockedSkills, skillPoints, unlo
             transition: isDragging ? 'none' : 'transform 0.1s ease-out',
           }}
         >
-          {/* SVG för att rita linjer */}
+          {/* SVG for drawing lines */}
           <svg className="absolute top-0 left-0 w-full h-full pointer-events-none z-0" >
             {SKILL_TREE_DATA.map(skill => {
               if (!skill.dependencies) return null;
@@ -146,7 +107,7 @@ const SkillTree: React.FC<SkillTreeProps> = ({ unlockedSkills, skillPoints, unlo
                 
                 const isParentUnlocked = (unlockedSkills.get(parent.id) || 0) > 0;
 
-                const x1 = parent.x * CELL_WIDTH + 28; // Centrum av noden
+                const x1 = parent.x * CELL_WIDTH + 28; // Center of the node
                 const y1 = parent.y * CELL_HEIGHT + 28;
                 const x2 = skill.x * CELL_WIDTH + 28;
                 const y2 = skill.y * CELL_HEIGHT + 28;
@@ -163,7 +124,7 @@ const SkillTree: React.FC<SkillTreeProps> = ({ unlockedSkills, skillPoints, unlo
             })}
           </svg>
 
-          {/* Färdighetsnoder */}
+          {/* Skill Nodes */}
           {SKILL_TREE_DATA.map(skill => {
             const currentRank = unlockedSkills.get(skill.id) || 0;
             const isUnlocked = currentRank > 0;
@@ -184,7 +145,6 @@ const SkillTree: React.FC<SkillTreeProps> = ({ unlockedSkills, skillPoints, unlo
                   isUnlocked={isUnlocked}
                   canUnlock={canUnlock(skill) && skillPoints > 0 && !isMaxed}
                   onUnlock={() => unlockSkill(skill.id)}
-                  renderVFX={false} // Berätta för SkillNode att inte rendera sin egen VFX
                 />
               </div>
             );

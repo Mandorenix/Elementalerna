@@ -105,7 +105,8 @@ const CardAnimationCanvas = forwardRef<CardAnimationCanvasRef, CardAnimationCanv
         renderer.current.setClearColor(0x000000, 0);
         internalMountRef.current.appendChild(renderer.current.domElement); // Use internalMountRef here
 
-        camera.current.position.set(0, 1.5, 4);
+        // Camera setup (adjusted for better view of left deck, middle, right discard)
+        camera.current.position.set(0, 0.5, 5); // Slightly higher, further back for wider view
         camera.current.lookAt(0, 0, 0);
 
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
@@ -117,6 +118,10 @@ const CardAnimationCanvas = forwardRef<CardAnimationCanvasRef, CardAnimationCanv
         scene.current.add(deckGroup.current);
         scene.current.add(middleStackGroup.current);
         scene.current.add(discardPileGroup.current);
+
+        // Add slight rotation to the groups for visual flair
+        deckGroup.current.rotation.y = -Math.PI / 10; // Rotate deck slightly
+        discardPileGroup.current.rotation.y = Math.PI / 10; // Rotate discard pile slightly
 
         const cardGeometry = new THREE.BoxGeometry(cardWidth, cardHeight, cardDepth);
         const cardBackMaterial = new THREE.MeshBasicMaterial({ map: cardBackTexture });
@@ -249,7 +254,7 @@ const CardAnimationCanvas = forwardRef<CardAnimationCanvasRef, CardAnimationCanv
         const endPos = new THREE.Vector3(0, 0, resolvedCardsInMiddle.length * cardStackOffset);
 
         drawnCardAnimatingMesh.current.position.copy(startPos);
-        drawnCardAnimatingMesh.current.rotation.set(0, 0, 0);
+        drawnCardAnimatingMesh.current.rotation.set(0, deckGroup.current.rotation.y, 0); // Start with deck's rotation
 
         const duration = 1000;
         const startTime = Date.now();
@@ -264,7 +269,8 @@ const CardAnimationCanvas = forwardRef<CardAnimationCanvasRef, CardAnimationCanv
                     drawnCardAnimatingMesh.current.position.lerpVectors(midPos, endPos, (progress - 0.5) * 2);
                 }
 
-                drawnCardAnimatingMesh.current.rotation.y = Math.PI * progress;
+                // Rotate (flip) and align with middle stack's rotation
+                drawnCardAnimatingMesh.current.rotation.y = deckGroup.current.rotation.y + (Math.PI - deckGroup.current.rotation.y) * progress;
 
                 if (progress > 0.5 && drawnCardData) {
                     const cardFrontTexture = createElementalCardFrontTexture(drawnCardData.element);
@@ -279,7 +285,7 @@ const CardAnimationCanvas = forwardRef<CardAnimationCanvasRef, CardAnimationCanv
 
         if (drawnCardAnimatingMesh.current) {
             drawnCardAnimatingMesh.current.position.copy(endPos);
-            drawnCardAnimatingMesh.current.rotation.y = Math.PI;
+            drawnCardAnimatingMesh.current.rotation.y = Math.PI; // Fully flipped to show front
             scene.current.remove(drawnCardAnimatingMesh.current);
             drawnCardAnimatingMesh.current = null;
         }
@@ -311,7 +317,7 @@ const CardAnimationCanvas = forwardRef<CardAnimationCanvasRef, CardAnimationCanv
                 await new Promise(resolve => requestAnimationFrame(resolve));
             }
             cardMesh.position.copy(endPos);
-            cardMesh.rotation.y = 0;
+            cardMesh.rotation.y = 0; // Flip back to show card back
             (cardMesh.material as THREE.Material[])[4] = new THREE.MeshBasicMaterial({ map: cardBackTexture });
             discardPileGroup.current.add(cardMesh);
             middleStackGroup.current.remove(cardMesh);

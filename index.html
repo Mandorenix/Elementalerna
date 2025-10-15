@@ -795,14 +795,12 @@
         background-clip: text;
         -webkit-text-fill-color: transparent;
         text-fill-color: transparent;
-        /* Förbättrad pixelated text-shadow */
+        /* Förenklad och tunnare pixelated text-shadow */
         text-shadow: 
-          -3px -3px 0px black, /* Tydligare svart outline */
-          3px -3px 0px black,
-          -3px 3px 0px black,
-          3px 3px 0px black,
-          -6px 0px 0px rgba(0,0,0,0.6), /* Extra lager för djup */
-          6px 0px 0px rgba(0,0,0,0.6);
+          -2px -2px 0px black,
+          2px -2px 0px black,
+          -2px 2px 0px black,
+          2px 2px 0px black;
         line-height: 1;
         padding: 0 5px; /* Small padding to prevent clipping */
         background-size: 200% 100%; /* For animation */

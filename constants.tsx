@@ -639,7 +639,7 @@ export const PASSIVE_TALENTS: Record<string, PassiveTalent> = {
   'heat_haze': {
     id: 'heat_haze',
     name: 'Hett Dis',
-    description: '5% chans att blända fiende i 1 runda när du delar ut eld- eller vindskada.',
+    description: '5% chans att blända fiender i 1 runda när du delar ut eld- eller vindskada.',
     element: Element.HOT_AIR,
     icon: Icons.Haze,
     effect: { type: 'APPLY_STATUS', status: 'blinded', duration: 1, chance: 5 },
@@ -860,7 +860,7 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
     element: Element.ICE,
     icon: Icons.Spike,
     cooldown: 12,
-    effect: { type: 'SINGLE_TARGET_DAMAGE', damage: 70, buff: 'frozen', duration: 2 },
+    effect: { type: 'SINGLE_TARGET_DAMAGE', damage: 70, buff: 'frozen_buff', duration: 2 },
   },
   'thunderclap': {
     id: 'thunderclap',
@@ -869,7 +869,7 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
     element: Element.STORM,
     icon: Icons.Thunder,
     cooldown: 14,
-    effect: { type: 'AOE_DAMAGE', damage: 40, buff: 'stunned', duration: 1 },
+    effect: { type: 'AOE_DAMAGE', damage: 40, buff: 'stunned_buff', duration: 1 },
   },
   'volcanic_storm_ultimate': {
     id: 'volcanic_storm_ultimate',
@@ -887,7 +887,7 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
     element: Element.ELECTRIFIED_MUD,
     icon: Icons.ElectrifiedMud,
     cooldown: 20,
-    effect: { type: 'AOE_DAMAGE', damage: 60, buff: 'paralyzed', duration: 2, value: 5 },
+    effect: { type: 'AOE_DAMAGE', damage: 60, buff: 'stunned_buff', duration: 2, value: 5 },
   },
   'vitrified_storm_ultimate': {
     id: 'vitrified_storm_ultimate',
@@ -896,7 +896,7 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
     element: Element.VITRIFIED_STORM,
     icon: Icons.VitrifiedStorm,
     cooldown: 20,
-    effect: { type: 'AOE_DAMAGE', damage: 70, buff: 'armor_reduction', duration: 4, value: 10 },
+    effect: { type: 'AOE_DAMAGE', damage: 70, buff: 'armor_reduction_buff', duration: 4, value: 10 },
   },
   // New base element ultimate abilities
   'fire_nova': {
@@ -915,7 +915,7 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
     element: Element.EARTH,
     icon: Icons.EarthWall,
     cooldown: 18,
-    effect: { type: 'GLOBAL_BUFF', buff: 'damage_reduction', duration: 3, value: 30, isPercentage: true },
+    effect: { type: 'GLOBAL_BUFF', buff: 'damage_reduction_buff', duration: 3, value: 30, isPercentage: true },
   },
   'wind_burst': {
     id: 'wind_burst',
@@ -1113,41 +1113,4 @@ export const ELEMENTAL_AFFINITY_BONUSES: Record<Element, ElementalBonus[]> = {
     { threshold: 20, description: "+25% Vitrified Storm-skada", effect: { type: 'DAMAGE_BONUS', element: Element.VITRIFIED_STORM, value: 25, isPercentage: true } },
     { threshold: 25, description: "Låser upp ultimat förmåga: Förglasad Storm", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'vitrified_storm_ultimate' } },
   ],
-  // New base element ultimate abilities
-  'fire_nova': {
-    id: 'fire_nova',
-    name: 'Eldnova',
-    description: 'En explosion av eld som skadar alla fiender runt dig.',
-    element: Element.FIRE,
-    icon: Icons.FireNova,
-    cooldown: 15,
-    effect: { type: 'AOE_DAMAGE', damage: 60 },
-  },
-  'earth_wall': {
-    id: 'earth_wall',
-    name: 'Jordvägg',
-    description: 'Skapar en jordvägg som absorberar inkommande skada för dig och dina allierade.',
-    element: Element.EARTH,
-    icon: Icons.EarthWall,
-    cooldown: 18,
-    effect: { type: 'GLOBAL_BUFF', buff: 'damage_reduction', duration: 3, value: 30, isPercentage: true },
-  },
-  'wind_burst': {
-    id: 'wind_burst',
-    name: 'Vindstöt',
-    description: 'En kraftig vindstöt som knuffar tillbaka och saktar ner alla fiender.',
-    element: Element.WIND,
-    icon: Icons.WindBurst,
-    cooldown: 16,
-    effect: { type: 'AOE_DAMAGE', damage: 20, buff: 'slowed', duration: 2 },
-  },
-  'water_blessing': {
-    id: 'water_blessing',
-    name: 'Vattenvälsignelse',
-    description: 'Läker alla allierade och tar bort alla negativa statusar.',
-    element: Element.WATER,
-    icon: Icons.WaterBless,
-    cooldown: 20,
-    effect: { type: 'MASS_HEAL', heal: 80, buff: 'cleanse_all_debuffs_action' },
-  },
 };

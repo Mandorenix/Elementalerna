@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import type { GameEvent, Enemy, CombatLogMessage, Character, StatusEffect, PlayerAbility, EquipmentSlot, Item, ArchetypeName, ItemAffix, AbilityRankData } from '../types';
+import type { GameEvent, Enemy, CombatLogMessage, Character, StatusEffect, PlayerAbility, EquipmentSlot, Item, ArchetypeName, ItemAffix, AbilityRankData, DamagePopupType } from '../types';
 import { Element } from '../types';
 import { Icons, ARCHETYPES, PLAYER_ABILITIES } from '../constants';
 import { soundEffects } from '../sound'; // Aktiverar importen av ljudeffekter
@@ -25,7 +25,7 @@ type Actor = {
   ref: React.RefObject<HTMLDivElement>;
 };
 
-type DamagePopupType = 'damage' | 'crit' | 'heal' | 'miss' | 'status_damage';
+
 type DamagePopup = { id: number; text: string; x: number; y: number; type: DamagePopupType; };
 type VisualEffect = { id: number; type: 'slash' | 'fireball' | 'heal' | 'haste' | 'frozen' | 'paralyzed'; targetId: string; originId: string; };
 
@@ -379,7 +379,7 @@ const EventView: React.FC<{
     // Future affix types like APPLY_STATUS would go here
   };
   
-  const performAttack = async (attackerId: string, defenderId: string, baseDamage: number, damageElement: Element = Element.NEUTRAL, isSkill: boolean = false, skillEffect?: () => void) => {
+  const performAttack = useCallback(async (attackerId: string, defenderId: string, baseDamage: number, damageElement: Element = Element.NEUTRAL, isSkill: boolean = false, skillEffect?: () => void) => {
       // FIX: Change attacker to let to allow reassignment later
       let attacker = actors.find(a => a.id === attackerId);
       let defender = actors.find(a => a.id === defenderId);
@@ -413,11 +413,21 @@ const EventView: React.FC<{
           const armor = defender.type === 'PLAYER' ? playerStats.armor : (event.enemies.find(e => e.id === defenderId)?.stats.armor || 0);
           
           const enemyData = event.enemies.find(e => e.id === defenderId);
-          const resistance = defender.type === 'ENEMY' && enemyData?.resistances ? (enemyData.resistances[damageElement] || 0) : 0;
-          const resistanceMultiplier = 1 - (resistance / 100);
+          const resistanceValue = defender.type === 'ENEMY' && enemyData?.resistances ? (enemyData.resistances[damageElement] || 0) : 0;
+          
+          let resistanceMultiplier = 1;
+          let popupType: DamagePopupType = isCrit ? 'crit' : 'damage';
 
-          if (resistance > 5) addLogMessage("Inte särskilt effektivt...");
-          if (resistance < -5) addLogMessage("Super effektivt!");
+          if (resistanceValue !== 0) {
+              resistanceMultiplier = 1 - (resistanceValue / 100);
+              if (resistanceValue > 0) { // Resistance
+                  addLogMessage(`${defender.name} motstår ${Element[damageElement]} skada!`);
+                  popupType = 'resisted';
+              } else { // Weakness (resistanceValue < 0)
+                  addLogMessage(`${defender.name} är svag mot ${Element[damageElement]} skada!`);
+                  popupType = 'weakness';
+              }
+          }
 
           const isDefending = defender.statusEffects.some(e => e.type === 'defending');
           const finalDamage = Math.floor(Math.max(1, (damage - armor) * resistanceMultiplier) * (isDefending ? 0.5 : 1));
@@ -466,7 +476,7 @@ const EventView: React.FC<{
           
           if (skillEffect) skillEffect();
           
-          addDamagePopup(finalDamage.toString(), defenderId, isCrit ? 'crit' : 'damage');
+          addDamagePopup(finalDamage.toString(), defenderId, popupType); // Use dynamic popupType
           const hettaLog = hettaBonus > 0 ? ` (+${hettaBonus} från Hetta)` : "";
           addLogMessage(`${attacker.name} skadade ${defender.name} för ${finalDamage} HP${hettaLog}.`);
           
@@ -523,7 +533,7 @@ const EventView: React.FC<{
       await sleep(300); // hit flash duration
       updateActorState(attackerId, { animationState: 'idle' });
       updateActorState(defenderId, { animationState: 'idle' });
-  };
+  }, [actors, addDamagePopup, addLogMessage, addVisualEffect, character.archetype, event.enemies, equipment, playerResource, playerStats.armor, playerStats.crit, playerStats.dodge, playerStats.maxAether, setPlayerResource, updateActorState]);
 
   const handlePlayerAction = async (action: 'ATTACK' | 'SKILL' | 'DEFEND', abilityId?: string) => {
       setShowCommandMenu(false);
@@ -856,7 +866,7 @@ const EventView: React.FC<{
           return;
       }
 
-      if (enemyData.ability === 'HASTE_SELF' && Math.random() < 0.4) { // 40% chance
+      if (enemyData.specialAbility === 'HASTE_SELF' && Math.random() < 0.4) { // 40% chance
           const existingEffects = enemyActor.statusEffects.filter(e => e.type !== 'hasted');
           const newEffects: StatusEffect[] = [...existingEffects, { type: 'hasted', duration: 4 }];
           

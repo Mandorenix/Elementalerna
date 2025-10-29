@@ -299,6 +299,32 @@ export const createCombatPayload = (playerLevel: number, element: Element, diffi
         const enemyName = `${Element[enemyElement]} Fiende ${i + 1}`;
         const enemyIcon = ELEMENT_ICONS[enemyElement] || Icons.EnemyGoblin;
 
+        // Define resistances and weaknesses based on the enemy's primary element
+        const resistances: Partial<Record<Element, number>> = {
+            [enemyElement]: 25, // 25% resistance to its own element
+        };
+
+        // Add weaknesses to opposing elements
+        switch (enemyElement) {
+            case Element.FIRE:
+                resistances[Element.WATER] = -25; // Weak to Water
+                resistances[Element.EARTH] = 10; // Slightly resists Earth
+                break;
+            case Element.EARTH:
+                resistances[Element.WIND] = -25; // Weak to Wind
+                resistances[Element.FIRE] = 10; // Slightly resists Fire
+                break;
+            case Element.WIND:
+                resistances[Element.EARTH] = -25; // Weak to Earth
+                resistances[Element.WATER] = 10; // Slightly resists Water
+                break;
+            case Element.WATER:
+                resistances[Element.FIRE] = -25; // Weak to Fire
+                resistances[Element.WIND] = 10; // Slightly resists Wind
+                break;
+        }
+
+
         return {
             id: `enemy-${Date.now()}-${i}`,
             name: enemyName,
@@ -311,9 +337,7 @@ export const createCombatPayload = (playerLevel: number, element: Element, diffi
                 armor: Math.floor(baseArmor * armorMultiplier),
             },
             icon: enemyIcon,
-            resistances: {
-                [enemyElement]: 25, // 25% resistance to its own element
-            },
+            resistances: resistances,
             // More complex enemy behaviors
             behavior: Math.random() > 0.7 ? 'ATTACK_LOWEST_HP' : 'ATTACK_PLAYER',
             onHitEffect: Math.random() > 0.3 ? { type: 'poison', duration: 2, damage: 3 + Math.floor(playerLevel / 5) } : undefined,
@@ -367,6 +391,32 @@ export const createBossCombatPayload = (playerLevel: number, round: number): Gam
     const baseDamage = 15 + (playerLevel * 5);
     const baseArmor = 10 + (playerLevel * 2);
 
+    // Define resistances and weaknesses for the boss
+    const resistances: Partial<Record<Element, number>> = {
+        [bossElement]: 50, // Bosses are highly resistant to their own element
+        [Element.NEUTRAL]: -25, // But maybe weak to neutral attacks?
+    };
+
+    // Add weaknesses to opposing elements for the boss
+    switch (bossElement) {
+        case Element.FIRE:
+            resistances[Element.WATER] = -50; // Boss is very weak to Water
+            resistances[Element.EARTH] = 20; // Boss slightly resists Earth
+            break;
+        case Element.EARTH:
+            resistances[Element.WIND] = -50; // Boss is very weak to Wind
+            resistances[Element.FIRE] = 20; // Boss slightly resists Fire
+            break;
+        case Element.WIND:
+            resistances[Element.EARTH] = -50; // Boss is very weak to Earth
+            resistances[Element.WATER] = 20; // Boss slightly resists Water
+            break;
+        case Element.WATER:
+            resistances[Element.FIRE] = -50; // Boss is very weak to Fire
+            resistances[Element.WIND] = 20; // Boss slightly resists Wind
+            break;
+    }
+
     const boss: Enemy = {
         id: `boss-${Date.now()}`,
         name: bossName,
@@ -379,10 +429,7 @@ export const createBossCombatPayload = (playerLevel: number, round: number): Gam
             armor: baseArmor,
         },
         icon: bossIcon,
-        resistances: {
-            [bossElement]: 50, // Bosses are highly resistant to their own element
-            [Element.NEUTRAL]: -25, // But maybe weak to neutral attacks?
-        },
+        resistances: resistances,
         specialAbility: Math.random() > 0.5 ? 'HASTE_SELF' : undefined, // Boss might have a special ability
         onHitEffect: Math.random() > 0.5 ? { type: 'burning', duration: 2, damage: 5 } : undefined, // Example on-hit effect
         // Boss phases for more complex encounters

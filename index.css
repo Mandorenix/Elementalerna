@@ -113,6 +113,21 @@ body {
   100% { transform: translateY(-25px); opacity: 0; }
 }
 
+/* New: Resisted damage popup */
+@keyframes damage-popup-resisted-anim {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-30px); opacity: 0; }
+}
+
+/* New: Weakness damage popup */
+@keyframes damage-popup-weakness-anim {
+  0% { transform: translateY(0) scale(1.2); opacity: 1; }
+  10% { transform: translateY(-5px) scale(1.5) rotate(-3deg); }
+  20% { transform: translateY(-10px) scale(1.5) rotate(3deg); }
+  100% { transform: translateY(-60px) scale(1.1); opacity: 0; }
+}
+
+
 .damage-popup {
   position: absolute;
   font-weight: bold;
@@ -145,6 +160,16 @@ body {
   font-size: 1.2rem;
   color: #c084fc; /* purple-400 */
   animation: damage-popup-status-anim 1.5s linear forwards;
+}
+.damage-popup-resisted { /* New style */
+  font-size: 1.2rem;
+  color: #60a5fa; /* blue-400 */
+  animation: damage-popup-resisted-anim 1s ease-out forwards;
+}
+.damage-popup-weakness { /* New style */
+  font-size: 1.8rem;
+  color: #ef4444; /* red-500 */
+  animation: damage-popup-weakness-anim 1s ease-out forwards;
 }
 
 @keyframes defeat-fade {
@@ -766,102 +791,13 @@ body {
 @keyframes flickering-light {
   0%, 100% { opacity: 0.8; }
   50% { opacity: 0.9; }
+  100% { opacity: 0.8; }
 }
 @keyframes dust-fall-tomb {
   0% { transform: translateY(-10%); opacity: 0; }
   50% { opacity: 0.1; }
   100% { transform: translateY(100%); opacity: 0; }
 }
-
-/* REMOVED: Old Elemental Text Effects */
-/*
-.element-text-base {
-  display: inline-block;
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
-  font-weight: bold;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-fill-color: transparent;
-  text-shadow:
-    -3px -3px 0px black,
-    3px -3px 0px black,
-    -3px 3px 0px black,
-    3px 3px 0px black,
-    -6px -6px 0px rgba(0,0,0,0.3),
-    6px 6px 0px rgba(0,0,0,0.3);
-  line-height: 1;
-  padding: 0 5px;
-  background-size: 200% 100%;
-  position: relative;
-  color: white;
-  filter: drop-shadow(0 0 8px rgba(255,255,255,0.3));
-}
-
-.element-text-base::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(rgba(0,0,0,0.05) 50%, transparent 50%);
-  background-size: 100% 6px;
-  animation: scanline-flicker 0.2s steps(1) infinite;
-  pointer-events: none;
-  z-index: 2;
-}
-
-@keyframes scanline-flicker {
-  0% { opacity: 0.3; }
-  50% { opacity: 0.2; }
-  100% { opacity: 0.3; }
-}
-
-.element-fire-text {
-  background-image: linear-gradient(to right, #ff4500, #ffa500, #ff6347);
-  animation: fire-flicker 1.5s infinite alternate;
-  filter: drop-shadow(0 0 10px #ff4500);
-}
-@keyframes fire-flicker {
-  0% { background-position: 0% 50%; filter: brightness(2.5) saturate(2.5) hue-rotate(0deg); transform: scale(1); }
-  50% { background-position: 100% 50%; filter: brightness(3.5) saturate(3.5) hue-rotate(5deg); transform: scale(1.02); }
-  100% { background-position: 0% 50%; filter: brightness(2.5) saturate(2.5) hue-rotate(0deg); transform: scale(1); }
-}
-
-.element-water-text {
-  background-image: linear-gradient(to right, #00bfff, #1e90ff, #4682b4);
-  animation: water-flow 2.5s infinite linear;
-  filter: drop-shadow(0 0 10px #1e90ff);
-}
-@keyframes water-flow {
-  0% { background-position: 0% 0%; filter: brightness(1.8) saturate(1.8); transform: translateY(0px); }
-  50% { filter: brightness(2.5) saturate(2.5); transform: translateY(-3px); }
-  100% { background-position: 200% 0%; filter: brightness(1.8) saturate(1.8); transform: translateY(0px); }
-}
-
-.element-wind-text {
-  background-image: linear-gradient(to right, #e0ffff, #add8e6, #87ceeb);
-  animation: wind-swirl 2s infinite alternate;
-  filter: drop-shadow(0 0 10px #add8e6);
-}
-@keyframes wind-swirl {
-  0% { background-position: 0% 0%; transform: translateY(0px) rotateZ(0deg); filter: brightness(1.8) saturate(1.8); }
-  50% { background-position: 100% 0%; transform: translateY(-4px) rotateZ(1deg); filter: brightness(2.5) saturate(2.5); }
-  100% { background-position: 0% 0%; transform: translateY(0px) rotateZ(0deg); filter: brightness(1.8) saturate(1.8); }
-}
-
-.element-earth-text {
-  background-image: linear-gradient(to right, #8b4513, #a0522d, #556b2f);
-  animation: earth-shift 3.5s infinite alternate;
-  filter: drop-shadow(0 0 10px #a0522d);
-}
-@keyframes earth-shift {
-  0% { background-position: 0% 0%; transform: translateX(0px) translateY(0px); filter: brightness(1.8) saturate(1.8); }
-  50% { background-position: 100% 0%; transform: translateX(7px) translateY(2px); filter: brightness(2.5) saturate(2.5); }
-  100% { transform: translateX(0px) translateY(0px); filter: brightness(1.8) saturate(1.8); }
-}
-*/
 
 /* SVG Elemental Orb Animations */
 @keyframes orb-float {

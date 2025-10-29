@@ -356,6 +356,8 @@ export interface MerchantOffer {
     onLeave: Outcome;
 }
 
+export type DamagePopupType = 'damage' | 'crit' | 'heal' | 'miss' | 'status_damage' | 'resisted' | 'weakness'; // Added 'resisted' and 'weakness'
+
 export interface EventCard {
     id: string;
     title: string;

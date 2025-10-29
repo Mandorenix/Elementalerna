@@ -163,6 +163,8 @@ export interface ItemAffix {
     value?: number;
     damage?: number;
     accuracyReduction?: number;
+    element?: Element; // Added for reflecting/absorbing
+    isPercentage?: boolean; // Added for damage_reduction
   };
   description: string;
 }

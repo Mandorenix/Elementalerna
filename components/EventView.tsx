@@ -297,7 +297,7 @@ const EventView: React.FC<{
       const isRooted = actor.statusEffects.some(e => e.type === 'rooted');
       const isFrozen = actor.statusEffects.some(e => e.type === 'frozen');
       const isStunned = actor.statusEffects.some(e => e.type === 'stunned');
-      const isParalyzed = actor.statusEffects.some(e => e.type === 'paralyzed' && Math.random() * 100 < effect.chanceToMissTurn);
+      const isParalyzed = actor.statusEffects.some(e => e.type === 'paralyzed' && 'chanceToMissTurn' in e && Math.random() * 100 < e.chanceToMissTurn);
 
       if (skipTurn || isRooted || isFrozen || isStunned || isParalyzed) {
         updateActorState(actorId, { atb: 0 });
@@ -392,8 +392,82 @@ const EventView: React.FC<{
         }
         await sleep(300);
         updateActorState(targetActor.id, { animationState: 'idle' });
+    } else if (affix.effect.type === 'APPLY_STATUS') {
+        const effect = affix.effect;
+        let newStatus: StatusEffect | undefined;
+        let existingEffects = targetActor.statusEffects.filter(s => s.type !== effect.status); // Remove existing of same type
+
+        switch (effect.status) {
+            case 'burning':
+                newStatus = { type: 'burning', duration: effect.duration || 1, damage: effect.damage || 0 };
+                break;
+            case 'poisoned':
+                newStatus = { type: 'poisoned', duration: effect.duration || 1, damage: effect.damage || 0 };
+                break;
+            case 'slowed':
+                newStatus = { type: 'slowed', duration: effect.duration || 1 };
+                break;
+            case 'retaliating':
+                newStatus = { type: 'retaliating', duration: effect.duration || 1, damage: effect.damage || 0 };
+                break;
+            case 'blinded':
+                newStatus = { type: 'blinded', duration: effect.duration || 1 };
+                break;
+            case 'steamed':
+                newStatus = { type: 'steamed', duration: effect.duration || 1, damage: effect.damage, accuracyReduction: effect.accuracyReduction };
+                break;
+            case 'rooted':
+                newStatus = { type: 'rooted', duration: effect.duration || 1 };
+                break;
+            case 'paralyzed':
+                newStatus = { type: 'paralyzed', duration: effect.duration || 1, chanceToMissTurn: effect.value || 0 }; // Assuming 'value' is chanceToMissTurn
+                break;
+            case 'defending':
+                newStatus = { type: 'defending', duration: effect.duration || 1, value: effect.value };
+                break;
+            case 'hasted':
+                newStatus = { type: 'hasted', duration: effect.duration || 1 };
+                break;
+            case 'regenerating':
+                newStatus = { type: 'regenerating', duration: effect.duration || 1, heal: effect.value || 0 };
+                break;
+            case 'armor_reduction':
+                newStatus = { type: 'armor_reduction', duration: effect.duration || 1, value: effect.value || 0 };
+                break;
+            case 'stunned':
+                newStatus = { type: 'stunned', duration: effect.duration || 1 };
+                break;
+            case 'frozen':
+                newStatus = { type: 'frozen', duration: effect.duration || 1 };
+                break;
+            case 'damage_reduction':
+                newStatus = { type: 'damage_reduction', duration: effect.duration || 1, value: effect.value || 0, isPercentage: effect.isPercentage };
+                break;
+            case 'bleeding':
+                newStatus = { type: 'bleeding', duration: effect.duration || 1, damage: effect.damage || 0 };
+                break;
+            case 'frightened':
+                newStatus = { type: 'frightened', duration: effect.duration || 1, chanceToMissTurn: effect.value || 0, chanceToAttackRandom: effect.value || 0 };
+                break;
+            case 'reflecting':
+                newStatus = { type: 'reflecting', duration: effect.duration || 1, element: effect.element!, value: effect.value || 0 };
+                break;
+            case 'absorbing':
+                newStatus = { type: 'absorbing', duration: effect.duration || 1, element: effect.element!, value: effect.value || 0 };
+                break;
+            // Add other status effects as needed
+            default:
+                console.warn(`Unhandled status effect type in affix: ${effect.status}`);
+                break;
+        }
+
+        if (newStatus) {
+            updateActorState(targetActor.id, { statusEffects: [...existingEffects, newStatus] });
+            addLogMessage(`${targetActor.name} får status: ${effect.status}!`);
+            // Potentially add a visual effect for status application
+            await sleep(300);
+        }
     }
-    // Future affix types like APPLY_STATUS would go here
   };
   
   const performAttack = useCallback(async (attackerId: string, defenderId: string, baseDamage: number, damageElement: Element = Element.NEUTRAL, isSkill: boolean = false, skillEffect?: () => void) => {

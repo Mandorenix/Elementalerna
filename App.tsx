@@ -109,12 +109,12 @@ function App() {
     setDeck(generateNewRoundDeck(1, 1));
     setDiscardPile([]);
     setActiveView('deck');
-  }, [INITIAL_CHARACTER_BASE, setCharacter, setSkillPoints, setAttributePoints, setElementalPoints, setUnlockedSkills, setEquipment, setInventory, setCurrentEvent, setDrawnCard, setRoundLevel, setDeck, setDiscardPile, setActiveView]);
+  }, []);
 
   const handleResetCharacter = useCallback(() => {
     setCharacter(null);
     setGameStarted(false); // Go back to main menu on reset
-  }, [setCharacter, setGameStarted]);
+  }, []);
 
   const unlockSkill = useCallback((skillId: string) => {
     const skillData = SKILL_TREE_DATA.find(s => s.id === skillId);
@@ -129,7 +129,7 @@ function App() {
             return newSkills;
         });
     }
-  }, [skillPoints, unlockedSkills, setSkillPoints, setUnlockedSkills, SKILL_TREE_DATA]);
+  }, [skillPoints, unlockedSkills, setSkillPoints, setUnlockedSkills]);
   
   const gainExperience = useCallback((amount: number) => {
     if (!character) return;
@@ -273,7 +273,7 @@ function App() {
             };
         });
     }
-  }, [elementalPoints, character, setElementalPoints, setCharacter, ELEMENTAL_AFFINITY_BONUSES, PASSIVE_TALENTS, ULTIMATE_ABILITIES]);
+  }, [elementalPoints, character, setElementalPoints, setCharacter]);
 
   const handleCombatCompletion = useCallback((rewards: GameEvent['rewards']) => {
     if (drawnCard) {
@@ -328,7 +328,7 @@ function App() {
         }
     });
     return abilities;
-  }, [unlockedSkills, PLAYER_ABILITIES]);
+  }, [unlockedSkills]);
 
   const playerCombatStats = useMemo(() => {
       if (!character) return null;
@@ -422,7 +422,14 @@ function App() {
 
   const renderActiveView = () => {
     if (currentEvent && playerCombatStats) {
-      return <EventView event={currentEvent} character={character} playerStats={playerCombatStats} onComplete={handleCombatCompletion} equipment={equipment} unlockedSkills={unlockedSkills} />
+      return <EventView 
+                event={currentEvent} 
+                character={character} 
+                playerStats={playerCombatStats} 
+                onComplete={handleCombatCompletion} 
+                equipment={equipment} 
+                unlockedSkills={unlockedSkills} 
+            />
     }
 
     switch (activeView) {

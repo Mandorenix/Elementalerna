@@ -88,10 +88,10 @@ export interface UltimateAbility {
   cooldown: number; // In turns
   targetType?: 'SINGLE_ENEMY' | 'ALL_ENEMIES' | 'LINE_AOE' | 'CIRCLE_AOE' | 'LOWEST_HP_ENEMY' | 'HIGHEST_HP_ENEMY' | 'SELF' | 'ALL_ALLIES'; // New
   effect:
-    | { type: 'AOE_DAMAGE'; damage?: number; buff?: StatusEffect['type'] | 'pushed_back' | 'armor_reduction_buff' | 'stunned_buff' | 'frozen_buff' | 'cleanse_debuffs_action' | 'cleanse_all_debuffs_action'; duration?: number; value?: number; isPercentage?: boolean; }
-    | { type: 'MASS_HEAL'; heal?: number; buff?: StatusEffect['type'] | 'cleanse_debuffs_action' | 'cleanse_all_debuffs_action'; duration?: number; value?: number; isPercentage?: boolean; }
-    | { type: 'GLOBAL_BUFF'; buff?: StatusEffect['type'] | 'damage_reduction_buff'; duration?: number; value?: number; isPercentage?: boolean; }
-    | { type: 'SINGLE_TARGET_DAMAGE'; damage?: number; buff?: StatusEffect['type'] | 'frozen_buff'; duration?: number; value?: number; isPercentage?: boolean; };
+    | { type: 'AOE_DAMAGE'; damage?: number; buff?: StatusEffect['type'] | 'pushed_back' | 'cleanse_debuffs_action' | 'cleanse_all_debuffs_action'; duration?: number; value?: number; isPercentage?: boolean; }
+    | { type: 'MASS_HEAL'; heal?: number; buff?: StatusEffect['type'] | 'cleanse_debuffs_action' | 'cleanse_all_debuffs_action'; duration?: number; value?: number; isPercentage?: boolean; } // Added regenerating
+    | { type: 'GLOBAL_BUFF'; buff?: StatusEffect['type']; duration?: number; value?: number; isPercentage?: boolean; }
+    | { type: 'SINGLE_TARGET_DAMAGE'; damage?: number; buff?: StatusEffect['type']; duration?: number; value?: number; isPercentage?: boolean; };
 }
 
 export interface ElementalBonus {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import type { GameEvent, Enemy, CombatLogMessage, Character, StatusEffect, PlayerAbility, EquipmentSlot, Item, ArchetypeName, ItemAffix, AbilityRankData, DamagePopupType } from '../types';
+import type { GameEvent, Enemy, CombatLogMessage, Character, StatusEffect, PlayerAbility, EquipmentSlot, Item, ArchetypeName, ItemAffix, AbilityRankData, DamagePopupType, UltimateAbility } from '../types';
 import { Element } from '../types';
-import { Icons, ARCHETYPES, PLAYER_ABILITIES } from '../constants';
+import { Icons, ARCHETYPES, PLAYER_ABILITIES, ULTIMATE_ABILITIES, PASSIVE_TALENTS } from '../constants'; // Added ULTIMATE_ABILITIES and PASSIVE_TALENTS
 import { soundEffects } from '../sound'; // Aktiverar importen av ljudeffekter
 import CombatBackground from './CombatBackground'; // Import the new CombatBackground component
 
@@ -23,11 +23,12 @@ type Actor = {
   statusEffects: StatusEffect[];
   isDefeated: boolean;
   ref: React.RefObject<HTMLDivElement>;
+  ultimateCooldowns: Partial<Record<string, number>>; // New: Track ultimate cooldowns
 };
 
 
 type DamagePopup = { id: number; text: string; x: number; y: number; type: DamagePopupType; };
-type VisualEffect = { id: number; type: 'slash' | 'fireball' | 'heal' | 'haste' | 'frozen' | 'paralyzed'; targetId: string; originId: string; };
+type VisualEffect = { id: number; type: 'slash' | 'fireball' | 'heal' | 'haste' | 'frozen' | 'paralyzed' | 'meteor_impact' | 'earthquake_vfx' | 'wind_burst_vfx' | 'water_bless_vfx'; targetId: string; originId: string; }; // Added new VFX types
 
 const resourceThemes: Record<string, { text: string; bg: string }> = {
     'Hetta': { text: 'text-orange-400', bg: 'bg-orange-500' },
@@ -58,6 +59,7 @@ const EventView: React.FC<{
   const [log, setLog] = useState<string[]>([]);
   const [showCommandMenu, setShowCommandMenu] = useState(false);
   const [showAbilityMenu, setShowAbilityMenu] = useState(false);
+  const [showUltimateMenu, setShowUltimateMenu] = useState(false); // New state for ultimate menu
   const [selectedTarget, setSelectedTarget] = useState<string | null>(null);
   const [damagePopups, setDamagePopups] = useState<DamagePopup[]>([]);
   const [visualEffects, setVisualEffects] = useState<VisualEffect[]>([]);
@@ -73,14 +75,16 @@ const EventView: React.FC<{
     const playerActor: Actor = {
       id: 'player', type: 'PLAYER', name: character.name, icon: archetypeIcon,
       hp: playerStats.health, maxHp: playerStats.maxHealth, atb: 0, 
-      animationState: 'idle', statusEffects: [], isDefeated: false, ref: playerRef
+      animationState: 'idle', statusEffects: [], isDefeated: false, ref: playerRef,
+      ultimateCooldowns: {} // Initialize cooldowns
     };
     const enemyActors: Actor[] = event.enemies.map((e, i) => {
       enemyRefs.current[i] = React.createRef<HTMLDivElement>();
       return {
         id: e.id, type: 'ENEMY', name: e.name, icon: e.icon,
         hp: e.stats.health, maxHp: e.stats.maxHealth, atb: Math.random() * 50, 
-        animationState: 'idle', statusEffects: [], isDefeated: false, ref: enemyRefs.current[i]
+        animationState: 'idle', statusEffects: [], isDefeated: false, ref: enemyRefs.current[i],
+        ultimateCooldowns: {} // Enemies don't use ultimates, but keep for type consistency
       }
     });
     setActors([playerActor, ...enemyActors]);
@@ -262,7 +266,20 @@ const EventView: React.FC<{
           }
       }
       
-      updateActorState(actorId, { hp, statusEffects: effectsAfterTurn });
+      // Decrement ultimate cooldowns for player
+      if (actor.type === 'PLAYER') {
+          const newCooldowns: Partial<Record<string, number>> = {};
+          for (const ultId in actor.ultimateCooldowns) {
+              const currentCd = actor.ultimateCooldowns[ultId] || 0;
+              if (currentCd > 0) {
+                  newCooldowns[ultId] = currentCd - 1;
+              }
+          }
+          updateActorState(actorId, { hp, statusEffects: effectsAfterTurn, ultimateCooldowns: newCooldowns });
+      } else {
+          updateActorState(actorId, { hp, statusEffects: effectsAfterTurn });
+      }
+      
       await sleep(500);
 
       if (hp <= 0) {
@@ -535,15 +552,17 @@ const EventView: React.FC<{
       updateActorState(defenderId, { animationState: 'idle' });
   }, [actors, addDamagePopup, addLogMessage, addVisualEffect, character.archetype, event.enemies, equipment, playerResource, playerStats.armor, playerStats.crit, playerStats.dodge, playerStats.maxAether, setPlayerResource, updateActorState]);
 
-  const handlePlayerAction = async (action: 'ATTACK' | 'SKILL' | 'DEFEND', abilityId?: string) => {
+  const handlePlayerAction = async (action: 'ATTACK' | 'SKILL' | 'DEFEND' | 'ULTIMATE', abilityId?: string) => {
       setShowCommandMenu(false);
       setShowAbilityMenu(false);
+      setShowUltimateMenu(false); // Close ultimate menu
       setGameState('EXECUTING');
       let player = actors.find(a => a.type === 'PLAYER');
       if (!player) return;
 
       const abilityInfo = abilityId ? PLAYER_ABILITIES[abilityId] : null;
-      const rank = abilityId ? (unlockedSkills.get(abilityId) || 1) : 1;
+      const ultimateInfo = abilityId ? ULTIMATE_ABILITIES[abilityId] : null;
+      const rank = abilityId && abilityInfo ? (unlockedSkills.get(abilityId) || 1) : 1;
       const rankData = abilityInfo ? abilityInfo.ranks[rank - 1] : null;
       
       let target = actors.find(a => a.id === selectedTarget);
@@ -839,6 +858,181 @@ const EventView: React.FC<{
               });
             }
           }
+      } else if (action === 'ULTIMATE' && ultimateInfo) {
+          if (player.ultimateCooldowns[ultimateInfo.id] && player.ultimateCooldowns[ultimateInfo.id] > 0) {
+              addLogMessage(`${ultimateInfo.name} är på nedkylning (${player.ultimateCooldowns[ultimateInfo.id]} rundor kvar)!`);
+              setGameState('PLAYER_TURN'); // Return to player turn if ultimate is on cooldown
+              setShowUltimateMenu(true);
+              return;
+          }
+
+          addLogMessage(`Du använder din ultimata förmåga: ${ultimateInfo.name}!`);
+          updateActorState(player.id, { animationState: 'casting', atb: 0, ultimateCooldowns: { ...player.ultimateCooldowns, [ultimateInfo.id]: ultimateInfo.cooldown } });
+          await sleep(500); // Casting animation
+
+          const livingEnemies = actors.filter(a => a.type === 'ENEMY' && !a.isDefeated);
+          const allActors = actors.filter(a => !a.isDefeated);
+
+          switch (ultimateInfo.effect.type) {
+              case 'AOE_DAMAGE':
+                  addVisualEffect('meteor_impact', player.id, livingEnemies[0]?.id || player.id); // VFX targets first enemy or self
+                  await sleep(500);
+                  for (const enemy of livingEnemies) {
+                      let ultimateDamage = (ultimateInfo.effect.damage || 0) + (playerStats.intelligence * 2);
+                      
+                      const enemyData = event.enemies.find(e => e.id === enemy.id);
+                      const resistance = enemyData?.resistances ? (enemyData.resistances[ultimateInfo.element] || 0) : 0;
+                      const resistanceMultiplier = 1 - (resistance / 100);
+                      
+                      const enemyArmor = enemyData?.stats.armor || 0;
+                      const finalDamage = Math.floor(Math.max(1, (ultimateDamage - enemyArmor) * resistanceMultiplier));
+                      const newHp = Math.max(0, enemy.hp - finalDamage);
+                      
+                      updateActorState(enemy.id, { hp: newHp, animationState: 'hit' });
+                      addDamagePopup(finalDamage.toString(), enemy.id, 'damage');
+                      addLogMessage(`${enemy.name} tar ${finalDamage} skada från ${ultimateInfo.name}!`);
+                      
+                      if (ultimateInfo.effect.buff && ultimateInfo.effect.duration) {
+                          const buffType = ultimateInfo.effect.buff;
+                          let newStatus: StatusEffect | undefined;
+
+                          switch (buffType) {
+                              case 'burning':
+                                  newStatus = { type: 'burning', duration: ultimateInfo.effect.duration, damage: ultimateInfo.effect.value || 0 };
+                                  break;
+                              case 'armor_reduction':
+                              case 'armor_reduction_buff':
+                                  newStatus = { type: 'armor_reduction', duration: ultimateInfo.effect.duration, value: ultimateInfo.effect.value || 0 };
+                                  break;
+                              case 'stunned':
+                              case 'stunned_buff':
+                                  newStatus = { type: 'stunned', duration: ultimateInfo.effect.duration };
+                                  break;
+                              case 'frozen':
+                              case 'frozen_buff':
+                                  newStatus = { type: 'frozen', duration: ultimateInfo.effect.duration };
+                                  break;
+                              case 'regenerating':
+                                  newStatus = { type: 'regenerating', duration: ultimateInfo.effect.duration, heal: ultimateInfo.effect.value || 0 };
+                                  break;
+                              case 'damage_reduction':
+                              case 'damage_reduction_buff':
+                                  newStatus = { type: 'damage_reduction', duration: ultimateInfo.effect.duration, value: ultimateInfo.effect.value || 0, isPercentage: ultimateInfo.effect.isPercentage };
+                                  break;
+                              case 'paralyzed':
+                                  newStatus = { type: 'paralyzed', duration: ultimateInfo.effect.duration, chanceToMissTurn: ultimateInfo.effect.value || 0 };
+                                  break;
+                              case 'frightened':
+                                  newStatus = { type: 'frightened', duration: ultimateInfo.effect.duration, chanceToMissTurn: ultimateInfo.effect.value || 0, chanceToAttackRandom: ultimateInfo.effect.value || 0 };
+                                  break;
+                              case 'reflecting':
+                              case 'absorbing':
+                                  newStatus = { type: buffType, duration: ultimateInfo.effect.duration, element: ultimateInfo.element, value: ultimateInfo.effect.value || 0 };
+                                  break;
+                              case 'bleeding':
+                                  newStatus = { type: 'bleeding', duration: ultimateInfo.effect.duration, damage: ultimateInfo.effect.value || 0 };
+                                  break;
+                              case 'steamed':
+                                  newStatus = { type: 'steamed', duration: ultimateInfo.effect.duration, damage: ultimateInfo.effect.value, accuracyReduction: ultimateInfo.effect.value };
+                                  break;
+                              case 'slowed':
+                              case 'blinded':
+                              case 'rooted':
+                              case 'defending':
+                              case 'hasted':
+                              case 'full_flow':
+                              case 'overheated':
+                                  newStatus = { type: buffType, duration: ultimateInfo.effect.duration } as StatusEffect;
+                                  break;
+                              case 'pushed_back':
+                              case 'cleanse_debuffs_action':
+                              case 'cleanse_all_debuffs_action':
+                                  // These are not StatusEffect objects, so we don't create a newStatus for them here.
+                                  break;
+                              default:
+                                  console.warn(`Unknown buff type encountered: ${buffType}`);
+                                  break;
+                          }
+
+                          if (newStatus) {
+                              updateActorState(enemy.id, { statusEffects: [...enemy.statusEffects.filter(e => e.type !== newStatus!.type), newStatus!] });
+                              addLogMessage(`${enemy.name} får status: ${newStatus!.type}!`);
+                          }
+                      }
+
+                      if (newHp <= 0) {
+                          updateActorState(enemy.id, { isDefeated: true });
+                          addLogMessage(`${enemy.name} har besegrats!`);
+                      }
+                      await sleep(200);
+                  }
+                  break;
+              case 'MASS_HEAL':
+                  addVisualEffect('water_bless_vfx', player.id, player.id);
+                  await sleep(500);
+                  for (const actor of allActors) {
+                      if (actor.type === 'PLAYER') { // Only heal player for now
+                          let healAmount = (ultimateInfo.effect.heal || 0) + (playerStats.intelligence * 1.5);
+                          const newHp = Math.min(actor.maxHp, actor.hp + healAmount);
+                          updateActorState(actor.id, { hp: newHp });
+                          addDamagePopup(`+${healAmount}`, actor.id, 'heal');
+                          addLogMessage(`${actor.name} läker för ${healAmount} HP!`);
+
+                          if (ultimateInfo.effect.buff === 'cleanse_debuffs_action' || ultimateInfo.effect.buff === 'cleanse_all_debuffs_action') {
+                              updateActorState(actor.id, { statusEffects: [] }); // Cleanses all debuffs
+                              addLogMessage(`${actor.name} renas från alla negativa effekter!`);
+                          }
+                          if (ultimateInfo.effect.buff === 'regenerating' && ultimateInfo.effect.duration && ultimateInfo.effect.value) {
+                              const newStatus: StatusEffect = { type: 'regenerating', duration: ultimateInfo.effect.duration, heal: ultimateInfo.effect.value };
+                              updateActorState(actor.id, { statusEffects: [...actor.statusEffects.filter(e => e.type !== newStatus.type), newStatus] });
+                              addLogMessage(`${actor.name} får regenerering!`);
+                          }
+                      }
+                  }
+                  break;
+              case 'GLOBAL_BUFF':
+                  addVisualEffect('earthquake_vfx', player.id, player.id); // Placeholder VFX
+                  await sleep(500);
+                  for (const actor of allActors) {
+                      if (actor.type === 'PLAYER' && ultimateInfo.effect.buff === 'damage_reduction_buff' && ultimateInfo.effect.duration && ultimateInfo.effect.value) {
+                          const newStatus: StatusEffect = { type: 'damage_reduction', duration: ultimateInfo.effect.duration, value: ultimateInfo.effect.value, isPercentage: ultimateInfo.effect.isPercentage };
+                          updateActorState(actor.id, { statusEffects: [...actor.statusEffects.filter(e => e.type !== newStatus.type), newStatus] });
+                          addLogMessage(`${actor.name} får skadereduktion!`);
+                      }
+                  }
+                  break;
+              case 'SINGLE_TARGET_DAMAGE':
+                  if (target) {
+                      let ultimateDamage = (ultimateInfo.effect.damage || 0) + (playerStats.intelligence * 3);
+                      
+                      const enemyData = event.enemies.find(e => e.id === target.id);
+                      const resistance = enemyData?.resistances ? (enemyData.resistances[ultimateInfo.element] || 0) : 0;
+                      const resistanceMultiplier = 1 - (resistance / 100);
+                      
+                      const enemyArmor = enemyData?.stats.armor || 0;
+                      const finalDamage = Math.floor(Math.max(1, (ultimateDamage - enemyArmor) * resistanceMultiplier));
+                      const newHp = Math.max(0, target.hp - finalDamage);
+                      
+                      updateActorState(target.id, { hp: newHp, animationState: 'hit' });
+                      addDamagePopup(finalDamage.toString(), target.id, 'damage');
+                      addLogMessage(`${target.name} tar ${finalDamage} skada från ${ultimateInfo.name}!`);
+
+                      if (ultimateInfo.effect.buff === 'frozen_buff' && ultimateInfo.effect.duration) {
+                          const newStatus: StatusEffect = { type: 'frozen', duration: ultimateInfo.effect.duration };
+                          updateActorState(target.id, { statusEffects: [...target.statusEffects.filter(e => e.type !== newStatus.type), newStatus] });
+                          addLogMessage(`${target.name} fryses av isen!`);
+                      }
+
+                      if (newHp <= 0) {
+                          updateActorState(target.id, { isDefeated: true });
+                          addLogMessage(`${target.name} har besegrats!`);
+                      }
+                  }
+                  break;
+          }
+          await sleep(500);
+          updateActorState(player.id, { animationState: 'idle' });
+          livingEnemies.forEach(e => updateActorState(e.id, { animationState: 'idle' })); // Reset enemy animation states
       }
       
       if(gameState as GameState !== 'VICTORY' && gameState as GameState !== 'DEFEAT') {
@@ -960,9 +1154,11 @@ const EventView: React.FC<{
       return elementSortOrder.indexOf(a.element) - elementSortOrder.indexOf(b.element);
   });
 
+  const unlockedUltimateAbilities = character.unlockedUltimateAbilities.map(id => ULTIMATE_ABILITIES[id]);
+
 
   const ActorSprite: React.FC<{actor: Actor; onDefeatAnimationEnd: (id: string) => void; equipment?: Record<EquipmentSlot, Item | null>}> = ({ actor, onDefeatAnimationEnd, equipment }) => {
-    const isSelected = selectedTarget === actor.id && (showCommandMenu || showAbilityMenu) && actor.type === 'ENEMY';
+    const isSelected = selectedTarget === actor.id && (showCommandMenu || showAbilityMenu || showUltimateMenu) && actor.type === 'ENEMY';
     const Icon = actor.icon;
     
     let animationClass = actor.isDefeated ? 'animate-defeat' : 'animate-idle-bob';
@@ -1091,6 +1287,18 @@ const EventView: React.FC<{
             if (vfx.type === 'paralyzed') {
                 return <div key={vfx.id} className="absolute w-16 h-16 border-4 border-yellow-400 rounded-full animate-pulse" style={{ left: targetRect.left, top: targetRect.top }} />
             }
+            if (vfx.type === 'meteor_impact') {
+                return <div key={vfx.id} className="absolute w-24 h-24 bg-red-500/70 rounded-full animate-pulse-glow" style={{ left: targetRect.left - 24, top: targetRect.top - 24, boxShadow: '0 0 30px 15px #ef4444' }} />
+            }
+            if (vfx.type === 'earthquake_vfx') {
+                return <div key={vfx.id} className="absolute w-full h-full bg-amber-700/30 animate-pulse" style={{ left: 0, top: 0, boxShadow: 'inset 0 0 50px #a16207' }} />
+            }
+            if (vfx.type === 'wind_burst_vfx') {
+                return <div key={vfx.id} className="absolute w-full h-full bg-sky-500/30 animate-pulse" style={{ left: 0, top: 0, boxShadow: 'inset 0 0 50px #0ea5e9' }} />
+            }
+            if (vfx.type === 'water_bless_vfx') {
+                return <div key={vfx.id} className="absolute w-full h-full bg-blue-500/30 animate-pulse" style={{ left: 0, top: 0, boxShadow: 'inset 0 0 50px #3b82f6' }} />
+            }
             return null;
         })}
       </>
@@ -1128,6 +1336,7 @@ const EventView: React.FC<{
                     <ul>
                         <li onClick={() => handlePlayerAction('ATTACK')} className="p-1 hover:bg-white/20 cursor-pointer">Attackera</li>
                         <li onClick={() => { setShowCommandMenu(false); setShowAbilityMenu(true); }} className="p-1 hover:bg-white/20 cursor-pointer">Förmågor</li>
+                        <li onClick={() => { setShowCommandMenu(false); setShowUltimateMenu(true); }} className="p-1 hover:bg-white/20 cursor-pointer">Ultimata</li> {/* New button */}
                         <li onClick={() => handlePlayerAction('DEFEND')} className="p-1 hover:bg-white/20 cursor-pointer">Försvara</li>
                     </ul>
                 </div>
@@ -1161,6 +1370,35 @@ const EventView: React.FC<{
                       ))}
                     </ul>
                     <button onClick={() => { setShowAbilityMenu(false); setShowCommandMenu(true); }} className="text-center w-full mt-1 text-gray-400 hover:text-white">Tillbaka</button>
+                </div>
+            )}
+            {showUltimateMenu && ( // New Ultimate Abilities Menu
+                <div className="ff-panel w-64 text-xs">
+                    <ul className="h-full overflow-y-auto">
+                        {unlockedUltimateAbilities.length > 0 ? (
+                            unlockedUltimateAbilities.map(ultimate => {
+                                const playerActor = actors.find(a => a.type === 'PLAYER');
+                                const currentCooldown = playerActor?.ultimateCooldowns[ultimate.id] || 0;
+                                const isReady = currentCooldown === 0;
+                                const Icon = ultimate.icon;
+
+                                return (
+                                    <li key={ultimate.id}
+                                        onClick={() => isReady ? handlePlayerAction('ULTIMATE', ultimate.id) : undefined}
+                                        className={`p-1 flex justify-between items-center ${isReady ? 'hover:bg-white/20 cursor-pointer pl-3' : 'text-gray-500 pl-3'}`}>
+                                        <div className="flex items-center space-x-2">
+                                            <div className="w-6 h-6 flex items-center justify-center"><Icon /></div>
+                                            <span>{ultimate.name}</span>
+                                        </div>
+                                        <span>{isReady ? 'Redo' : `CD: ${currentCooldown}`}</span>
+                                    </li>
+                                );
+                            })
+                        ) : (
+                            <li className="p-1 text-gray-500 text-center">Inga ultimata förmågor upplåsta.</li>
+                        )}
+                    </ul>
+                    <button onClick={() => { setShowUltimateMenu(false); setShowCommandMenu(true); }} className="text-center w-full mt-1 text-gray-400 hover:text-white">Tillbaka</button>
                 </div>
             )}
             

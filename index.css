@@ -118,7 +118,6 @@ body {
   0% { transform: translateY(0); opacity: 1; }
   100% { transform: translateY(-30px); opacity: 0; }
 }
-
 /* New: Weakness damage popup */
 @keyframes damage-popup-weakness-anim {
   0% { transform: translateY(0) scale(1.2); opacity: 1; }

@@ -297,7 +297,7 @@ const EventView: React.FC<{
       const isRooted = actor.statusEffects.some(e => e.type === 'rooted');
       const isFrozen = actor.statusEffects.some(e => e.type === 'frozen');
       const isStunned = actor.statusEffects.some(e => e.type === 'stunned');
-      const isParalyzed = actor.statusEffects.some(e => e.type === 'paralyzed' && Math.random() * 100 < e.chanceToMissTurn);
+      const isParalyzed = actor.statusEffects.some(e => e.type === 'paralyzed' && Math.random() * 100 < effect.chanceToMissTurn);
 
       if (skipTurn || isRooted || isFrozen || isStunned || isParalyzed) {
         updateActorState(actorId, { atb: 0 });
@@ -736,7 +736,7 @@ const EventView: React.FC<{
               if (rankData.duration) {
                 // Reaction: Earth + Poisoned = Cleansed
                 if (player.statusEffects.some(e => e.type === 'poisoned')) {
-                    addLogMessage(`Jordens kraft renar dig från giftet!`);
+                    addLogMessage(`Jordens kraft renar you from giftet!`);
                     updateActorState(player.id, {
                         statusEffects: player.statusEffects.filter(e => e.type !== 'poisoned')
                     });
@@ -901,22 +901,18 @@ const EventView: React.FC<{
                                   newStatus = { type: 'burning', duration: ultimateInfo.effect.duration, damage: ultimateInfo.effect.value || 0 };
                                   break;
                               case 'armor_reduction':
-                              case 'armor_reduction_buff':
                                   newStatus = { type: 'armor_reduction', duration: ultimateInfo.effect.duration, value: ultimateInfo.effect.value || 0 };
                                   break;
                               case 'stunned':
-                              case 'stunned_buff':
                                   newStatus = { type: 'stunned', duration: ultimateInfo.effect.duration };
                                   break;
                               case 'frozen':
-                              case 'frozen_buff':
                                   newStatus = { type: 'frozen', duration: ultimateInfo.effect.duration };
                                   break;
                               case 'regenerating':
                                   newStatus = { type: 'regenerating', duration: ultimateInfo.effect.duration, heal: ultimateInfo.effect.value || 0 };
                                   break;
                               case 'damage_reduction':
-                              case 'damage_reduction_buff':
                                   newStatus = { type: 'damage_reduction', duration: ultimateInfo.effect.duration, value: ultimateInfo.effect.value || 0, isPercentage: ultimateInfo.effect.isPercentage };
                                   break;
                               case 'paralyzed':
@@ -994,7 +990,7 @@ const EventView: React.FC<{
                   addVisualEffect('earthquake_vfx', player.id, player.id); // Placeholder VFX
                   await sleep(500);
                   for (const actor of allActors) {
-                      if (actor.type === 'PLAYER' && ultimateInfo.effect.buff === 'damage_reduction_buff' && ultimateInfo.effect.duration && ultimateInfo.effect.value) {
+                      if (actor.type === 'PLAYER' && ultimateInfo.effect.buff === 'damage_reduction' && ultimateInfo.effect.duration && ultimateInfo.effect.value) {
                           const newStatus: StatusEffect = { type: 'damage_reduction', duration: ultimateInfo.effect.duration, value: ultimateInfo.effect.value, isPercentage: ultimateInfo.effect.isPercentage };
                           updateActorState(actor.id, { statusEffects: [...actor.statusEffects.filter(e => e.type !== newStatus.type), newStatus] });
                           addLogMessage(`${actor.name} får skadereduktion!`);
@@ -1017,7 +1013,7 @@ const EventView: React.FC<{
                       addDamagePopup(finalDamage.toString(), target.id, 'damage');
                       addLogMessage(`${target.name} tar ${finalDamage} skada från ${ultimateInfo.name}!`);
 
-                      if (ultimateInfo.effect.buff === 'frozen_buff' && ultimateInfo.effect.duration) {
+                      if (ultimateInfo.effect.buff === 'frozen' && ultimateInfo.effect.duration) {
                           const newStatus: StatusEffect = { type: 'frozen', duration: ultimateInfo.effect.duration };
                           updateActorState(target.id, { statusEffects: [...target.statusEffects.filter(e => e.type !== newStatus.type), newStatus] });
                           addLogMessage(`${target.name} fryses av isen!`);

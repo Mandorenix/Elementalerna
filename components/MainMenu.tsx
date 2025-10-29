@@ -5,6 +5,11 @@ interface MainMenuProps {
 }
 
 const MainMenu: React.FC<MainMenuProps> = ({ onStartGame }) => {
+  const text = "ELEMENTARIERNA";
+  // Cykla genom de fyra grundelementen för varje bokstav
+  const elements = ['fire', 'earth', 'wind', 'water']; 
+  const elementClasses = elements.map(e => `element-${e}-text`);
+
   return (
     <div className="flex-grow w-full h-full flex flex-col items-center justify-center text-white font-['Press_Start_2P'] relative overflow-hidden bg-gradient-to-br from-gray-900 to-black">
       {/* Bakgrundseffekter för retrokänsla */}
@@ -12,8 +17,12 @@ const MainMenu: React.FC<MainMenuProps> = ({ onStartGame }) => {
       <div className="absolute inset-0 z-0 bg-gradient-to-t from-black/70 to-transparent"></div>
 
       <div className="relative z-10 text-center">
-        <h1 className="text-6xl md:text-7xl lg:text-8xl mb-12 leading-tight text-yellow-400 drop-shadow-[0_0_10px_rgba(252,211,77,0.7)]">
-          ELEMENTARIERNA
+        <h1 className="text-6xl md:text-7xl lg:text-8xl mb-12 leading-tight drop-shadow-[0_0_10px_rgba(252,211,77,0.7)]">
+          {text.split('').map((char, index) => (
+            <span key={index} className={`element-text-base ${elementClasses[index % elements.length]}`}>
+              {char}
+            </span>
+          ))}
         </h1>
         <button
           onClick={onStartGame}

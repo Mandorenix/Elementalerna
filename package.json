@@ -14,13 +14,14 @@
     "@capacitor/core": "^7.4.3",
     "@capacitor/ios": "^7.4.3",
     "@tsparticles/react": "^3.0.0",
+    "@tsparticles/slim": "^3.9.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "tsparticles": "^3.9.1",
     "tsparticles-engine": "^2.12.0"
   },
   "devDependencies": {
-    "@dyad-sh/react-vite-component-tagger": "^0.8.0",
+    "@dyad-sh/react-vite-component-tagger": "latest",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",

@@ -19,12 +19,10 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({
   onSpendAttributePoints,
   onResetAttributePoints,
 }) => {
-  // Defensive check for character object itself
   if (!character) {
     return <div className="p-4 text-red-500 bg-gray-900/70 backdrop-blur-sm h-full overflow-y-auto pixelated-border-gold">Laddar karaktärsdata eller data saknas...</div>;
   }
 
-  // Destructure with defaults to ensure stats and baseAttributes are always objects
   const { stats = {}, baseAttributes = {}, attributePointsAtLastSpend = 0 } = character;
 
   return (
@@ -38,21 +36,19 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({
             <div key={attr.key} className="flex items-center justify-between bg-gray-800/50 p-2 pixelated-border">
               <div className="flex items-center">
                 <span className="text-lg font-medium text-white mr-2">{attr.name}:</span>
-                {/* Access stats using the destructured variable with a default of 0 */}
                 <span className="text-xl font-bold text-yellow-300">{stats[attr.key] || 0}</span>
                 <span className="text-sm text-gray-400 ml-2">({attr.description})</span>
               </div>
               <div className="flex space-x-2">
                 <button
-                  onClick={() => onDecreaseAttribute(attr.key)}
-                  // Access baseAttributes using the destructured variable with a default of 0
+                  onClick={() => onDecreaseAttribute?.(attr.key)}
                   disabled={(stats[attr.key] || 0) === (baseAttributes[attr.key] || 0)}
                   className="px-3 py-1 bg-red-700/70 text-white font-bold pixelated-border-gold hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   -
                 </button>
                 <button
-                  onClick={() => onIncreaseAttribute(attr.key)}
+                  onClick={() => onIncreaseAttribute?.(attr.key)}
                   disabled={attributePoints === 0}
                   className="px-3 py-1 bg-green-700/70 text-white font-bold pixelated-border-gold hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -74,14 +70,13 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({
 
       <div className="flex justify-end space-x-4">
         <button
-          onClick={onResetAttributePoints}
+          onClick={() => onResetAttributePoints?.()}
           className="px-6 py-2 bg-gray-700/70 text-white font-bold pixelated-border-gold hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Återställ
         </button>
         <button
-          onClick={onSpendAttributePoints}
-          // Use the destructured attributePointsAtLastSpend
+          onClick={() => onSpendAttributePoints?.()}
           disabled={attributePoints === attributePointsAtLastSpend}
           className="px-6 py-2 bg-blue-700/70 text-white font-bold pixelated-border-gold hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >

@@ -220,7 +220,7 @@ const EventView: React.FC<{
               addLogMessage(`${actor.name} är frusen och kan inte agera!`);
               addVisualEffect('frozen', actor.id, actor.id);
           }
-          if (effect.type === 'paralyzed' && Math.random() * 100 < effect.chanceToMissTurn) {
+          if (effect.type === 'paralyzed' && 'chanceToMissTurn' in effect && Math.random() * 100 < effect.chanceToMissTurn) {
               skipTurn = true;
               addLogMessage(`${actor.name} är förlamad och kan inte agera!`);
               addVisualEffect('paralyzed', actor.id, actor.id);

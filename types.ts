@@ -42,6 +42,9 @@ export interface CharacterStats {
   constitution: number;
 }
 
+// Ny typ: Attribute
+export type Attribute = keyof CharacterStats;
+
 export interface Resource {
   current: number;
   max: number;

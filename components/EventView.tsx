@@ -1662,8 +1662,8 @@ const EventView: React.FC<{
             )}
             
             {/* Log */}
-            <div className="ff-panel flex-grow h-full overflow-hidden">
-                 {log.map((msg, i) => <p key={i} className="text-sm">{msg}</p>)}
+            <div className="ff-panel flex-grow h-full overflow-hidden p-4"> {/* Increased padding */}
+                 {log.map((msg, i) => <p key={i} className="text-sm leading-tight mb-1">{msg}</p>)} {/* Adjusted line height and margin */}
             </div>
 
             {/* Player Status */}

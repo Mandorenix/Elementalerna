@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Character, Skill, Archetype, Item, Rarity, Enemy, GameEvent, EquipmentSlot, EventModifier, EventCard, ChoiceOption, Outcome, PlayerAbility, ItemAffix, ElementalBonus, Environment, PassiveTalent, UltimateAbility, ItemStats, Attribute } from './types';
+import type { Character, Skill, Archetype, Item, Rarity, Enemy, GameEvent, EquipmentSlot, EventModifier, EventCard, ChoiceOption, Outcome, PlayerAbility, ItemAffix, ElementalBonus, Environment, PassiveTalent, UltimateAbility, ItemStats } from './types';
 import { Element } from './types';
 
 // Helper for creating simple, pixelated-style SVG icons
@@ -366,14 +366,6 @@ export const INITIAL_CHARACTER_BASE: Omit<Character, 'name' | 'archetype' | 'unl
     max: 100,
   },
   elementalAffinities: {},
-};
-
-// Ny konstant: ATTRIBUTE_DEFINITIONS
-export const ATTRIBUTE_DEFINITIONS: Record<Attribute, { key: Attribute; name: string; description: string }> = {
-  strength: { key: 'strength', name: 'Styrka', description: 'Ökar fysisk skada och bärförmåga.' },
-  dexterity: { key: 'dexterity', name: 'Dexteritet', description: 'Ökar undvikandechans och kritisk träff.' },
-  intelligence: { key: 'intelligence', name: 'Intelligens', description: 'Ökar magisk skada och resursåterhämtning.' },
-  constitution: { key: 'constitution', name: 'Konstitution', description: 'Ökar maxhälsa och rustning.' },
 };
 
 export const SKILL_TREE_DATA: Skill[] = [
@@ -786,7 +778,7 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
   'petrifying_gaze': {
     id: 'petrifying_gaze',
     name: 'Förstenande Blick',
-    description: 'Förstenar alla fiender, rotar dem och orsakar skada.', // Corrected string
+    description: 'Förstenar alla fiender, rotar dem och orsakar skada.',
     element: Element.OBSIDIAN,
     icon: Icons.Gaze,
     cooldown: 18,

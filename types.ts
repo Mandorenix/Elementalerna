@@ -230,6 +230,18 @@ export interface EnemyPhase {
   description?: string;
 }
 
+// New interface for on-hit effects that apply a status
+export interface EnemyApplyStatusEffect {
+  type: 'APPLY_STATUS';
+  status: StatusEffect['type'];
+  chance: number;
+  duration?: number;
+  value?: number; // For statuses like 'paralyzed' (chanceToMissTurn) or 'frail' (damageTakenIncrease)
+  damage?: number; // For statuses like 'burning', 'poisoned'
+  accuracyReduction?: number; // For 'steamed'
+  isPercentage?: boolean; // For 'frail'
+}
+
 export interface Enemy {
   id: string;
   name: string;
@@ -250,7 +262,8 @@ export interface Enemy {
   onHitEffect?:
     | { type: 'burning'; duration: number; damage: number }
     | { type: 'poison'; duration: number; damage: number }
-    | { type: 'slow'; duration: number };
+    | { type: 'slow'; duration: number }
+    | EnemyApplyStatusEffect; // Allow applying any status effect
 }
 
 export interface EnvironmentEffect {

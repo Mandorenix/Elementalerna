@@ -1,5 +1,5 @@
 import React from 'react';
-import { Element, type EventCard, type GameEvent, type Outcome, type Item, type ItemStats, type ItemAffix, type EquipmentSlot, type Rarity, type Enemy, type PuzzleChallenge, type MerchantOffer, type CharacterStats, type ChoiceOption, type EnvironmentEffect, type Environment, type StatusEffect } from '../types';
+import { Element, type EventCard, type GameEvent, type Outcome, type Item, type ItemStats, type ItemAffix, type EquipmentSlot, type Rarity, type Enemy, type PuzzleChallenge, type MerchantOffer, type CharacterStats, type ChoiceOption, type EnvironmentEffect, type Environment, type StatusEffect, type EnemyApplyStatusEffect } from '../types';
 import { ELEMENT_ICONS, Icons, ItemVisuals } from '../constants';
 
 // Re-map the enum to a plain object for easier iteration if needed, and to avoid circular dependencies
@@ -324,6 +324,28 @@ export const createCombatPayload = (playerLevel: number, element: Element, diffi
                 break;
         }
 
+        let onHitEffect: Enemy['onHitEffect'] = undefined;
+        const onHitRoll = Math.random();
+        if (onHitRoll < 0.2) { // 20% chance for a basic on-hit effect
+            const basicEffects: (
+                | { type: 'burning'; duration: number; damage: number }
+                | { type: 'poison'; duration: number; damage: number }
+                | { type: 'slow'; duration: number }
+            )[] = [
+                { type: 'burning', duration: 2, damage: 3 + Math.floor(playerLevel / 5) },
+                { type: 'poison', duration: 2, damage: 3 + Math.floor(playerLevel / 5) },
+                { type: 'slow', duration: 2 },
+            ];
+            onHitEffect = getRandom(basicEffects);
+        } else if (onHitRoll < 0.35) { // 15% chance for one of the new status effects
+            const newStatusEffects: EnemyApplyStatusEffect[] = [
+                { type: 'APPLY_STATUS', status: 'petrified', chance: 10 + (round * 2), duration: 1, value: 10 }, // 10% chance to petrify, increases damage taken by 10%
+                { type: 'APPLY_STATUS', status: 'frail', chance: 15 + (round * 2), duration: 2, value: 15, isPercentage: true }, // 15% chance to apply Frail, increases damage taken by 15%
+                { type: 'APPLY_STATUS', status: 'frightened', chance: 10 + (round * 2), duration: 2, value: 25 }, // 10% chance to frighten, 25% chance to miss turn
+            ];
+            onHitEffect = getRandom(newStatusEffects);
+        }
+
 
         return {
             id: `enemy-${Date.now()}-${i}`,
@@ -340,7 +362,7 @@ export const createCombatPayload = (playerLevel: number, element: Element, diffi
             resistances: resistances,
             // More complex enemy behaviors
             behavior: Math.random() > 0.7 ? 'ATTACK_LOWEST_HP' : 'ATTACK_PLAYER',
-            onHitEffect: Math.random() > 0.3 ? { type: 'poison', duration: 2, damage: 3 + Math.floor(playerLevel / 5) } : undefined,
+            onHitEffect: onHitEffect,
         };
     });
 
@@ -431,7 +453,7 @@ export const createBossCombatPayload = (playerLevel: number, round: number): Gam
         icon: bossIcon,
         resistances: resistances,
         specialAbility: Math.random() > 0.5 ? 'HASTE_SELF' : undefined, // Boss might have a special ability
-        onHitEffect: Math.random() > 0.5 ? { type: 'burning', duration: 2, damage: 5 } : undefined, // Example on-hit effect
+        onHitEffect: Math.random() > 0.5 ? { type: 'APPLY_STATUS', status: 'frail', chance: 30, duration: 3, value: 20, isPercentage: true } : undefined, // Example on-hit effect
         // Boss phases for more complex encounters
         phases: [
             {

@@ -19,6 +19,14 @@ body {
   border-image-source: url('data:image/svg+xml;utf8,<svg width="6" height="6" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 0 H 2 V 2 H 0 Z M2 0 H 4 V 2 H 2 Z M4 0 H 6 V 2 H 4 Z M0 2 H 2 V 4 H 0 Z M4 2 H 6 V 4 H 4 Z M0 4 H 2 V 6 H 0 Z M2 4 H 4 V 6 H 2 Z M4 4 H 6 V 6 H 4 Z" fill="rgb(202 138 4)" /></svg>');
   border-image-outset: 2;
 }
+.pixelated-border-gold-top { /* New style for the top border only */
+  border-style: solid;
+  border-image-slice: 2;
+  border-image-width: 2 0 0 0; /* Only top border */
+  border-image-repeat: stretch;
+  border-image-source: url('data:image/svg+xml;utf8,<svg width="6" height="6" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 0 H 2 V 2 H 0 Z M2 0 H 4 V 2 H 2 Z M4 0 H 6 V 2 H 4 Z" fill="rgb(202 138 4)" /></svg>');
+  border-image-outset: 2 0 0 0;
+}
  .tooltip-pixel-border {
   border-style: solid;
   border-image-slice: 2;

@@ -24,11 +24,13 @@ const FooterButton: React.FC<{
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center w-16 h-16 border-2 text-xs transition-colors ${isActive ? activeClasses : inactiveClasses}`}
+      className={`relative flex flex-col items-center justify-center w-16 h-16 border-2 text-xs transition-colors ${isActive ? activeClasses : inactiveClasses}`}
       title={label} // Använd label för title-attributet för tillgänglighet
     >
       <div className="mb-1">{icon}</div>
-      {/* Textetiketten är borttagen härifrån */}
+      {isActive && (
+        <div className="absolute -top-2 w-4 h-2 bg-yellow-400 pixelated-border-gold-top"></div>
+      )}
     </button>
   );
 };

@@ -41,14 +41,14 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({
               </div>
               <div className="flex space-x-2">
                 <button
-                  onClick={() => onDecreaseAttribute?.(attr.key)}
+                  onClick={() => onDecreaseAttribute(attr.key)}
                   disabled={(stats[attr.key] || 0) === (baseAttributes[attr.key] || 0)}
                   className="px-3 py-1 bg-red-700/70 text-white font-bold pixelated-border-gold hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   -
                 </button>
                 <button
-                  onClick={() => onIncreaseAttribute?.(attr.key)}
+                  onClick={() => onIncreaseAttribute(attr.key)}
                   disabled={attributePoints === 0}
                   className="px-3 py-1 bg-green-700/70 text-white font-bold pixelated-border-gold hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -70,13 +70,13 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({
 
       <div className="flex justify-end space-x-4">
         <button
-          onClick={() => onResetAttributePoints?.()}
+          onClick={() => onResetAttributePoints()}
           className="px-6 py-2 bg-gray-700/70 text-white font-bold pixelated-border-gold hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Återställ
         </button>
         <button
-          onClick={() => onSpendAttributePoints?.()}
+          onClick={() => onSpendAttributePoints()}
           disabled={attributePoints === attributePointsAtLastSpend}
           className="px-6 py-2 bg-blue-700/70 text-white font-bold pixelated-border-gold hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >

@@ -289,6 +289,51 @@ body {
     border-radius: 50%;
 }
 
+/* New VFX for petrified */
+@keyframes vfx-petrified {
+    0%, 100% { transform: scale(1); opacity: 0.7; filter: grayscale(100%) brightness(0.8); }
+    50% { transform: scale(1.02); opacity: 1; filter: grayscale(100%) brightness(1.2); }
+}
+.vfx-petrified-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, transparent 30%, rgba(120, 113, 108, 0.7) 80%); /* Stone color */
+    animation: vfx-petrified 2s infinite alternate;
+    border-radius: 50%;
+}
+
+/* New VFX for frail */
+@keyframes vfx-frail {
+    0%, 100% { transform: scale(1); opacity: 0.8; border: 2px dashed #ef4444; }
+    50% { transform: scale(1.05); opacity: 1; border: 2px dashed #f87171; }
+}
+.vfx-frail-overlay::after {
+    content: '';
+    position: absolute;
+    inset: -5px; /* Slightly larger to show border */
+    border: 2px dashed #ef4444;
+    border-radius: 50%;
+    animation: vfx-frail 1s infinite alternate;
+}
+
+/* New VFX for frightened */
+@keyframes vfx-frightened {
+    0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.8; }
+    25% { transform: translateY(-5px) rotate(-2deg); opacity: 1; }
+    50% { transform: translateY(0) rotate(0deg); opacity: 0.8; }
+    75% { transform: translateY(5px) rotate(2deg); opacity: 1; }
+}
+.vfx-frightened-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, transparent 30%, rgba(168, 85, 247, 0.5) 80%); /* Purple haze */
+    animation: vfx-frightened 1.5s infinite;
+    border-radius: 50%;
+}
+
+
 /* --- Combat Backgrounds --- */
 .combat-background {
   position: absolute;

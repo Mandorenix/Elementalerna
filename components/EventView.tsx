@@ -28,7 +28,7 @@ type Actor = {
 
 
 type DamagePopup = { id: number; text: string; x: number; y: number; type: DamagePopupType; };
-type VisualEffect = { id: number; type: 'slash' | 'fireball' | 'heal' | 'haste' | 'frozen' | 'paralyzed' | 'meteor_impact' | 'earthquake_vfx' | 'wind_burst_vfx' | 'water_bless_vfx' | 'electrified_vfx' | 'molten_ground_vfx' | 'quicksand_vfx'; targetId: string; originId: string; }; // Added new VFX types
+type VisualEffect = { id: number; type: 'slash' | 'fireball' | 'heal' | 'haste' | 'frozen' | 'paralyzed' | 'meteor_impact' | 'earthquake_vfx' | 'wind_burst_vfx' | 'water_bless_vfx' | 'electrified_vfx' | 'molten_ground_vfx' | 'quicksand_vfx' | 'petrified_vfx' | 'frail_vfx' | 'frightened_vfx'; targetId: string; originId: string; }; // Added new VFX types
 
 const resourceThemes: Record<string, { text: string; bg: string }> = {
     'Hetta': { text: 'text-orange-400', bg: 'bg-orange-500' },
@@ -229,6 +229,16 @@ const EventView: React.FC<{
               skipTurn = true;
               addLogMessage(`${actor.name} är bedövad och kan inte agera!`);
           }
+          if (effect.type === 'petrified') { // New: Petrified status
+              skipTurn = true;
+              addLogMessage(`${actor.name} är förstenad och kan inte agera!`);
+              addVisualEffect('petrified_vfx', actor.id, actor.id);
+          }
+          if (effect.type === 'frightened' && 'chanceToMissTurn' in effect && Math.random() * 100 < effect.chanceToMissTurn) { // New: Frightened status
+              skipTurn = true;
+              addLogMessage(`${actor.name} är förskräckt och kan inte agera!`);
+              addVisualEffect('frightened_vfx', actor.id, actor.id);
+          }
 
 
           if (effect.duration > 1) {
@@ -255,6 +265,8 @@ const EventView: React.FC<{
                   case 'frightened': effectsAfterTurn.push({ type: 'frightened', duration: newDuration, chanceToMissTurn: effect.chanceToMissTurn, chanceToAttackRandom: effect.chanceToAttackRandom }); break;
                   case 'reflecting': effectsAfterTurn.push({ type: 'reflecting', duration: newDuration, element: effect.element, value: effect.value }); break;
                   case 'absorbing': effectsAfterTurn.push({ type: 'absorbing', duration: newDuration, element: effect.element, value: effect.value }); break;
+                  case 'petrified': effectsAfterTurn.push({ type: 'petrified', duration: newDuration, damageTakenIncrease: effect.damageTakenIncrease }); break; // New
+                  case 'frail': effectsAfterTurn.push({ type: 'frail', duration: newDuration, damageTakenIncrease: effect.damageTakenIncrease, isPercentage: effect.isPercentage }); break; // New
               }
           } else {
              if (effect.type === 'rooted') addLogMessage(`${actor.name} är inte längre rotad.`);
@@ -263,6 +275,9 @@ const EventView: React.FC<{
              if (effect.type === 'frozen') addLogMessage(`${actor.name} är inte längre frusen.`);
              if (effect.type === 'paralyzed') addLogMessage(`${actor.name} är inte längre förlamad.`);
              if (effect.type === 'stunned') addLogMessage(`${actor.name} är inte längre bedövad.`);
+             if (effect.type === 'petrified') addLogMessage(`${actor.name} är inte längre förstenad.`); // New
+             if (effect.type === 'frail') addLogMessage(`${actor.name} är inte längre förgänglig.`); // New
+             if (effect.type === 'frightened') addLogMessage(`${actor.name} är inte längre förskräckt.`); // New
           }
       }
       
@@ -298,8 +313,10 @@ const EventView: React.FC<{
       const isFrozen = actor.statusEffects.some(e => e.type === 'frozen');
       const isStunned = actor.statusEffects.some(e => e.type === 'stunned');
       const isParalyzed = actor.statusEffects.some(e => e.type === 'paralyzed' && 'chanceToMissTurn' in e && Math.random() * 100 < e.chanceToMissTurn);
+      const isPetrified = actor.statusEffects.some(e => e.type === 'petrified'); // New
+      const isFrightened = actor.statusEffects.some(e => e.type === 'frightened' && 'chanceToMissTurn' in e && Math.random() * 100 < e.chanceToMissTurn); // New
 
-      if (skipTurn || isRooted || isFrozen || isStunned || isParalyzed) {
+      if (skipTurn || isRooted || isFrozen || isStunned || isParalyzed || isPetrified || isFrightened) {
         updateActorState(actorId, { atb: 0 });
         await sleep(500);
         if (gameState as GameState !== 'VICTORY' && gameState as GameState !== 'DEFEAT') {
@@ -331,7 +348,7 @@ const EventView: React.FC<{
 
   }, [actors, updateActorState, gameState, event.environment, character.archetype, playerStats.maxAether, character.element, event.enemies]);
 
-  // ATB Game Loop: Ticks the ATB bars up.
+  // ATB Game Loop
   useEffect(() => {
     if (gameState !== 'ACTIVE') return;
 
@@ -362,7 +379,7 @@ const EventView: React.FC<{
     return () => clearInterval(interval);
   }, [gameState]);
 
-  // Turn Processor: Watches for an actor whose ATB is full and starts their turn.
+  // Turn Processor
   useEffect(() => {
     if (gameState !== 'ACTIVE') return;
 
@@ -455,6 +472,12 @@ const EventView: React.FC<{
             case 'absorbing':
                 newStatus = { type: 'absorbing', duration: effect.duration || 1, element: effect.element!, value: effect.value || 0 };
                 break;
+            case 'petrified': // New
+                newStatus = { type: 'petrified', duration: effect.duration || 1, damageTakenIncrease: effect.value || 0 };
+                break;
+            case 'frail': // New
+                newStatus = { type: 'frail', duration: effect.duration || 1, damageTakenIncrease: effect.value || 0, isPercentage: effect.isPercentage };
+                break;
             // Add other status effects as needed
             default:
                 console.warn(`Unhandled status effect type in affix: ${effect.status}`);
@@ -501,8 +524,20 @@ const EventView: React.FC<{
 
           const isCrit = !isSkill && Math.random() * 100 < (attacker.type === 'PLAYER' ? playerStats.crit : 10);
           let damage = isCrit ? totalBaseDamage * 1.5 : totalBaseDamage;
-          const armor = defender.type === 'PLAYER' ? playerStats.armor : (event.enemies.find(e => e.id === defenderId)?.stats.armor || 0);
+          let armor = defender.type === 'PLAYER' ? playerStats.armor : (event.enemies.find(e => e.id === defenderId)?.stats.armor || 0);
           
+          // Apply Frail status effect
+          const isFrail = defender.statusEffects.find(e => e.type === 'frail');
+          if (isFrail && isFrail.type === 'frail' && isFrail.damageTakenIncrease) {
+              if (isFrail.isPercentage) {
+                  damage *= (1 + isFrail.damageTakenIncrease / 100);
+              } else {
+                  damage += isFrail.damageTakenIncrease;
+              }
+              addLogMessage(`${defender.name} är förgänglig och tar mer skada!`);
+              addVisualEffect('frail_vfx', defender.id, defender.id);
+          }
+
           const enemyData = event.enemies.find(e => e.id === defenderId);
           const resistanceValue = defender.type === 'ENEMY' && enemyData?.resistances ? (enemyData.resistances[damageElement] || 0) : 0;
           
@@ -1066,6 +1101,12 @@ const EventView: React.FC<{
                               case 'overheated':
                                   newStatus = { type: buffType, duration: ultimateInfo.effect.duration } as StatusEffect;
                                   break;
+                              case 'petrified': // New
+                                  newStatus = { type: 'petrified', duration: ultimateInfo.effect.duration, damageTakenIncrease: ultimateInfo.effect.value || 0 };
+                                  break;
+                              case 'frail': // New
+                                  newStatus = { type: 'frail', duration: ultimateInfo.effect.duration, damageTakenIncrease: ultimateInfo.effect.value || 0, isPercentage: ultimateInfo.effect.isPercentage };
+                                  break;
                               case 'pushed_back':
                               case 'cleanse_debuffs_action':
                               case 'cleanse_all_debuffs_action':
@@ -1181,6 +1222,34 @@ const EventView: React.FC<{
           }
           return;
       }
+
+      // Check if enemy is frightened
+      const isFrightened = enemyActor.statusEffects.find(e => e.type === 'frightened');
+      if (isFrightened && isFrightened.type === 'frightened' && Math.random() * 100 < isFrightened.chanceToMissTurn) {
+          addLogMessage(`${enemyData.name} är förskräckt och kan inte agera!`);
+          updateActorState(enemyId, { atb: 0 });
+          await sleep(500);
+          if (gameState as GameState !== 'VICTORY' && gameState as GameState !== 'DEFEAT') {
+             setGameState('ACTIVE');
+          }
+          return;
+      }
+      if (isFrightened && isFrightened.type === 'frightened' && Math.random() * 100 < isFrightened.chanceToAttackRandom) {
+          const randomTarget = actors.filter(a => a.id !== enemyId && !a.isDefeated)[Math.floor(Math.random() * (actors.filter(a => a.id !== enemyId && !a.isDefeated).length))];
+          if (randomTarget) {
+              addLogMessage(`${enemyData.name} är förskräckt och attackerar slumpmässigt ${randomTarget.name}!`);
+              await performAttack(enemyId, randomTarget.id, enemyData?.stats.damage || 5, enemyData.element);
+          } else {
+              addLogMessage(`${enemyData.name} är förskräckt men hittar inget att attackera!`);
+          }
+          updateActorState(enemyId, { atb: 0 });
+          await sleep(500);
+          if (gameState as GameState !== 'VICTORY' && gameState as GameState !== 'DEFEAT') {
+             setGameState('ACTIVE');
+          }
+          return;
+      }
+
 
       if (enemyData.specialAbility === 'HASTE_SELF' && Math.random() < 0.4) { // 40% chance
           const existingEffects = enemyActor.statusEffects.filter(e => e.type !== 'hasted');
@@ -1305,6 +1374,9 @@ const EventView: React.FC<{
         'regenerating': { icon: Icons.Regenerating, title: "Regenerating" },
         'frozen': { icon: Icons.Frozen, title: "Frozen" }, // New
         'paralyzed': { icon: Icons.Paralyzed, title: "Paralyzed" }, // New
+        'petrified': { icon: Icons.Petrified, title: "Petrified" }, // New
+        'frail': { icon: Icons.Frail, title: "Frail" }, // New
+        'frightened': { icon: Icons.Frightened, title: "Frightened" }, // New
     };
 
 
@@ -1337,6 +1409,9 @@ const EventView: React.FC<{
                 {actor.statusEffects.some(e => e.type === 'burning') && <div className="vfx-burning-overlay" />}
                 {actor.statusEffects.some(e => e.type === 'poisoned') && <div className="vfx-poison-overlay" />}
                 {actor.statusEffects.some(e => e.type === 'steamed') && <div className="vfx-steamed-overlay" />} {/* New VFX for steamed */}
+                {actor.statusEffects.some(e => e.type === 'petrified') && <div className="vfx-petrified-overlay" />} {/* New VFX for petrified */}
+                {actor.statusEffects.some(e => e.type === 'frail') && <div className="vfx-frail-overlay" />} {/* New VFX for frail */}
+                {actor.statusEffects.some(e => e.type === 'frightened') && <div className="vfx-frightened-overlay" />} {/* New VFX for frightened */}
             </div>
             {/* Status Effect Icons */}
              <div className="absolute top-0 left-0 w-full h-full">
@@ -1429,6 +1504,15 @@ const EventView: React.FC<{
             }
             if (vfx.type === 'quicksand_vfx') {
                 return <div key={vfx.id} className="absolute w-20 h-20 bg-stone-700/50 rounded-full animate-pulse" style={{ left: targetRect.left - 16, top: targetRect.top - 16, boxShadow: '0 0 20px 5px #78350f' }} />
+            }
+            if (vfx.type === 'petrified_vfx') { // New VFX for petrified
+                return <div key={vfx.id} className="absolute w-20 h-20 bg-gray-500/50 rounded-full animate-pulse" style={{ left: targetRect.left - 16, top: targetRect.top - 16, boxShadow: '0 0 20px 5px #78716c' }} />
+            }
+            if (vfx.type === 'frail_vfx') { // New VFX for frail
+                return <div key={vfx.id} className="absolute w-20 h-20 border-4 border-red-500 rounded-full animate-pulse" style={{ left: targetRect.left - 16, top: targetRect.top - 16, boxShadow: '0 0 20px 5px #ef4444' }} />
+            }
+            if (vfx.type === 'frightened_vfx') { // New VFX for frightened
+                return <div key={vfx.id} className="absolute w-20 h-20 border-4 border-purple-500 rounded-full animate-pulse" style={{ left: targetRect.left - 16, top: targetRect.top - 16, boxShadow: '0 0 20px 5px #a855f7' }} />
             }
             return null;
         })}

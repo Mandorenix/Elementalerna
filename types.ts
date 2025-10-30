@@ -330,7 +330,10 @@ export type StatusEffect =
   | { type: 'bleeding'; duration: number; damage: number; } // New
   | { type: 'frightened'; duration: number; chanceToMissTurn: number; chanceToAttackRandom: number; } // New
   | { type: 'reflecting'; duration: number; element: Element; value: number; } // New
-  | { type: 'absorbing'; duration: number; element: Element; value: number; }; // New
+  | { type: 'absorbing'; duration: number; element: Element; value: number; } // New
+  | { type: 'petrified'; duration: number; damageTakenIncrease?: number; } // New: Förstenad
+  | { type: 'frail'; duration: number; damageTakenIncrease: number; isPercentage?: boolean; } // New: Förgänglighet
+  | { type: 'frightened'; duration: number; chanceToMissTurn: number; chanceToAttackRandom: number; }; // New: Fruktan
 
 export interface CombatLogMessage {
   id: number;

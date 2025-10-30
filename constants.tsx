@@ -73,6 +73,9 @@ export const Icons = {
     Steamed: createIcon(["M4 7h2v1H4V7z M10 7h2v1h-2V7z M7 4h2v1H7V4z M5 9h6v1H5V9z M4 11h8v1H4v-1z"], "#e0f2f4"),
     Frozen: createIcon(["M8 1l-2 2h1v3h2V3h1L8 1z M4 7l-2 2h1v3h2V9h1L4 7z m8 0l-2 2h1v3h2V9h1l-2-2z M7 13h2v1H7v-1z"], "#7dd3fc"), // New
     Paralyzed: createIcon(["M7 1v1h1v1h1v2H8v1H6V5h1V4h1V3H7V2H6V1h1z M10 10h-1v-1h-1v-1h-1v2h1v1h1v1h1v1h-1v-1h-1v-1h-1v-2h1V9h1v1h1v1h-1z M7 13h2v1H7v-1z"], "#a3e635"), // New
+    Petrified: createIcon(["M8 1C5 1 3 3 3 6c0 1 0 1 1 2s1 2 3 3c2-1 2-2 3-3s1-1 1-2c0-3-2-5-5-5z M6 6h1v1H6V6z m3 0h1v1H9V6z M8 9c-1 0-1-1-1-1h2c0 0 0 1-1 1z M7 12h2v1H7v-1z"], "#78716c"), // New: Förstenad
+    Frail: createIcon(["M8 1l-3 3h2v2h2V4h2L8 1z M4 8h8v1H4V8z M7 10h2v2H7v-1z M6 13h4v1H6v-1z"], "#ef4444"), // New: Förgänglighet
+    Frightened: createIcon(["M8 1C5 1 3 3 3 6c0 1 0 1 1 2s1 2 3 3c2-1 2-2 3-3s1-1 1-2c0-3-2-5-5-5z M6 6h1v1H6V6z m3 0h1v1H9V6z M8 9c-1 0-1-1-1-1h2c0 0 0 1-1 1z M7 12h2v1H7v-1z M7 14h2v1H7v-1z"], "#9ca3af"), // New: Fruktan
     // New Tier 1.5 Icons
     Fireball: createIcon(["M8 1c-2 2-3 4-3 6s1 4 3 4 3-2 3-4-1-4-3-6zm0 2c-1 1-1 2-1 3s0 2 1 3 1-2 1-3-0-2-1-3z"], "#f87171"),
     Earthquake: createIcon(["M2 8h2V7h1v2h2V7h2v2h2V7h1v1h2v1H2z M8 8h1V7h1V6H6v1h1v1h1z"], "#a16207"),

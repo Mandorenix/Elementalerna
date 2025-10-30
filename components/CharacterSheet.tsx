@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Character, Attribute } from '../types';
-import { ATTRIBUTE_DEFINITIONS } from '../constants'; // Ensure this import is correct
+import { ATTRIBUTE_DEFINITIONS } from '../constants';
 
 interface CharacterSheetProps {
   character: Character;
@@ -19,6 +19,11 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({
   onSpendAttributePoints,
   onResetAttributePoints,
 }) => {
+  // Defensive check to ensure character and character.stats are defined
+  if (!character || !character.stats) {
+    return <div className="p-4 text-red-500 bg-gray-900/70 backdrop-blur-sm h-full overflow-y-auto pixelated-border-gold">Laddar karaktärsdata eller data saknas...</div>;
+  }
+
   return (
     <div className="p-4 bg-gray-900/70 backdrop-blur-sm h-full overflow-y-auto pixelated-border-gold text-white">
       <h2 className="text-2xl font-bold mb-4 text-yellow-400 pixelated-border-gold p-2">Karaktärsblad</h2>
@@ -71,7 +76,7 @@ const CharacterSheet: React.FC<CharacterSheetProps> = ({
         </button>
         <button
           onClick={onSpendAttributePoints}
-          disabled={attributePoints === character.attributePointsAtLastSpend} // Disable if no new points have been allocated
+          disabled={attributePoints === character.attributePointsAtLastSpend}
           className="px-6 py-2 bg-blue-700/70 text-white font-bold pixelated-border-gold hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Spendera poäng

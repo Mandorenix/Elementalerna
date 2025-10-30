@@ -28,7 +28,7 @@ type Actor = {
 
 
 type DamagePopup = { id: number; text: string; x: number; y: number; type: DamagePopupType; };
-type VisualEffect = { id: number; type: 'slash' | 'fireball' | 'heal' | 'haste' | 'frozen' | 'paralyzed' | 'meteor_impact' | 'earthquake_vfx' | 'wind_burst_vfx' | 'water_bless_vfx'; targetId: string; originId: string; }; // Added new VFX types
+type VisualEffect = { id: number; type: 'slash' | 'fireball' | 'heal' | 'haste' | 'frozen' | 'paralyzed' | 'meteor_impact' | 'earthquake_vfx' | 'wind_burst_vfx' | 'water_bless_vfx' | 'electrified_vfx' | 'molten_ground_vfx' | 'quicksand_vfx'; targetId: string; originId: string; }; // Added new VFX types
 
 const resourceThemes: Record<string, { text: string; bg: string }> = {
     'Hetta': { text: 'text-orange-400', bg: 'bg-orange-500' },
@@ -716,33 +716,27 @@ const EventView: React.FC<{
             case 'fire_1':
             case 'fire_3':
                if(target && rankData.damageMultiplier) {
-                 // Reaction: Water + Burning = Steamed
-                 const isBurning = target.statusEffects.some(e => e.type === 'burning');
-                 if (abilityInfo.element === Element.WATER && isBurning) {
-                     addLogMessage(`${target.name}s eld släcktes av vattnet och skapade ånga!`);
+                 const isRooted = target.statusEffects.some(e => e.type === 'rooted');
+                 const isSlowed = target.statusEffects.some(e => e.type === 'slowed');
+
+                 // Reaction: Fire + Rooted/Slowed (Earth-like) = Molten Ground
+                 if (abilityInfo.element === Element.FIRE && (isRooted || isSlowed)) {
+                     addLogMessage(`Elden smälte marken och skapade glödande lera på ${target.name}!`);
                      updateActorState(target.id, {
-                         statusEffects: target.statusEffects.filter(e => e.type !== 'burning')
+                         statusEffects: target.statusEffects.filter(e => e.type !== 'rooted' && e.type !== 'slowed')
                      });
-                     const newStatus: StatusEffect = { type: 'steamed', duration: 2, damage: Math.floor(baseSkillDamage * 0.2), accuracyReduction: 20 };
+                     const moltenDamage = Math.floor(baseSkillDamage * 0.3);
+                     const newBurningStatus: StatusEffect = { type: 'burning', duration: 3, damage: moltenDamage };
+                     const newSlowedStatus: StatusEffect = { type: 'slowed', duration: 2 };
                      updateActorState(target.id, {
-                         statusEffects: [...target.statusEffects.filter(e => e.type !== 'steamed' && e.type !== 'burning'), newStatus]
+                         statusEffects: [...target.statusEffects.filter(e => e.type !== 'burning' && e.type !== 'slowed'), newBurningStatus, newSlowedStatus]
                      });
-                     addDamagePopup(newStatus.damage!.toString(), target.id, 'status_damage');
-                     await sleep(500);
-                 } 
-                 // Reaction: Fire + Slowed = Steamed
-                 else if (abilityInfo.element === Element.FIRE && target.statusEffects.some(e => e.type === 'slowed')) {
-                     addLogMessage(`${target.name}s kyla förångades av elden!`);
-                     updateActorState(target.id, {
-                         statusEffects: target.statusEffects.filter(e => e.type !== 'slowed')
-                     });
-                     const newStatus: StatusEffect = { type: 'steamed', duration: 2, damage: Math.floor(baseSkillDamage * 0.1), accuracyReduction: 10 };
-                     updateActorState(target.id, {
-                         statusEffects: [...target.statusEffects.filter(e => e.type !== 'steamed'), newStatus]
-                     });
-                     addDamagePopup(newStatus.damage!.toString(), target.id, 'status_damage');
+                     addDamagePopup(moltenDamage.toString(), target.id, 'status_damage');
+                     addVisualEffect('molten_ground_vfx', player.id, target.id);
                      await sleep(500);
                  }
+                 // Existing Reaction: Fire + Slowed = Steamed (This was a bug, Fire + Water = Steamed)
+                 // This block is now removed as the Water + Burning reaction handles Steam.
                  else {
                     await performAttack(player.id, target.id, baseSkillDamage * rankData.damageMultiplier, abilityInfo.element, true);
                  }
@@ -750,9 +744,25 @@ const EventView: React.FC<{
                break;
             case 'wind_3': // Cyklon
                 if (target && rankData.damageMultiplier) {
-                    // Reaction: Wind + Rooted/Slowed (from Mud) = Blinded
-                    const isRootedOrSlowedByMud = target.statusEffects.some(e => e.type === 'rooted' || (e.type === 'slowed' && event.element === Element.MUD)); // Assuming Mud environment for slowed
-                    if (isRootedOrSlowedByMud) {
+                    const isSlowed = target.statusEffects.some(e => e.type === 'slowed');
+
+                    // Reaction: Wind + Slowed (Water-like) = Electrified Water
+                    if (abilityInfo.element === Element.WIND && isSlowed) {
+                        addLogMessage(`Vinden laddade vattnet med elektricitet och bedövade ${target.name}!`);
+                        updateActorState(target.id, {
+                            statusEffects: target.statusEffects.filter(e => e.type !== 'slowed')
+                        });
+                        const electrifiedDamage = Math.floor(baseSkillDamage * 0.5);
+                        const newStunnedStatus: StatusEffect = { type: 'stunned', duration: 1 };
+                        updateActorState(target.id, {
+                            statusEffects: [...target.statusEffects.filter(e => e.type !== 'stunned'), newStunnedStatus]
+                        });
+                        await performAttack(player.id, target.id, electrifiedDamage, Element.STORM, true); // Deal direct damage
+                        addVisualEffect('electrified_vfx', player.id, target.id);
+                        await sleep(500);
+                    }
+                    // Existing Reaction: Wind + Rooted/Slowed (from Mud) = Blinded
+                    else if (target.statusEffects.some(e => e.type === 'rooted' || (e.type === 'slowed' && event.element === Element.MUD))) { // Assuming Mud environment for slowed
                         addLogMessage(`Vinden torkar ut leran och bländar ${target.name}!`);
                         updateActorState(target.id, {
                             statusEffects: target.statusEffects.filter(e => e.type !== 'rooted' && e.type !== 'slowed')
@@ -763,27 +773,26 @@ const EventView: React.FC<{
                         });
                         await sleep(500);
                     }
-                    // NEW Reaction: Wind + Burning = Intensified Burn
-                    const existingBurning = target.statusEffects.find(e => e.type === 'burning');
-                    if (abilityInfo.element === Element.WIND && existingBurning && existingBurning.type === 'burning') {
-                        addLogMessage(`Vinden fläktar elden och intensifierar bränningen på ${target.name}!`);
-                        // Remove old burning, deal immediate bonus damage, apply stronger burn
-                        updateActorState(target.id, {
-                            statusEffects: target.statusEffects.filter(e => e.type !== 'burning')
-                        });
-                        const bonusFireDamage = Math.floor(existingBurning.damage * 1.5); // 50% more immediate damage
-                        const newBurnDamage = Math.floor(existingBurning.damage * 1.2); // 20% stronger DoT
-                        
-                        // Deal immediate bonus damage
-                        await performAttack(player.id, target.id, bonusFireDamage, Element.FIRE, true);
-                        
-                        // Apply new, stronger burning status
-                        const newBurningStatus: StatusEffect = { type: 'burning', duration: 3, damage: newBurnDamage };
-                        updateActorState(target.id, {
-                            statusEffects: [...target.statusEffects.filter(e => e.type !== 'burning'), newBurningStatus]
-                        });
-                        addLogMessage(`${target.name} tar ${bonusFireDamage} bonus eldskada och brinner nu för ${newBurnDamage} per runda!`);
-                        await sleep(500);
+                    // Existing Reaction: Wind + Burning = Intensified Burn
+                    else if (abilityInfo.element === Element.WIND && target.statusEffects.some(e => e.type === 'burning')) {
+                        const existingBurning = target.statusEffects.find(e => e.type === 'burning');
+                        if (existingBurning && existingBurning.type === 'burning') {
+                            addLogMessage(`Vinden fläktar elden och intensifierar bränningen på ${target.name}!`);
+                            updateActorState(target.id, {
+                                statusEffects: target.statusEffects.filter(e => e.type !== 'burning')
+                            });
+                            const bonusFireDamage = Math.floor(existingBurning.damage * 1.5); // 50% more immediate damage
+                            const newBurnDamage = Math.floor(existingBurning.damage * 1.2); // 20% stronger DoT
+                            
+                            await performAttack(player.id, target.id, bonusFireDamage, Element.FIRE, true);
+                            
+                            const newBurningStatus: StatusEffect = { type: 'burning', duration: 3, damage: newBurnDamage };
+                            updateActorState(target.id, {
+                                statusEffects: [...target.statusEffects.filter(e => e.type !== 'burning'), newBurningStatus]
+                            });
+                            addLogMessage(`${target.name} tar ${bonusFireDamage} bonus eldskada och brinner nu för ${newBurnDamage} per runda!`);
+                            await sleep(500);
+                        }
                     } else {
                         await performAttack(player.id, target.id, baseSkillDamage * rankData.damageMultiplier, abilityInfo.element, true);
                     }
@@ -822,12 +831,30 @@ const EventView: React.FC<{
               }
               break;
             case 'earth_3': // Jordskalv
-            case 'water_3': // Tidvattenvåg
               if(target && rankData.damageMultiplier && rankData.duration) {
-                await performAttack(player.id, target.id, baseSkillDamage * rankData.damageMultiplier, abilityInfo.element, true, () => {
-                   updateActorState(target.id, { statusEffects: [...target.statusEffects.filter(e => e.type !== 'slowed'), { type: 'slowed', duration: rankData.duration! }] });
-                   addLogMessage(`${target.name} saktas ner!`);
-                });
+                const isSlowed = target.statusEffects.some(e => e.type === 'slowed');
+
+                // Reaction: Earth + Slowed (Water-like) = Quicksand
+                if (abilityInfo.element === Element.EARTH && isSlowed) {
+                    addLogMessage(`Jorden sög upp vattnet och skapade kvicksand för ${target.name}!`);
+                    updateActorState(target.id, {
+                        statusEffects: target.statusEffects.filter(e => e.type !== 'slowed')
+                    });
+                    const quicksandDamage = Math.floor(baseSkillDamage * 0.4);
+                    const newRootedStatus: StatusEffect = { type: 'rooted', duration: 2 };
+                    const newPoisonedStatus: StatusEffect = { type: 'poisoned', duration: 3, damage: Math.floor(quicksandDamage * 0.5) };
+                    updateActorState(target.id, {
+                        statusEffects: [...target.statusEffects.filter(e => e.type !== 'rooted' && e.type !== 'poisoned'), newRootedStatus, newPoisonedStatus]
+                    });
+                    addDamagePopup(quicksandDamage.toString(), target.id, 'status_damage');
+                    addVisualEffect('quicksand_vfx', player.id, target.id);
+                    await sleep(500);
+                } else {
+                    await performAttack(player.id, target.id, baseSkillDamage * rankData.damageMultiplier, abilityInfo.element, true, () => {
+                       updateActorState(target.id, { statusEffects: [...target.statusEffects.filter(e => e.type !== 'slowed'), { type: 'slowed', duration: rankData.duration! }] });
+                       addLogMessage(`${target.name} saktas ner!`);
+                    });
+                }
               }
               break;
             case 'wind_1': // Hastighet
@@ -849,6 +876,31 @@ const EventView: React.FC<{
                 addDamagePopup(`+${healAmount}`, player.id, 'heal');
                 addLogMessage(`Du läker dig själv för ${healAmount} HP.`);
                 await sleep(500);
+              }
+              break;
+            case 'water_3': // Tidvattenvåg
+              if(target && rankData.damageMultiplier && rankData.duration) {
+                const isBurning = target.statusEffects.some(e => e.type === 'burning');
+
+                // Reaction: Water + Burning (Fire-like) = Steamed
+                if (abilityInfo.element === Element.WATER && isBurning) {
+                    addLogMessage(`Vattnet släckte elden och skapade skållhet ånga på ${target.name}!`);
+                    updateActorState(target.id, {
+                        statusEffects: target.statusEffects.filter(e => e.type !== 'burning')
+                    });
+                    const steamedDamage = Math.floor(baseSkillDamage * 0.3);
+                    const newSteamedStatus: StatusEffect = { type: 'steamed', duration: 2, damage: steamedDamage, accuracyReduction: 20 };
+                    updateActorState(target.id, {
+                        statusEffects: [...target.statusEffects.filter(e => e.type !== 'steamed'), newSteamedStatus]
+                    });
+                    addDamagePopup(steamedDamage.toString(), target.id, 'status_damage');
+                    await sleep(500);
+                } else {
+                    await performAttack(player.id, target.id, baseSkillDamage * rankData.damageMultiplier, abilityInfo.element, true, () => {
+                       updateActorState(target.id, { statusEffects: [...target.statusEffects.filter(e => e.type !== 'slowed'), { type: 'slowed', duration: rankData.duration! }] });
+                       addLogMessage(`${target.name} saktas ner!`);
+                    });
+                }
               }
               break;
             case 'growth': // Tillväxt
@@ -1368,6 +1420,15 @@ const EventView: React.FC<{
             }
             if (vfx.type === 'water_bless_vfx') {
                 return <div key={vfx.id} className="absolute w-full h-full bg-blue-500/30 animate-pulse" style={{ left: 0, top: 0, boxShadow: 'inset 0 0 50px #3b82f6' }} />
+            }
+            if (vfx.type === 'electrified_vfx') {
+                return <div key={vfx.id} className="absolute w-20 h-20 border-4 border-yellow-300 rounded-full animate-pulse" style={{ left: targetRect.left - 16, top: targetRect.top - 16, boxShadow: '0 0 20px 5px #facc15' }} />
+            }
+            if (vfx.type === 'molten_ground_vfx') {
+                return <div key={vfx.id} className="absolute w-20 h-20 bg-orange-600/50 rounded-full animate-pulse-glow" style={{ left: targetRect.left - 16, top: targetRect.top - 16, boxShadow: '0 0 20px 5px #d97706' }} />
+            }
+            if (vfx.type === 'quicksand_vfx') {
+                return <div key={vfx.id} className="absolute w-20 h-20 bg-stone-700/50 rounded-full animate-pulse" style={{ left: targetRect.left - 16, top: targetRect.top - 16, boxShadow: '0 0 20px 5px #78350f' }} />
             }
             return null;
         })}

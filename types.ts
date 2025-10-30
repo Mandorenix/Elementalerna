@@ -276,6 +276,8 @@ export interface EnvironmentEffect {
   statusChance?: number;
   targetScope: 'all' | 'player' | 'enemies' | 'non_elemental' | 'elemental';
   targetElement?: Element;
+  stat?: keyof CharacterStats | 'damage' | 'armor' | 'crit' | 'dodge' | 'health'; // Added stat property
+  isPercentage?: boolean; // Added isPercentage for stat_modifier
 }
 
 export interface Environment {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import type { GameEvent, Enemy, CombatLogMessage, Character, StatusEffect, PlayerAbility, EquipmentSlot, Item, ArchetypeName, ItemAffix, AbilityRankData, DamagePopupType, UltimateAbility } from '../types';
+import type { GameEvent, Enemy, CombatLogMessage, Character, StatusEffect, PlayerAbility, EquipmentSlot, Item, ArchetypeName, ItemAffix, AbilityRankData, DamagePopupType, UltimateAbility, EnemyApplyStatusEffect } from '../types';
 import { Element } from '../types';
 import { Icons, ARCHETYPES, PLAYER_ABILITIES, ULTIMATE_ABILITIES, PASSIVE_TALENTS } from '../constants'; // Added ULTIMATE_ABILITIES and PASSIVE_TALENTS
 import { soundEffects } from '../sound'; // Aktiverar importen av ljudeffekter
@@ -129,6 +129,7 @@ const EventView: React.FC<{
       
       let hp = actor.hp;
       let newStatusEffects: StatusEffect[] = [...actor.statusEffects]; // Start with current effects
+      let newAtb = actor.atb; // For ATB modifiers
 
       // --- Process Environment Effects ---
       if (event.environment) {
@@ -174,12 +175,25 @@ const EventView: React.FC<{
                           if (effect.status === 'paralyzed' || effect.status === 'frightened') {
                               (newStatus as any).chanceToMissTurn = effect.value;
                           }
+                          if (effect.status === 'petrified' || effect.status === 'frail') {
+                              (newStatus as any).damageTakenIncrease = effect.value;
+                              (newStatus as any).isPercentage = effect.isPercentage;
+                          }
                           newStatusEffects.push(newStatus);
                           addLogMessage(`${actor.name} blir påverkad av ${env.name} och får status: ${effect.status}!`);
                           await sleep(200);
                       }
+                  } else if (effect.type === 'stat_modifier' && effect.value && effect.element) {
+                      // For simplicity, let's assume 'damage' stat_modifier means increased elemental damage taken
+                      // This would typically be handled by a temporary status effect or direct stat modification
+                      // For now, we'll just log it.
+                      addLogMessage(`${actor.name} påverkas av ${env.name}: ${effect.description}`);
+                      await sleep(200);
+                  } else if (effect.type === 'atb_modifier' && effect.value && effect.statusChance && Math.random() * 100 < effect.statusChance) {
+                      newAtb = Math.max(0, newAtb + effect.value); // value is negative for reduction
+                      addLogMessage(`${actor.name}s ATB påverkas av ${env.name}!`);
+                      await sleep(200);
                   }
-                  // Stat_modifier and atb_modifier can be implemented later if needed
               }
           }
       }
@@ -233,6 +247,9 @@ const EventView: React.FC<{
               skipTurn = true;
               addLogMessage(`${actor.name} är förstenad och kan inte agera!`);
               addVisualEffect('petrified_vfx', actor.id, actor.id);
+          }
+          if (effect.type === 'frail') { // New: Frail status
+              addVisualEffect('frail_vfx', actor.id, actor.id);
           }
           if (effect.type === 'frightened' && 'chanceToMissTurn' in effect && Math.random() * 100 < effect.chanceToMissTurn) { // New: Frightened status
               skipTurn = true;
@@ -290,9 +307,9 @@ const EventView: React.FC<{
                   newCooldowns[ultId] = currentCd - 1;
               }
           }
-          updateActorState(actorId, { hp, statusEffects: effectsAfterTurn, ultimateCooldowns: newCooldowns });
+          updateActorState(actorId, { hp, atb: newAtb, statusEffects: effectsAfterTurn, ultimateCooldowns: newCooldowns });
       } else {
-          updateActorState(actorId, { hp, statusEffects: effectsAfterTurn });
+          updateActorState(actorId, { hp, atb: newAtb, statusEffects: effectsAfterTurn });
       }
       
       await sleep(500);
@@ -591,6 +608,26 @@ const EventView: React.FC<{
                     statusToAdd = { type: 'slowed', duration: effect.duration };
                     existingEffects = existingEffects.filter(e => e.type !== 'slowed');
                     logMsg = `${defender.name} blev långsammare!`;
+                    break;
+                case 'APPLY_STATUS': // Handle generic APPLY_STATUS from EnemyApplyStatusEffect
+                    const applyEffect = effect as EnemyApplyStatusEffect; // Cast to specific type
+                    const newStatus: StatusEffect = { type: applyEffect.status, duration: applyEffect.duration || 1 } as StatusEffect;
+                    if (applyEffect.status === 'burning' || applyEffect.status === 'poisoned' || applyEffect.status === 'retaliating' || applyEffect.status === 'steamed' || applyEffect.status === 'bleeding') {
+                        (newStatus as any).damage = applyEffect.damage;
+                    }
+                    if (applyEffect.status === 'regenerating') {
+                        (newStatus as any).heal = applyEffect.value;
+                    }
+                    if (applyEffect.status === 'paralyzed' || applyEffect.status === 'frightened') {
+                        (newStatus as any).chanceToMissTurn = applyEffect.value;
+                    }
+                    if (applyEffect.status === 'petrified' || applyEffect.status === 'frail') {
+                        (newStatus as any).damageTakenIncrease = applyEffect.value;
+                        (newStatus as any).isPercentage = applyEffect.isPercentage;
+                    }
+                    statusToAdd = newStatus;
+                    existingEffects = existingEffects.filter(e => e.type !== applyEffect.status);
+                    logMsg = `${defender.name} får status: ${applyEffect.status}!`;
                     break;
               }
           

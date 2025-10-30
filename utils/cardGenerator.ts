@@ -367,28 +367,104 @@ export const createCombatPayload = (playerLevel: number, element: Element, diffi
     });
 
     // Add dynamic environment effects based on element and round
-    const environment: Environment | undefined = Math.random() > 0.6 ? { // 40% chance for an environment effect
-        name: `${Element[element]}s Aura`,
-        description: `En aura av ${Element[element]}-energi genomsyrar striden.`,
-        element: element,
-        effects: [
-            {
-                description: `Alla tar ${2 + Math.floor(round / 2)} ${Element[element]}-skada varje runda.`,
-                type: 'dot',
-                element: element,
-                value: 2 + Math.floor(round / 2),
-                targetScope: 'all',
-            } as EnvironmentEffect, // Explicitly cast to EnvironmentEffect
-            {
-                description: `Fiender har en chans att bli förlamade.`,
-                type: 'status_apply',
-                status: 'paralyzed',
-                statusDuration: 1,
-                statusChance: 10 + (round * 2),
-                targetScope: 'enemies',
-            } as EnvironmentEffect // Explicitly cast to EnvironmentEffect
-        ]
-    } : undefined;
+    const environment: Environment | undefined = Math.random() > 0.6 ? (() => { // 40% chance for an environment effect
+        const envEffects: EnvironmentEffect[] = [];
+        const envName = `${Element[element]}s Aura`;
+        const envDescription = `En aura av ${Element[element]}-energi genomsyrar striden.`;
+
+        // Base DoT effect for all elements
+        envEffects.push({
+            description: `Alla tar ${2 + Math.floor(round / 2)} ${Element[element]}-skada varje runda.`,
+            type: 'dot',
+            element: element,
+            value: 2 + Math.floor(round / 2),
+            targetScope: 'all',
+        });
+
+        // Element-specific additional effects
+        switch (element) {
+            case Element.FIRE:
+                envEffects.push({
+                    description: `Spelaren får en chans att bli överhettad.`,
+                    type: 'status_apply',
+                    status: 'overheated',
+                    statusDuration: 1,
+                    statusChance: 15 + (round * 2),
+                    targetScope: 'player',
+                });
+                break;
+            case Element.EARTH:
+                envEffects.push({
+                    description: `Fiender har en chans att bli rotade.`,
+                    type: 'status_apply',
+                    status: 'rooted',
+                    statusDuration: 1,
+                    statusChance: 15 + (round * 2),
+                    targetScope: 'enemies',
+                });
+                break;
+            case Element.WIND:
+                envEffects.push({
+                    description: `Alla har en chans att få sin ATB sänkt.`,
+                    type: 'atb_modifier',
+                    value: -10 - (round * 2), // Reduce ATB by this amount
+                    statusChance: 20 + (round * 2),
+                    targetScope: 'all',
+                });
+                break;
+            case Element.WATER:
+                envEffects.push({
+                    description: `Spelaren har en chans att regenerera hälsa.`,
+                    type: 'status_apply',
+                    status: 'regenerating',
+                    statusDuration: 1,
+                    value: 5 + (round * 2), // Heal amount
+                    statusChance: 20 + (round * 2),
+                    targetScope: 'player',
+                });
+                break;
+            case Element.MAGMA:
+                envEffects.push({
+                    description: `Alla tar ökad eldskada.`,
+                    type: 'stat_modifier',
+                    stat: 'damage', // Represents damage taken increase
+                    element: Element.FIRE,
+                    value: 10 + (round * 2), // 10% increased fire damage taken
+                    isPercentage: true,
+                    targetScope: 'all',
+                });
+                break;
+            case Element.STORM:
+                envEffects.push({
+                    description: `Alla har en chans att bli förlamade.`,
+                    type: 'status_apply',
+                    status: 'paralyzed',
+                    statusDuration: 1,
+                    value: 20 + (round * 2), // Chance to miss turn
+                    statusChance: 20 + (round * 2),
+                    targetScope: 'all',
+                });
+                break;
+            // Add more hybrid element environments as needed
+            default:
+                // Fallback for other elements or no specific effect
+                envEffects.push({
+                    description: `En mystisk energi påverkar alla.`,
+                    type: 'atb_modifier',
+                    value: -5,
+                    statusChance: 10,
+                    targetScope: 'all',
+                });
+                break;
+        }
+
+        return {
+            name: envName,
+            description: envDescription,
+            element: element,
+            effects: envEffects,
+        };
+    })() : undefined;
 
     return {
         title: `${Element[element]} Konfrontation`,

@@ -23,7 +23,9 @@
     "test:core": "node tests/e2e/core-flows.cjs",
     "test:gameplay": "node tests/e2e/gameplay-smoke.cjs",
     "test:combat-stats": "node --test tests/unit/playerCombatStats.test.cjs",
-    "test:save-validation": "node --test tests/unit/validateSaveData.test.cjs"
+    "test:save-validation": "node --test tests/unit/validateSaveData.test.cjs",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.3",
@@ -48,6 +50,7 @@
     "@typescript-eslint/eslint-plugin": "^8.60.0",
     "@typescript-eslint/parser": "^8.60.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "@vitest/coverage-v8": "^2.1.9",
     "autoprefixer": "^10.5.0",
     "electron": "^42.2.0",
     "electron-builder": "^26.8.1",
@@ -58,7 +61,8 @@
     "puppeteer": "^25.1.0",
     "tailwindcss": "^4.3.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "vite": "^6.2.0",
+    "vitest": "^2.1.9"
   },
   "build": {
     "files": [

@@ -9,10 +9,11 @@
 - Gaps: enemy.behavior (e.g. ATTACK_LOWEST_HP) assigned in generator but ignored in handleEnemyAction (always ~player or random ability); boss.phases defined+typed but no evaluate/transition code in EventView; EventView monolithic; partial tests (node --test + e2e cjs, no vitest).
 
 ## Pågående uppgift:
-- Implementera saknade boss phase transitions + EnemyBehavior logik i EventView handleEnemyAction.
+- Ingen. Boss-AI är slutfört.
 
 ## Slutfört:
 - Save-persistens (localStorage + restore), core ATB + status engine, 20-el hybrid gen, skill/affinity/equip, round deck loop, UI views.
 - AudioContext singleton + resume i sound.ts (ljudbuggen åtgärdad).
 - ATB loop decoupled: useATBEngine hook with useRef + direct DOM bar updates (no more 20/s re-renders on ticks).
+- enemy behavior + boss phases nu inkopplade i EventView (Steg 1-4), samt Vitest konfigurerat med 12 tester och coverage.
 

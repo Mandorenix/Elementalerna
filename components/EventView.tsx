@@ -5,7 +5,7 @@ import { Icons, ARCHETYPES, PLAYER_ABILITIES, ULTIMATE_ABILITIES } from '../cons
 import { soundEffects } from '../sound'; // Aktiverar importen av ljudeffekter
 import CombatBackground from './CombatBackground'; // Import the new CombatBackground component
 import { useATBEngine } from '../hooks/useATBEngine';
-import { evaluateBossPhase } from '../utils/combatAI';
+import { evaluateBossPhase, resolveBehaviorTarget } from '../utils/combatAI';
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
@@ -433,12 +433,15 @@ const EventView: React.FC<{
           }
           setGameState('PLAYER_TURN');
           setShowCommandMenu(true);
-      } else {
-          await handleEnemyAction(actor.id);
-          if (gameState as GameState !== 'VICTORY' && gameState as GameState !== 'DEFEAT') {
-             setGameState('ACTIVE');
-          }
-      }
+       } else {
+         try {
+             await handleEnemyAction(actor.id);
+         } catch (err) {
+             console.error("Combat action error:", err);
+         } finally {
+             setGameState(prev => (prev === 'VICTORY' || prev === 'DEFEAT') ? prev : 'ACTIVE');
+         }
+       }
 
   }, [actors, updateActorState, gameState, event.environment, character.archetype, playerStats.maxAether, characterElement, event.enemies]);
 
@@ -844,6 +847,7 @@ const EventView: React.FC<{
       let player = actors.find(a => a.type === 'PLAYER');
       if (!player) return;
 
+      try {
       const abilityInfo = abilityId ? PLAYER_ABILITIES[abilityId] : null;
       const ultimateInfo = abilityId ? ULTIMATE_ABILITIES[abilityId] : null;
       const rank = abilityId && abilityInfo ? (unlockedSkills.get(abilityId) || 1) : 1;
@@ -1660,6 +1664,12 @@ const EventView: React.FC<{
       if(gameState as GameState !== 'VICTORY' && gameState as GameState !== 'DEFEAT') {
          setGameState('ACTIVE');
       }
+      } catch (err) {
+          console.error("Player attack error:", err);
+          setGameState('ACTIVE'); // lås upp om det kraschar
+      } finally {
+          setGameState(prev => (prev === 'VICTORY' || prev === 'DEFEAT') ? prev : 'ACTIVE');
+      }
   };
 
   // --- Potion / Item Usage ---
@@ -1759,8 +1769,34 @@ const EventView: React.FC<{
       }
 
 
-      // --- HASTE_SELF special ability (simple hardcoded) ---
-      if (enemyData.specialAbility === 'HASTE_SELF' && Math.random() < 0.4) {
+      // --- BEHAVIOR-DRIVEN DISPATCH (Steg 4) ---
+      const behavior = enemyActor.currentBehavior ?? enemyData.behavior;
+      const resolution = resolveBehaviorTarget(
+          behavior ?? 'ATTACK_PLAYER',
+          player,
+          enemyActor
+      );
+      void resolution;
+
+      if (behavior === 'BUFF_SELF' || behavior === 'BUFF_ALLIES') {
+          // Self-buff: defensive stance, skip attack
+          const hasDefending = enemyActor.statusEffects.some(e => e.type === 'defending');
+          if (!hasDefending) {
+              updateActorState(enemyId, {
+                  atb: 0,
+                  statusEffects: [
+                      ...enemyActor.statusEffects.filter(e => e.type !== 'defending'),
+                      { type: 'defending', duration: 2 }
+                  ]
+              });
+          } else {
+              updateActorState(enemyId, { atb: 0 });
+          }
+          addLogMessage(`${enemyData.name} stärker sitt försvar!`);
+          addVisualEffect('haste', enemyId, enemyId);
+          await sleep(500);
+      } else if (!behavior && enemyData.specialAbility === 'HASTE_SELF' && Math.random() < 0.4) {
+          // Legacy fallback: endast för fiender utan behavior
           const existingEffects = enemyActor.statusEffects.filter(e => e.type !== 'hasted');
           const newEffects: StatusEffect[] = [...existingEffects, { type: 'hasted', duration: 4 }];
           updateActorState(enemyId, { atb: 0, statusEffects: newEffects });
@@ -1768,7 +1804,7 @@ const EventView: React.FC<{
           addLogMessage(`${enemyData.name} använder vindhastighet!`);
           await sleep(500);
       } else {
-          // --- Try to use an active ability ---
+          // --- Existing ability loop (lämnas orörd) ---
           const readyAbilities: EnemyAbility[] = (enemyData.abilities || []).filter(ab => {
               const cd = enemyActor.enemyAbilityCooldowns[ab.id] || 0;
               return cd <= 0;

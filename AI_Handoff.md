@@ -19,8 +19,8 @@
 |---|---|---|
 | AudioContext i `sound.ts` | PROJECT_STATUS: "Ej löst" | ✅ Fixat — singleton + resume |
 | ATB-loop | PROJECT_STATUS: "50ms setInterval orsakar re-renders" | ✅ Fixat — `hooks/useATBEngine.ts` med useRef + direkt DOM |
-| `enemy.behavior` | Används i combat | ❌ INTE implementerat — `handleEnemyAction` läser aldrig fältet |
-| `enemy.phases` (boss) | Används i combat | ❌ INTE implementerat — ingen fas-övergång existerar |
+| `enemy.behavior` | Används i combat | ✅ Implementerat (Steg 4) |
+| `enemy.phases` (boss) | Används i combat | ✅ Implementerat (Steg 3) |
 | EventView-storlek | "~2573 LOC, monolitisk" | ✅ Korrekt — rör ej utan plan |
 | Tester | "partiella" | ✅ Korrekt — `node --test` + e2e, ingen Vitest |
 
@@ -28,7 +28,9 @@
 
 ---
 
-## 2. Aktuell uppgift: Boss-AI
+## 2. Boss-AI (✅ Klar)
+
+Steg 1-4 genomförda och validerade med Vitest.
 
 Detta är en **funktionell skuld**, inte en optimeringsfas. Den listas som "Immediate Next Step" i `OPTIMIZATION_PLAN.md` §4 under rubriken "(separate from perf)" — dvs. ska göras parallellt med, inte istället för, Phase 3 (Component Decomposition). `AGENTS.md` §3–4 är primär källa för fas-data.
 

@@ -408,7 +408,8 @@ const ENEMY_TEMPLATES: Record<Element, { names: string[]; icon: React.FC }[]> = 
         { names: ["Hetluftsvirvel", "Dallrande Haze"], icon: Icons.EnemySprite }
     ],
     [Element.STEAM]: [
-        { names: ["Ångelemental", "Skållande Dimma"], icon: Icons.EnemySprite }
+        { names: ["Ångelemental", "Skållande Dimma"], icon: Icons.EnemySprite },
+        { names: ["Ång-Ande"], icon: Icons.Water }
     ],
     [Element.HOT_SPRINGS]: [
         { names: ["Källslajm", "Badväktare"], icon: Icons.EnemySlime }
@@ -477,6 +478,10 @@ const getEnemyAbilitiesAndBehavior = (element: Element, isBoss: boolean): { abil
         behavior = 'ATTACK_PLAYER';
     } else if (element === Element.MUD || element === Element.SAND) {
         abilities.push({ ...ENEMY_ABILITIES.mud_entangle });
+        behavior = 'APPLY_DEBUFF_TO_PLAYER';
+    } else if (element === Element.STEAM) {
+        const steamDebuff = { ...ENEMY_ABILITIES.mud_entangle, damageMultiplier: 1.8, statusEffectsToApply: ['steamed'] };
+        abilities.push(steamDebuff);
         behavior = 'APPLY_DEBUFF_TO_PLAYER';
     } else {
         if (Math.random() > 0.5) {
@@ -703,6 +708,12 @@ export const createCombatPayload = (playerLevel: number, element: Element, diffi
                 resistances[Element.FIRE] = -25; // Weak to Fire
                 resistances[Element.WIND] = 10; // Slightly resists Wind
                 break;
+            case Element.STEAM:
+                resistances[Element.FIRE] = 50; // Resists Fire
+                resistances[Element.WATER] = 50; // Resists Water
+                resistances[Element.WIND] = -50; // Weak to Wind
+                resistances[Element.ICE] = -50; // Weak to Ice
+                break;
         }
 
         let onHitEffect: Enemy['onHitEffect'] = undefined;
@@ -730,6 +741,11 @@ export const createCombatPayload = (playerLevel: number, element: Element, diffi
 
         const { abilities: enemyAbilities, behavior: enemyBehavior } = getEnemyAbilitiesAndBehavior(enemyElement, false);
 
+        let enemyDmgMult = damageMultiplier;
+        if (enemyElement === Element.STEAM) {
+            enemyDmgMult = 0.5; // low physical damage
+        }
+
         return {
             id: `enemy-${Date.now()}-${i}`,
             name: enemyName,
@@ -738,7 +754,7 @@ export const createCombatPayload = (playerLevel: number, element: Element, diffi
             stats: {
                 health: Math.floor(baseHealth * healthMultiplier),
                 maxHealth: Math.floor(baseHealth * healthMultiplier),
-                damage: Math.floor(baseDamage * damageMultiplier),
+                damage: Math.floor(baseDamage * enemyDmgMult),
                 armor: Math.floor(baseArmor * armorMultiplier),
             },
             icon: enemyIcon,

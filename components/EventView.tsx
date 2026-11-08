@@ -3,11 +3,10 @@ import type { GameEvent, Character, StatusEffect, PlayerAbility, EquipmentSlot, 
 import { Element } from '../types';
 import { Icons, ARCHETYPES, PLAYER_ABILITIES, ULTIMATE_ABILITIES } from '../constants'; // Added ULTIMATE_ABILITIES
 import { soundEffects } from '../sound'; // Aktiverar importen av ljudeffekter
-import CombatBackground from './CombatBackground'; // Import the new CombatBackground component
 import CombatLog from './CombatLog';
-import ActorSprite from './ActorSprite';
 import ActionMenu from './ActionMenu';
 import VFXLayer from './VFXLayer';
+import CombatArena from './CombatArena';
 import { useATBEngine } from '../hooks/useATBEngine';
 import { evaluateBossPhase, resolveBehaviorTarget } from '../utils/combatAI';
 
@@ -1977,26 +1976,17 @@ const EventView: React.FC<{
   return (
     <div className={`flex-grow w-full h-0 min-h-0 p-2 text-white flex flex-col items-center justify-between bg-black/80 relative overflow-hidden ${shakeClass}`}>
         {isLowHealth && <div className="low-health-vignette" />}
-        {/* Combat Background */}
-        <CombatBackground element={event.element} />
-
-        {/* Environment Display */}
-        {event.environment && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 pixelated-border p-3 text-center z-10 max-w-md landscape:top-2 landscape:p-1.5 landscape:max-w-xs">
-                <h3 className="text-lg text-yellow-400 mb-1 landscape:text-xs">{event.environment.name}</h3>
-                <p className="text-xs text-gray-300 landscape:text-[10px]">{event.environment.description}</p>
-            </div>
-        )}
-
-        {/* Battle Scene */}
-        <div className="w-full flex-grow flex justify-between items-end px-4 sm:px-8 md:px-16 pb-12 pt-20 landscape:pb-2 landscape:pt-14 relative z-10">
-             <div className="flex space-x-4 sm:space-x-8">
-                  {actors.filter(a => a.type === 'ENEMY').map(enemy => <ActorSprite key={enemy.id} actor={enemy} onDefeatAnimationEnd={handleDefeatAnimationEnd} selectedTarget={selectedTarget} showCommandMenu={showCommandMenu} showAbilityMenu={showAbilityMenu} showUltimateMenu={showUltimateMenu} />)}
-             </div>
-             <div className="flex">
-                  {actors.find(a => a.type === 'PLAYER') && <ActorSprite actor={actors.find(a => a.type === 'PLAYER')!} onDefeatAnimationEnd={handleDefeatAnimationEnd} equipment={equipment} selectedTarget={selectedTarget} showCommandMenu={showCommandMenu} showAbilityMenu={showAbilityMenu} showUltimateMenu={showUltimateMenu} />}
-             </div>
-        </div>
+        <CombatArena
+          actors={actors}
+          handleDefeatAnimationEnd={handleDefeatAnimationEnd}
+          selectedTarget={selectedTarget}
+          showCommandMenu={showCommandMenu}
+          showAbilityMenu={showAbilityMenu}
+          showUltimateMenu={showUltimateMenu}
+          equipment={equipment}
+          element={event.element}
+          environment={event.environment}
+        />
 
         {/* UI Panels */}
         <div className="w-full h-auto landscape:h-28 md:h-48 flex flex-col landscape:flex-row md:flex-row z-20 bg-black/90 flex-shrink-0 border-t-2 border-gray-700/80" style={{backdropFilter:'blur(8px)'}}>

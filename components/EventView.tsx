@@ -34,38 +34,6 @@ const STYRKA_PER_HIT = 15;
 const STYRKA_PER_DEFEND = 25;
 const FLODE_PER_HEAL_CC = 30;
 
-// Retro Pixel-Art Styled Icons for Combat Actions
-const SwordIcon = ({ size = 5 }: { size?: number }) => (
-  <svg className={`w-${size} h-${size} shrink-0`} viewBox="0 0 16 16" fill="currentColor">
-    <path d="M11.5 2a1.5 1.5 0 012.12 0l.38.38a1.5 1.5 0 010 2.12L12 6.5 9.5 4l2-2zM8.5 5L1 12.5V15h2.5L11 7.5 8.5 5zM3 13h1v1H3v-1z" />
-  </svg>
-);
-
-const SparkIcon = ({ size = 5 }: { size?: number }) => (
-  <svg className={`w-${size} h-${size} shrink-0`} viewBox="0 0 16 16" fill="currentColor">
-    <path d="M8 1l1.5 3.5L13 6l-3.5 1.5L8 11 6.5 7.5 3 6l3.5-1.5L8 1zM4 11l.75 1.75L6.5 13.5l-1.75.75L4 16l-.75-1.75L1.5 13.5l1.75-.75L4 11zm8 0l.75 1.75 1.75.75-1.75.75L12 16l-.75-1.75-1.75-.75 1.75-.75L12 11z" />
-  </svg>
-);
-
-const UltimateIcon = ({ size = 5 }: { size?: number }) => (
-  <svg className={`w-${size} h-${size} shrink-0`} viewBox="0 0 16 16" fill="currentColor">
-    <path d="M8 15A7 7 0 108 1a7 7 0 000 14zm0-2a5 5 0 110-10 5 5 0 010 10zm0-8a3 3 0 100 6 3 3 0 000-6z" />
-  </svg>
-);
-
-const PotionIcon = ({ size = 5 }: { size?: number }) => (
-  <svg className={`w-${size} h-${size} shrink-0`} viewBox="0 0 16 16" fill="currentColor">
-    <path d="M5 2h6v2H5V2zm1 4h4v8H6V6zm1 2v4h2V8H7z" />
-  </svg>
-);
-
-const ShieldIcon = ({ size = 5 }: { size?: number }) => (
-  <svg className={`w-${size} h-${size} shrink-0`} viewBox="0 0 16 16" fill="currentColor">
-    <path d="M8 1.5s5 1.5 5 5c0 3-3 5.5-5 7-2-1.5-5-4-5-7 0-3.5 5-5 5-5z" />
-  </svg>
-);
-
-
 const EventView: React.FC<{
   event: GameEvent;
   character: Character;

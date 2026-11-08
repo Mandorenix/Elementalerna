@@ -20,8 +20,6 @@ const ArchetypeCard: React.FC<{
         ? 'scale-105 z-20 shadow-2xl shadow-yellow-600/50 event-card-boss border-yellow-500'
         : 'hover:scale-105 hover:shadow-lg hover:shadow-yellow-500/20 hover:border-gray-400 event-card-front';
 
-    const borderColor = step === 'primary' ? 'border-l-yellow-500' : 'border-l-purple-500';
-
     return (
         <div
             onClick={() => onSelect(archetype)}

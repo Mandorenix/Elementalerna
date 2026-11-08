@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { chat, chatStream, conversation } from '@pollinations/sdk';
+import { chatStream } from '@pollinations/sdk';
 import { NPC_PERSONALITIES } from '../src/services/aiPrompts';
 
 interface AINPCDialogueProps {

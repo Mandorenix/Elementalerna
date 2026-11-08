@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Element } from '../types';
 
 interface Props {
@@ -52,7 +52,7 @@ const ChestScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }>
   </svg>
 );
 
-const AltarScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }> = ({ colors, resolving }) => (
+const AltarScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }> = ({ colors, _resolving }) => (
   <svg viewBox="0 0 240 320" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
     <rect x="0" y="0" width="240" height="320" fill="#0a0a14" />
     <rect x="0" y="0" width="240" height="320" fill={`${colors.glow}`} opacity="0.08" />
@@ -71,7 +71,7 @@ const AltarScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }>
   </svg>
 );
 
-const FountainScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }> = ({ colors, resolving }) => (
+const FountainScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }> = ({ colors, _resolving }) => (
   <svg viewBox="0 0 240 320" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
     <rect x="0" y="0" width="240" height="320" fill="#0a0a14" />
     <rect x="0" y="0" width="240" height="320" fill={`${colors.glow}`} opacity="0.08" />
@@ -90,7 +90,7 @@ const FountainScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean
   </svg>
 );
 
-const CampfireScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }> = ({ colors, resolving }) => (
+const CampfireScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }> = ({ colors, _resolving }) => (
   <svg viewBox="0 0 240 320" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
     <rect x="0" y="0" width="240" height="320" fill="#0a0a14" />
     <g className="animate-fire-glow">
@@ -115,7 +115,7 @@ const CampfireScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean
   </svg>
 );
 
-const RuneScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }> = ({ colors, resolving }) => (
+const RuneScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }> = ({ colors, _resolving }) => (
   <svg viewBox="0 0 240 320" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
     <rect x="0" y="0" width="240" height="320" fill="#0a0a14" />
     <rect x="0" y="0" width="240" height="320" fill={`${colors.glow}`} opacity="0.08" />
@@ -155,7 +155,7 @@ const BarrierScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean 
   </svg>
 );
 
-const MerchantScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }> = ({ colors, resolving }) => (
+const MerchantScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }> = ({ colors, _resolving }) => (
   <svg viewBox="0 0 240 320" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
     <rect x="0" y="0" width="240" height="320" fill="#0a0a14" />
     <rect x="0" y="0" width="240" height="320" fill={`${colors.glow}`} opacity="0.05" />
@@ -204,7 +204,7 @@ const LeverScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }>
   </svg>
 );
 
-const SacrificialAltarScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }> = ({ colors, resolving }) => (
+const SacrificialAltarScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }> = ({ colors, _resolving }) => (
   <svg viewBox="0 0 240 320" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
     <rect x="0" y="0" width="240" height="320" fill="#0a0a14" />
     <rect x="0" y="0" width="240" height="320" fill={`${colors.glow}`} opacity="0.1" />

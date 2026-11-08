@@ -1,14 +1,5 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 
-// Minimal actor shape for ATB (to avoid circular import with local type in EventView)
-type MinimalActor = {
-  id: string;
-  atb: number;
-  isDefeated: boolean;
-  statusEffects: Array<{ type: string; [key: string]: any }>;
-  ref?: React.RefObject<HTMLDivElement>;
-};
-
 interface UseATBEngineOptions {
   isActive: boolean;
   actors: any[]; // accepts Actor[] from EventView without import cycle

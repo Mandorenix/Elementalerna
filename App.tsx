@@ -13,7 +13,7 @@ import MainMenu from './components/MainMenu';
 import BackgroundMusic from './components/BackgroundMusic';
 import { configureAI } from './src/services/aiService';
 import type { View, Character, CharacterStats, Item, EquipmentSlot, Archetype, ArchetypeName, Skill, GameEvent, EventCard, Outcome, PlayerAbility, Element } from './types';
-import { INITIAL_CHARACTER_BASE, SKILL_TREE_DATA, LIGHT_SKILL_TREE_DATA, DARK_SKILL_TREE_DATA, ARCHETYPES, Icons, PLAYER_ABILITIES, ItemVisuals, ELEMENTAL_AFFINITY_BONUSES, PASSIVE_TALENTS, ULTIMATE_ABILITIES, MAX_ROUNDS } from './constants';
+import { INITIAL_CHARACTER_BASE, SKILL_TREE_DATA, LIGHT_SKILL_TREE_DATA, DARK_SKILL_TREE_DATA, Icons, PLAYER_ABILITIES, ItemVisuals, ELEMENTAL_AFFINITY_BONUSES, PASSIVE_TALENTS, ULTIMATE_ABILITIES, MAX_ROUNDS } from './constants';
 import { generateRandomCard, generateBossCard, generateRandomItem } from './utils/cardGenerator';
 import { calculatePlayerCombatStats } from './utils/playerCombatStats';
 import { saveGame, loadGame, hasSaveData, restoreItem } from './save';
@@ -466,13 +466,10 @@ function App() {
   const debugAddGold = useCallback(() => setGold(g => g + 100), [setGold]); // New debug function
 
   // --- AI STATE ---
-  const [aiApiKey, setAiApiKey] = useState<string>('');
+  const [aiApiKey, _setAiApiKey] = useState<string>('');
   const [aiModel, setAiModel] = useState<string>('openai');
   const [npcDialogueEnabled, setNpcDialogueEnabled] = useState(false);
   const [aiEventGenEnabled, setAiEventGenEnabled] = useState(false);
-
-  // eslint-disable-next-line no-unused-vars
-  const _aiApiKey = aiApiKey;
 
   const handleAIConfig = useCallback((key: string) => {
     configureAI(key);

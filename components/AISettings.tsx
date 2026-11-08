@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { configureAI, isAIConfigured, listAvailableModels, type AIEntity, createAIEntity } from '../src/services/aiService';
+import { configureAI, isAIConfigured, listAvailableModels } from '../src/services/aiService';
 
 interface AISettingsProps {
   onApiKeyChange: (apiKey: string) => void;

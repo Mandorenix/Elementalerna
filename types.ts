@@ -397,3 +397,23 @@ export interface EventCard {
     payload: GameEvent | { options: ChoiceOption[] } | Outcome | PuzzleChallenge | MerchantOffer; // Updated payload
     isBoss?: boolean;
 }
+
+export type AnimationState = 'idle' | 'attacking' | 'hit' | 'casting';
+
+export type Actor = {
+  id: string;
+  type: 'PLAYER' | 'ENEMY';
+  name: string;
+  icon: React.FC;
+  hp: number;
+  maxHp: number;
+  atb: number;
+  animationState: AnimationState;
+  statusEffects: StatusEffect[];
+  isDefeated: boolean;
+  ref: React.RefObject<HTMLDivElement>;
+  ultimateCooldowns: Partial<Record<string, number>>;
+  enemyAbilityCooldowns: Partial<Record<string, number>>;
+  currentBehavior?: EnemyBehavior;
+  phaseIndex: number;
+};

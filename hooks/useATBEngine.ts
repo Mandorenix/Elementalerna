@@ -81,6 +81,9 @@ export function useATBEngine({
 
       let readyActorId: string | null = null;
 
+      let maxEnemy = 0;
+      actors.forEach(a => { if(a.isDefeated) return; const v=atbMapRef.current[a.id]??a.atb; if(a.type==='ENEMY') maxEnemy=Math.max(maxEnemy,v); });
+
       actors.forEach((actor: any) => {
         if (actor.isDefeated) return;
 
@@ -96,6 +99,7 @@ export function useATBEngine({
         let atbRate = 1.5;
         if (isHasted) atbRate *= 1.5;
         if (isSlowed) atbRate *= 0.5;
+        if (actor.type === 'PLAYER' && maxEnemy > 80 && currentAtb < 40) atbRate *= 1.5;
 
         const newAtb = currentAtb + atbRate;
         atbMapRef.current[actor.id] = newAtb;

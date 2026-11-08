@@ -4,6 +4,7 @@ import { Element } from '../types';
 import { Icons, ARCHETYPES, PLAYER_ABILITIES, ULTIMATE_ABILITIES } from '../constants'; // Added ULTIMATE_ABILITIES
 import { soundEffects } from '../sound'; // Aktiverar importen av ljudeffekter
 import CombatBackground from './CombatBackground'; // Import the new CombatBackground component
+import CombatLog from './CombatLog';
 import { useATBEngine } from '../hooks/useATBEngine';
 import { evaluateBossPhase, resolveBehaviorTarget } from '../utils/combatAI';
 
@@ -117,16 +118,8 @@ const EventView: React.FC<{
   const playerRef = useRef<HTMLDivElement>(null);
   const enemyRefs = useRef<React.RefObject<HTMLDivElement>[]>([]);
   const popupContainerRef = useRef<HTMLDivElement>(null);
-  const logContainerRef = useRef<HTMLDivElement>(null);
   const playerAtbBarRef = useRef<HTMLDivElement>(null);
   const resourceTheme = resourceThemes[playerStats.resourceName] || resourceThemes['Aether'];
-
-  // Auto-scroll combat log to bottom
-  useEffect(() => {
-    if (logContainerRef.current) {
-      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
-    }
-  }, [log]);
 
   // Initialize combatants
   useEffect(() => {
@@ -2513,19 +2506,9 @@ const EventView: React.FC<{
                     <button onClick={() => { setPreviewItem(null); setShowItemMenu(false); setShowCommandMenu(true); }} className="text-center w-full py-1 text-[8px] text-gray-500 hover:text-gray-300 flex-shrink-0 border-t border-gray-700/50 hover:bg-gray-800/30 transition-colors">◀ Tillbaka</button>
                 </div>
             )}
-            
-            {/* Combat Log */}
-            <div 
-                ref={logContainerRef}
-                className="flex-grow min-w-0 h-16 landscape:h-full overflow-y-auto custom-scrollbar text-[9px] bg-black/30 p-2 font-mono leading-relaxed border-b landscape:border-b-0 landscape:border-r border-gray-700/30"
-            >
-                 {log.map((msg, i) => (
-                     <p key={i} className={`pb-0.5 mb-0.5 ${i === log.length - 1 ? 'text-yellow-300 font-bold' : 'text-gray-400'}`}>
-                         {i === log.length - 1 && <span className="text-yellow-500 mr-1">▶</span>}{msg}
-                     </p>
-                 ))}
-            </div>
- 
+
+            <CombatLog log={log} />
+  
             {/* Player Status */}
             <div className="flex-shrink-0 w-full landscape:w-44 md:w-52 h-16 landscape:h-full p-1.5 landscape:p-2 flex landscape:flex-col flex-row gap-1 landscape:gap-1.5 items-center landscape:items-stretch justify-between">
                 {/* Name & Level (landscape only) */}

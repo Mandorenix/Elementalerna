@@ -5,6 +5,7 @@ import { Icons, ARCHETYPES, PLAYER_ABILITIES, ULTIMATE_ABILITIES } from '../cons
 import { soundEffects } from '../sound'; // Aktiverar importen av ljudeffekter
 import CombatBackground from './CombatBackground'; // Import the new CombatBackground component
 import { useATBEngine } from '../hooks/useATBEngine';
+import { evaluateBossPhase } from '../utils/combatAI';
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
@@ -752,11 +753,39 @@ const EventView: React.FC<{
           const hettaLog = hettaBonus > 0 ? ` (+${hettaBonus} från Hetta, -${hettaConsumed} Hetta)` : ""; // Update log message
           addLogMessage(`${attacker.name} skadade ${defender.name} för ${finalDamage} HP${hettaLog}.`);
           
-          // Must apply damage before checking affixes, so they have the latest HP
-          defender = { ...defender, hp: newHp };
-          updateActorState(defenderId, { ...defenderUpdates, hp: newHp });
+           // Must apply damage before checking affixes, so they have the latest HP
+           defender = { ...defender, hp: newHp };
+           updateActorState(defenderId, { ...defenderUpdates, hp: newHp });
 
-          // --- AFFIX PROCESSING ---
+           // --- BOSS PHASE TRANSITION ---
+           if (defender.type === 'ENEMY' && enemyData) {
+               const phaseResult = evaluateBossPhase(enemyData, newHp, defender.phaseIndex);
+               if (phaseResult) {
+                   const { phase, nextPhaseIndex } = phaseResult;
+                   addLogMessage(`${defender.name} går in i en ny fas: ${phase.name}!`);
+
+                   const currentStatuses = defenderUpdates.statusEffects || defender.statusEffects;
+                   const newStatuses = [...currentStatuses, ...(phase.statusEffectsToApplyToSelf || [])];
+                   const newBehavior = phase.newBehavior || defender.currentBehavior;
+
+                   updateActorState(defenderId, {
+                       phaseIndex: nextPhaseIndex,
+                       currentBehavior: newBehavior,
+                       statusEffects: newStatuses,
+                   });
+
+                   // HÅLL lokal variabel synkad så affix-loopen nedan ser nya statusar
+                   // (annars kan ON_HIT-affix skriva över fasens statusar, t.ex. hasted(99))
+                   defender = {
+                       ...defender,
+                       phaseIndex: nextPhaseIndex,
+                       currentBehavior: newBehavior,
+                       statusEffects: newStatuses,
+                   };
+               }
+           }
+
+           // --- AFFIX PROCESSING ---
           if (attacker.type === 'PLAYER') {
             // FIX: Explicitly type the array from Object.values to prevent 'unknown' type errors.
             for (const item of Object.values(equipment) as (Item | null)[]) {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import type { Item, Rarity } from '../types';
+import type { Item, EquipmentSlot } from '../types';
 import ItemTooltip from './ItemTooltip';
+import ItemCompareTooltip from './ItemCompareTooltip';
 
 const rarityStyles = {
     'Vanlig': { color: 'border-gray-400', text: 'text-white' },
@@ -11,15 +12,16 @@ const rarityStyles = {
 
 const INVENTORY_SLOTS = 40;
 
-const InventoryItem: React.FC<{ item: Item | null; onEquip: (item: Item) => void }> = ({ item, onEquip }) => {
+const InventoryItem: React.FC<{ item: Item | null; onEquip: (item: Item) => void; equippedItem: Item | null }> = ({ item, onEquip, equippedItem }) => {
     const [isHovered, setIsHovered] = useState(false);
     
     if (!item) {
-        return <div className="w-16 h-16 bg-black/30 border-2 border-gray-800" />;
+        return <div className="w-12 h-12 sm:w-16 sm:h-16 bg-black/30 border-2 border-gray-800" />;
     }
 
     const rarityColor = rarityStyles[item.rarity].color;
     const Icon = item.icon;
+    const isEquipment = item.slot !== 'Föremål';
 
     return (
         <div 
@@ -29,22 +31,26 @@ const InventoryItem: React.FC<{ item: Item | null; onEquip: (item: Item) => void
         >
             <button
                 onClick={() => onEquip(item)}
-                className={`w-16 h-16 bg-black/50 border-2 ${rarityColor} flex items-center justify-center text-gray-500 text-xs hover:bg-green-500/20 cursor-pointer text-2xl`}
+                className={`w-12 h-12 sm:w-16 sm:h-16 bg-black/50 border-2 ${rarityColor} flex items-center justify-center text-gray-500 text-xs hover:bg-green-500/20 cursor-pointer text-xl sm:text-2xl`}
                 aria-label={`Utrusta ${item.name}`}
             >
                 <Icon />
             </button>
-            {isHovered && <ItemTooltip item={item} context="equip" />}
+            {isHovered && isEquipment && equippedItem
+                ? <ItemCompareTooltip item={item} equippedItem={equippedItem} />
+                : isHovered && <ItemTooltip item={item} context="equip" />
+            }
         </div>
     );
 };
 
 interface InventoryProps {
     items: Item[];
+    equipment: Record<EquipmentSlot, Item | null>;
     onEquipItem: (item: Item) => void;
 }
 
-const Inventory: React.FC<InventoryProps> = ({ items, onEquipItem }) => {
+const Inventory: React.FC<InventoryProps> = ({ items, equipment, onEquipItem }) => {
   const inventoryGrid = Array.from({ length: INVENTORY_SLOTS }).map((_, i) => items[i] || null);
 
   return (
@@ -52,10 +58,15 @@ const Inventory: React.FC<InventoryProps> = ({ items, onEquipItem }) => {
         <div className="max-w-4xl mx-auto">
             <h1 className="text-2xl text-yellow-400 mb-6 text-center">Lager</h1>
             <div className="p-4 bg-black/30 pixelated-border">
-                <div className="grid grid-cols-8 gap-2">
-                    {inventoryGrid.map((item, index) => (
-                        <InventoryItem key={item ? item.id : `empty-${index}`} item={item} onEquip={onEquipItem} />
-                    ))}
+                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
+                    {inventoryGrid.map((item, index) => {
+                        const equippedItem = item && item.slot !== 'Föremål'
+                            ? equipment[item.slot as EquipmentSlot] ?? null
+                            : null;
+                        return (
+                            <InventoryItem key={item ? item.id : `empty-${index}`} item={item} onEquip={onEquipItem} equippedItem={equippedItem} />
+                        );
+                    })}
                 </div>
             </div>
              <div className="mt-6 flex justify-center space-x-6 text-xs">

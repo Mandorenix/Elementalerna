@@ -1,6 +1,7 @@
 import React from 'react';
-import type { Character, Skill, Archetype, Item, Rarity, Enemy, GameEvent, EquipmentSlot, EventModifier, EventCard, ChoiceOption, Outcome, PlayerAbility, ItemAffix, ElementalBonus, Environment, PassiveTalent, UltimateAbility, ItemStats } from './types';
-import { Element } from './types';
+import { Element, type PlayerAbility, type Archetype, type Character, type Skill, type PassiveTalent, type UltimateAbility, type ElementalBonus, type EnemyAbility } from './types';
+
+export const MAX_ROUNDS = 10;
 
 // Helper for creating simple, pixelated-style SVG icons
 const createIcon = (paths: string[], color: string): React.FC => () => (
@@ -98,42 +99,236 @@ export const Icons = {
     ElectrifiedMud: createIcon(["M7 1v1h1v1h1v2H8v1H6V5h1V4h1V3H7V2H6V1h1z M10 10h-1v-1h-1v-1h-1v2h1v1h1v1h1v1h-1v-1h-1v-1h-1v-2h1V9h1v1h1v1h-1z"], "#a3e635"),
     VitrifiedStorm: createIcon(["M8 1l-3 4h2v3h2V5h2L8 1z m0 14l-3-4h2v-3h2v3h2l-3 4z"], "#2dd4bf"),
     // Uppdaterad EnemyGoblin-ikon
-    EnemyGoblin: createIcon([
-        "M7 5h2v1h1v3H9v1H7v-1H6V6h1V5z", // Kropp och huvud
-        "M7 10h2v1H7v-1z", // Mun
-        "M6 6h1v1H6V6z", // Öga vänster
-        "M9 6h1v1H9V6z", // Öga höger
-        "M5 7h1v1H5V7z", // Öra vänster
-        "M10 7h1v1h-1V7z", // Öra höger
-        "M7 4h2v1H7V4z" // Hår/topp
-    ], "#ef4444"),
-    EnemyGolem: createIcon(["M4 12h8v-1h1V8h-1V5h-1V4H5v1H4v3H3v3h1v1z"], "#78716c"),
-    EnemySprite: createIcon(["M8 4l-1 2h2L8 4z M6 7h4v1H6V7z M7 9h2v2H7V9z"], "#38bdf8"),
-    EnemySlime: createIcon(["M4 12v-1h1v-1h1v-1h4v1h1v1h1v1H4z"], "#3b82f6"),
-    // New Enemy Icons
-    EnemyFireElemental: createIcon([
-        "M8 1c-2 2-3 4-3 6s1 4 3 4 3-2 3-4-1-4-3-6zm0 1a2 2 0 011 2v1h-1v1H8V6H7V5a2 2 0 011-1z", // Body
-        "M6 13h4v1H6v-1z", // Base glow
-        "M5 15h6v1H5v-1z", // Wider base glow
-        "M7 3h2v1H7V3z", // Inner flame
-        "M6 5h1v1H6V5z", // Left flame detail
-        "M9 5h1v1H9V5z" // Right flame detail
-    ], "#f87171"),
-    EnemyRockTitan: createIcon([
-        "M4 14h8v-1H4v1z", // Base
-        "M5 12h6v-1H5v1z", // Lower body
-        "M3 10h10V7h1V5h-1V4H4v1H3v2h1v3z", // Torso and head
-        "M6 6h4v1H6V6z", // Face detail
-        "M7 5h2v1H7V5z", // Eye area
-        "M6 8h1v1H6V8z", // Left arm
-        "M9 8h1v1H9V8z" // Right arm
-    ], "#a8a29e"),
-    EnemyStormSylph: createIcon(["M8 2L6 5h4L8 2z M4 7h8v1H4V7z M5 9h6v1H5V9z M7 11h2v3H7v-3z"], "#7dd3fc"),
-    EnemyObsidianGolem: createIcon(["M4 14h8v-2H4v2zm1-3h6v-1H5v1zM3 10h10V7h1V4h-1V3H4v1H3v3h1v3zM6 5h4v1H6V5z"], "#475569"),
-    EnemyElectrifiedSlime: createIcon(["M4 12v-1h1v-1h1v-1h4v1h1v1h1v1H4zm3-4h2v1h1v1H9V8H7V7h1V6H7v1z"], "#a3e635"),
-    EnemyIceElemental: createIcon(["M8 1L6 4h4L8 1z M5 5h6v2H5V5zm-2 3h10v2H3V8zm2 3h6v3H5v-3z"], "#bae6fd"),
-    EnemySandWurm: createIcon(["M2 8h2v1H2V8zm2 2h2v-1H4v1zm2 1h2V9H6v2zm2-1h2V8H8v2zm2-2h2V7h-2v1zm2 1h2V6h-2v2z"], "#d4a04e"),
-    EnemyToxicTreant: createIcon(["M8 1L7 4H6v3h1v3h2V7h1V4H9L8 1zm-3 8h1v3H5v-3zm5 0h1v3h-1v-3z"], "#a3a327"),
+    // Class Archetype Sprites
+    PyromantenSprite: () => (
+      <svg className="sprite-head-sway" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="8" cy="14" rx="5" ry="1.5" fill="#000" opacity="0.3" />
+        <path d="M4 14l2-6h4l2 6H4z" fill="#991b1b" />
+        <path d="M5 14l1.5-4h3l1.5 4H5z" fill="#ef4444" />
+        <path d="M5 7h6v2H5V7z" fill="#7f1d1d" />
+        <path d="M6 4h4v3H6V4z" fill="#991b1b" />
+        <rect x="7" y="5" width="2" height="2" fill="#111827" />
+        <rect x="6" y="6" width="4" height="1" fill="#111827" />
+        <rect x="6" y="5" width="1" height="1" fill="#facc15" className="sprite-rune-pulse" style={{ color: '#facc15' }} />
+        <rect x="9" y="5" width="1" height="1" fill="#facc15" className="sprite-rune-pulse" style={{ color: '#facc15' }} />
+        <path className="sprite-flicker-flame" d="M2 10h1v-1H2v1zm0-1h1v-2H2v2zm-1 0h1v-1H1v1zm3 1h1V9H4v1z" fill="#f97316" />
+        <path className="sprite-flicker-flame" d="M13 10h1v-1h-1v1zm0-1h1v-2h-1v2zm1 0h1v-1h-1v1zm-3 1h1V9h-1v1z" fill="#f97316" />
+      </svg>
+    ),
+    StenvaktarenSprite: () => (
+      <svg className="sprite-head-sway" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="8" cy="14" rx="6" ry="1.5" fill="#000" opacity="0.3" />
+        <path d="M3 13l2-5h6l2 5H3z" fill="#4b5563" />
+        <path d="M4 13l1.5-3.5h5L12 13H4z" fill="#6b7280" />
+        <rect x="3" y="7" width="2" height="2" fill="#15803d" />
+        <rect x="11" y="7" width="2" height="2" fill="#15803d" />
+        <path d="M6 3h4v4H6V3z" fill="#374151" />
+        <path d="M7 4h2v2H7V4z" fill="#4b5563" />
+        <path d="M5 2h1v2H5V2zm5 0h1v2h-1V2z" fill="#9ca3af" />
+        <path className="sprite-rune-pulse" d="M7 9h2v1H7V9zm1 1h1v2H8v-2z" fill="#22c55e" style={{ color: '#22c55e' }} />
+      </svg>
+    ),
+    StormdansarenSprite: () => (
+      <svg className="sprite-head-sway" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="8" cy="14" rx="4" ry="1.2" fill="#000" opacity="0.3" />
+        <path d="M2 13c1-2 2-5 5-5h1v6H2z" fill="#e2e8f0" />
+        <path d="M5 14l1-6h2l1 6H5z" fill="#1e3a8a" />
+        <path d="M6 14l0.5-4h1L8 14H6z" fill="#3b82f6" />
+        <path d="M6 4h4v3H6V4z" fill="#fbcfe8" />
+        <path d="M5 3h6v2H5V3z" fill="#0284c7" />
+        <g className="sprite-wind-spin">
+          <circle cx="8" cy="8" r="7" stroke="#38bdf8" strokeWidth="1" strokeDasharray="4,6" opacity="0.6" />
+          <circle cx="8" cy="8" r="5" stroke="#e0f2fe" strokeWidth="1.5" strokeDasharray="3,7" opacity="0.8" />
+        </g>
+      </svg>
+    ),
+    TidvattenvavarenSprite: () => (
+      <svg className="sprite-head-sway" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="8" cy="14" rx="5" ry="1.5" fill="#000" opacity="0.3" />
+        <path d="M4 14l1.5-6h5l1.5 6H4z" fill="#1d4ed8" />
+        <path d="M5 14l1-4h2l1 4H5z" fill="#60a5fa" />
+        <path d="M5 13c1-1 2-1 3 0s2 1 3 0" stroke="#3b82f6" strokeWidth="1" />
+        <path d="M5 7h6v2H5V7z" fill="#1e3a8a" />
+        <path d="M6 4h4v3H6V4z" fill="#2563eb" />
+        <rect x="7" y="5" width="2" height="2" fill="#fbcfe8" />
+        <circle className="sprite-water-float" cx="2" cy="6" r="1" fill="#38bdf8" style={{ animationDelay: '0s' }} />
+        <circle className="sprite-water-float" cx="14" cy="5" r="1.5" fill="#0284c7" style={{ animationDelay: '0.5s' }} />
+        <circle className="sprite-water-float" cx="12" cy="10" r="1" fill="#bae6fd" style={{ animationDelay: '1s' }} />
+      </svg>
+    ),
+    // Upgraded Enemy Sprites
+    EnemyGoblin: () => (
+      <svg className="sprite-goblin-bounce" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="8" cy="14" rx="4" ry="1" fill="#000" opacity="0.3" />
+        <rect x="5" y="9" width="6" height="5" fill="#991b1b" />
+        <rect x="3" y="10" width="2" height="2" fill="#166534" />
+        <path d="M2 9l1-2v3L2 9z" fill="#9ca3af" />
+        <path d="M2 7l3 1v1H2V7zm12 0l-3 1v1h3V7z" fill="#16a34a" />
+        <rect x="5" y="5" width="6" height="5" fill="#22c55e" />
+        <rect x="6" y="6" width="1" height="1" fill="#facc15" />
+        <rect x="9" y="6" width="1" height="1" fill="#facc15" />
+        <path d="M5 4h6v1H5V4z" fill="#ef4444" />
+      </svg>
+    ),
+    EnemyGolem: () => (
+      <svg className="sprite-head-sway" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="8" cy="14" rx="6" ry="1.5" fill="#000" opacity="0.3" />
+        <rect x="3" y="6" width="10" height="8" fill="#4b5563" />
+        <rect x="4" y="7" width="8" height="6" fill="#6b7280" />
+        <rect x="2" y="5" width="3" height="3" fill="#374151" />
+        <rect x="11" y="5" width="3" height="3" fill="#374151" />
+        <rect x="6" y="2" width="4" height="4" fill="#374151" />
+        <rect className="sprite-rune-pulse" x="7" y="3" width="2" height="1" fill="#38bdf8" style={{ color: '#38bdf8' }} />
+        <path className="sprite-rune-pulse" d="M5 9h2v1H5V9zm4 2h2v1H9v-1z" fill="#06b6d4" style={{ color: '#06b6d4' }} />
+      </svg>
+    ),
+    EnemySprite: () => (
+      <svg className="sprite-water-float" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="8" cy="14" rx="3" ry="1" fill="#000" opacity="0.2" />
+        <g className="sprite-wings-flap">
+          <path d="M1 5l6 2v2L1 5zm14 0l-6 2v2l6-2z" fill="#0ea5e9" opacity="0.6" />
+          <path d="M2 3l5 3v1L2 3zm12 0l-5 3v1l5-3z" fill="#7dd3fc" opacity="0.4" />
+        </g>
+        <circle cx="8" cy="7" r="3.5" fill="#38bdf8" />
+        <circle className="sprite-rune-pulse" cx="8" cy="7" r="2" fill="#fff" style={{ color: '#fff' }} />
+      </svg>
+    ),
+    EnemySlime: () => (
+      <svg className="sprite-slime-squish" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="8" cy="14" rx="5" ry="1" fill="#000" opacity="0.3" />
+        <path d="M2 13c0-3 3-5 6-5s6 2 6 5H2z" fill="#1d4ed8" opacity="0.6" />
+        <path d="M3 13c0-2 2.5-4 5-4s5 2 5 4H3z" fill="#3b82f6" opacity="0.8" />
+        <path d="M4 13c0-1.5 2-3 4-3s4 1.5 4 3H4z" fill="#60a5fa" opacity="0.9" />
+        <circle className="sprite-water-float" cx="6" cy="11" r="0.7" fill="#fff" style={{ animationDelay: '0s' }} />
+        <circle className="sprite-water-float" cx="10" cy="10" r="0.5" fill="#fff" style={{ animationDelay: '0.8s' }} />
+      </svg>
+    ),
+    EnemyFireElemental: () => (
+      <svg className="sprite-water-float" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="8" cy="14" rx="4" ry="1" fill="#000" opacity="0.3" />
+        <circle cx="8" cy="9" r="3" fill="#f97316" />
+        <g className="sprite-flicker-flame">
+          <path d="M5 8h6l-3-7-3 7z" fill="#ef4444" opacity="0.8" />
+          <path d="M6 9h4L8 4 6 9z" fill="#f97316" />
+          <path d="M7 9h2L8 6 7 9z" fill="#facc15" />
+        </g>
+        <circle className="sprite-mist-rise" cx="5" cy="5" r="0.5" fill="#ef4444" style={{ animationDelay: '0s' }} />
+        <circle className="sprite-mist-rise" cx="11" cy="4" r="0.8" fill="#f97316" style={{ animationDelay: '0.6s' }} />
+      </svg>
+    ),
+    EnemyRockTitan: () => (
+      <svg className="sprite-head-sway" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="8" cy="14" rx="6" ry="1.5" fill="#000" opacity="0.3" />
+        <rect x="2" y="7" width="12" height="7" fill="#292524" />
+        <rect x="3" y="8" width="10" height="6" fill="#44403c" />
+        <rect x="2" y="6" width="3" height="2" fill="#15803d" />
+        <rect x="11" y="6" width="3" height="2" fill="#15803d" />
+        <rect x="5" y="3" width="6" height="5" fill="#44403c" />
+        <rect className="sprite-rune-pulse" x="6" y="5" width="1" height="1" fill="#ea580c" style={{ color: '#ea580c' }} />
+        <rect className="sprite-rune-pulse" x="9" y="5" width="1" height="1" fill="#ea580c" style={{ color: '#ea580c' }} />
+        <path className="sprite-rune-pulse" d="M7 10h2v1H7v-1zm-2 2h6v1H5v-1z" fill="#f97316" style={{ color: '#f97316' }} />
+      </svg>
+    ),
+    EnemyStormSylph: () => (
+      <svg className="sprite-water-float" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="8" cy="14" rx="5" ry="1.2" fill="#000" opacity="0.2" />
+        <ellipse cx="8" cy="6" rx="5" ry="3" fill="#475569" opacity="0.8" />
+        <ellipse cx="8" cy="8" rx="6" ry="2.5" fill="#64748b" opacity="0.6" />
+        <ellipse cx="7" cy="7" rx="4" ry="2" fill="#94a3b8" opacity="0.9" />
+        <g className="sprite-wind-spin">
+          <path d="M2 8a6 6 0 0112 0" stroke="#38bdf8" strokeWidth="1" strokeDasharray="3,3" />
+        </g>
+        <path className="sprite-spark-flash" d="M7 9l-2 3h3v3l3-4H8l1-2H7z" fill="#facc15" />
+      </svg>
+    ),
+    EnemyObsidianGolem: () => (
+      <svg className="sprite-head-sway" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="8" cy="14" rx="5.5" ry="1.5" fill="#000" opacity="0.4" />
+        <path d="M3 13l2-8h6l2 8H3z" fill="#0f172a" />
+        <path d="M4 12l1.5-6h5L12 12H4z" fill="#1e293b" />
+        <path d="M2 6L4 9v2L2 6zm12 0l-2 9v-2l2-7z" fill="#0f172a" />
+        <path d="M5 2l3 3 3-3-3 4-3-4z" fill="#1e293b" />
+        <path className="sprite-rune-pulse" d="M6 8h4v1H6V8zm1 2h2v1H7v-1z" fill="#c084fc" style={{ color: '#c084fc' }} />
+      </svg>
+    ),
+    EnemyElectrifiedSlime: () => (
+      <svg className="sprite-slime-squish" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="8" cy="14" rx="5" ry="1" fill="#000" opacity="0.3" />
+        <path d="M2 13c0-3 3-5 6-5s6 2 6 5H2z" fill="#ca8a04" opacity="0.6" />
+        <path d="M3 13c0-2 2.5-4 5-4s5 2 5 4H3z" fill="#eab308" opacity="0.8" />
+        <path d="M4 13c0-1.5 2-3 4-3s4 1.5 4 3H4z" fill="#facc15" opacity="0.9" />
+        <path className="sprite-spark-flash" d="M2 9l1-2h2L4 9H2z" fill="#fff" />
+        <path className="sprite-spark-flash" d="M13 8l1 2h-2l1-2z" fill="#fff" style={{ animationDelay: '0.7s' }} />
+      </svg>
+    ),
+    EnemyIceElemental: () => (
+      <svg className="sprite-water-float" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="8" cy="14" rx="4" ry="1.2" fill="#000" opacity="0.25" />
+        <path d="M8 2l3 5-3 5-3-5 3-5z" fill="#0ea5e9" />
+        <path d="M8 3l2 4-2 4-2-4 2-4z" fill="#e0f2fe" opacity="0.8" />
+        <g className="sprite-float-shards">
+          <path d="M3 6L4 5v3L3 6zm10 0l-1-1v3l1-2z" fill="#bae6fd" />
+          <path d="M7 13l1-2 1 2-1 1-1-1z" fill="#7dd3fc" />
+        </g>
+      </svg>
+    ),
+    EnemySandWurm: () => (
+      <svg className="sprite-head-sway" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 14c3-2 9-2 12 0H2z" fill="#d97706" />
+        <path d="M4 14c2-1 6-1 8 0H4z" fill="#f59e0b" />
+        <path d="M6 14V8c0-1.5 1-2 2-2s2 .5 2 2v6H6z" fill="#b45309" />
+        <path d="M7 14V8c0-.7.3-1 1-1s1 .3 1 1v6H7z" fill="#d97706" />
+        <path d="M6 7l2-3 2 3H6z" fill="#78350f" />
+        <path d="M7 6l1-2 1 2H7z" fill="#fff" />
+      </svg>
+    ),
+    EnemyToxicTreant: () => (
+      <svg className="sprite-head-sway" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="8" cy="14" rx="5" ry="1.5" fill="#000" opacity="0.3" />
+        <path d="M6 14V5h4v9H6z" fill="#78350f" />
+        <path d="M7 14V5h2v9H7z" fill="#92400e" />
+        <g className="sprite-sway-branch">
+          <path d="M4 8l-3-2 1-1 2 3H4zm8 0l3-2-1-1-2 3h0z" fill="#78350f" />
+          <circle cx="1" cy="5" r="2" fill="#15803d" />
+          <circle cx="15" cy="5" r="2" fill="#15803d" />
+        </g>
+        <circle cx="8" cy="3" r="3" fill="#166534" />
+        <circle cx="6" cy="4" r="2.5" fill="#15803d" />
+        <circle cx="10" cy="4" r="2.5" fill="#15803d" />
+        <circle className="sprite-rune-pulse" cx="7" cy="8" r="1" fill="#c084fc" style={{ color: '#c084fc' }} />
+        <circle className="sprite-rune-pulse" cx="9" cy="11" r="1.2" fill="#a855f7" style={{ color: '#a855f7' }} />
+      </svg>
+    ),
+    EnemyDragon: () => (
+      <svg className="sprite-goblin-bounce" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="8" cy="14" rx="6" ry="1.5" fill="#000" opacity="0.3" />
+        <g className="sprite-wings-flap">
+          <path d="M1 4l4 2v2H1V4zm14 0l-4 2v2h4V4z" fill="#7f1d1d" />
+          <path d="M2 3l3 2v1H2V3zm12 0l-3 2v1h3V3z" fill="#991b1b" />
+        </g>
+        <path d="M5 13l3-7 3 7H5z" fill="#ef4444" />
+        <path d="M6 13l2-5 2 5H6z" fill="#f97316" />
+        <rect x="6" y="4" width="4" height="3" fill="#b91c1c" />
+        <rect x="5" y="5" width="2" height="2" fill="#ef4444" />
+        <rect x="9" y="5" width="2" height="2" fill="#ef4444" />
+        <rect x="6" y="5" width="1" height="1" fill="#facc15" className="sprite-rune-pulse" style={{ color: '#facc15' }} />
+        <rect x="9" y="5" width="1" height="1" fill="#facc15" className="sprite-rune-pulse" style={{ color: '#facc15' }} />
+        <path d="M5 2h1v2H5V2zm5 0h1v2h-1V2z" fill="#b91c1c" />
+        <path d="M8 13l3 1h2v-2l-5 1z" fill="#7f1d1d" />
+      </svg>
+    ),
+    EnemyShadow: () => (
+      <svg className="sprite-water-float" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="8" cy="14" rx="4" ry="1" fill="#000" opacity="0.4" />
+        <circle cx="8" cy="8" r="4.5" fill="#1e1b4b" opacity="0.8" />
+        <circle cx="8" cy="8" r="3.5" fill="#312e81" opacity="0.9" />
+        <circle className="sprite-mist-rise" cx="5" cy="5" r="1" fill="#4f46e5" style={{ animationDelay: '0s' }} />
+        <circle className="sprite-mist-rise" cx="11" cy="9" r="1.5" fill="#312e81" style={{ animationDelay: '0.4s' }} />
+        <circle className="sprite-mist-rise" cx="8" cy="3" r="0.8" fill="#4338ca" style={{ animationDelay: '0.8s' }} />
+        <rect x="6" y="7" width="1.5" height="1.5" fill="#c084fc" className="sprite-rune-pulse" style={{ color: '#c084fc' }} />
+        <rect x="8.5" y="7" width="1.5" height="1.5" fill="#c084fc" className="sprite-rune-pulse" style={{ color: '#c084fc' }} />
+      </svg>
+    ),
     // New Icons for events
     CardDraw: createIcon(["M4 2h8v1H4V2z M3 4h10v8H3V4z M5 6h6v1H5V6z M5 8h6v1H5V8z"], "#facc15"),
     Choice: createIcon(["M7 1v1h1v1h1V2h1V1H9V0H7v1z M4 5h2v2H4V5z m6 0h2v2h-2V5z M4 9h8v2H4V9z"], "#9333ea"),
@@ -183,6 +378,46 @@ export const Icons = {
     EarthWall: createIcon(["M2 10h12v1H2v-1z M3 8h10v1H3V8z M4 6h8v1H4V6z M5 4h6v1H5V4z"], "#a16207"), // Earth Wall
     WindBurst: createIcon(["M8 1c-2 0-4 2-4 4h2c0-1 1-2 2-2s2 1 2 2h2c0 2-2 4-4 4z m0 8c2 0 4-2 4-4h-2c0 1-1 2-2 2s-2-1-2-2H4c0 2 2 4 4 4z M7 13h2v1H7v-1z M6 14h4v1H6v-1z"], "#38bdf8"), // Wind Burst
     WaterBless: createIcon(["M8 7C6 7 5 8 5 9s1 2 3 2 3-1 3-1-1-3-3-3z M8 13c-2 0-3-1-3-2s1-2 3-2v1c-1 0-1 0-1 1s0 1 1 1 1 0 1-1v-1c2 0 3 1 3 2s-1 2-3 2z M7 4h2v1H7V4z M6 2h4v1H6V2z"], "#60a5fa"), // Water Bless
+    // LIGHT & DARK Icons
+    Light: createIcon(["M8 1l1 2 2-1-1 2 2 1-2 1 1 2-2-1-1 2-1-2-2 1 1-2-2-1 2-1-1-2 2 1 1-2z M7 6h2v2H7V6z M6 7h4v1H6V7z"], "#fbbf24"), // Ljus (stjärna)
+    Dark: createIcon(["M10 2c-3 0-5 3-5 7s2 7 5 7c-3-1-4-4-4-7s1-6 4-7z M8 3c-2 1-3 3-3 6s1 5 3 6c-1-1-2-3-2-6s1-5 2-6z"], "#a855f7"), // Mörker (månskära)
+    // Ljusbringaren Sprite
+    LjusbringarenSprite: () => (
+        <svg className="sprite-head-sway" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="8" cy="14" rx="5" ry="1.5" fill="#000" opacity="0.3" />
+            <circle cx="8" cy="5" r="5" fill="#fef3c7" opacity="0.15" className="sprite-light-pulse" />
+            <path d="M4 14l2-6h4l2 6H4z" fill="#78350f" />
+            <path d="M5 14l1.5-4h3l1.5 4H5z" fill="#fbbf24" />
+            <path d="M5 7h6v2H5V7z" fill="#451a03" />
+            <path d="M6 4h4v3H6V4z" fill="#78350f" />
+            <rect x="7" y="5" width="2" height="2" fill="#111827" />
+            <rect x="6" y="6" width="4" height="1" fill="#111827" />
+            <rect x="6" y="5" width="1" height="1" fill="#fef08a" className="sprite-rune-pulse" style={{ color: '#fef08a' }} />
+            <rect x="9" y="5" width="1" height="1" fill="#fef08a" className="sprite-rune-pulse" style={{ color: '#fef08a' }} />
+            <circle className="sprite-water-float" cx="3" cy="5" r="1.2" fill="#fde047" style={{ animationDelay: '0s' }} />
+            <circle className="sprite-water-float" cx="13" cy="4" r="1" fill="#facc15" style={{ animationDelay: '0.6s' }} />
+            <circle className="sprite-water-float" cx="8" cy="2" r="0.8" fill="#fef08a" style={{ animationDelay: '1.2s' }} />
+        </svg>
+    ),
+    // Skuggvävaren Sprite
+    SkuggvavarenSprite: () => (
+        <svg className="sprite-head-sway" width="24" height="24" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="8" cy="14" rx="5" ry="1.5" fill="#000" opacity="0.3" />
+            <circle cx="8" cy="5" r="5" fill="#3b0764" opacity="0.3" className="sprite-shadow-drift" />
+            <path d="M4 14l2-6h4l2 6H4z" fill="#1e1b4b" />
+            <path d="M5 14l1.5-4h3l1.5 4H5z" fill="#4c1d95" />
+            <path d="M5 7h6v2H5V7z" fill="#09090b" />
+            <path d="M6 4h4v3H6V4z" fill="#1e1b4b" />
+            <rect x="7" y="5" width="2" height="2" fill="#09090b" />
+            <rect x="6" y="6" width="4" height="1" fill="#09090b" />
+            <rect x="6" y="5" width="1" height="1" fill="#c084fc" className="sprite-rune-pulse" style={{ color: '#c084fc' }} />
+            <rect x="9" y="5" width="1" height="1" fill="#a855f7" className="sprite-rune-pulse" style={{ color: '#a855f7' }} />
+            <path className="sprite-mist-rise" d="M2 10q1-2 3-1" stroke="#7e22ce" strokeWidth="1" fill="none" opacity="0.6" style={{ animationDelay: '0s' }} />
+            <path className="sprite-mist-rise" d="M14 9q-1-2-3-1" stroke="#6b21a8" strokeWidth="1" fill="none" opacity="0.6" style={{ animationDelay: '0.8s' }} />
+            <circle className="sprite-mist-rise" cx="5" cy="3" r="1" fill="#a855f7" opacity="0.4" style={{ animationDelay: '0.4s' }} />
+            <circle className="sprite-mist-rise" cx="11" cy="2" r="0.8" fill="#7e22ce" opacity="0.5" style={{ animationDelay: '1s' }} />
+        </svg>
+    ),
 };
 
 export const ItemVisuals = {
@@ -240,6 +475,8 @@ export const ELEMENT_ICONS: Record<Element, React.FC> = {
     [Element.VOLCANIC_STORM]: Icons.VolcanicStorm,
     [Element.ELECTRIFIED_MUD]: Icons.ElectrifiedMud,
     [Element.VITRIFIED_STORM]: Icons.VitrifiedStorm,
+    [Element.LIGHT]: Icons.Light,
+    [Element.DARK]: Icons.Dark,
 };
 
 export const elementThemes = {
@@ -262,7 +499,9 @@ export const elementThemes = {
   [Element.STORM]: 'border-indigo-500 bg-indigo-500/10 text-indigo-300',
   [Element.VOLCANIC_STORM]: 'border-red-600 bg-red-600/10 text-red-200 shadow-red-500/50',
   [Element.ELECTRIFIED_MUD]: 'border-lime-500 bg-lime-500/10 text-lime-200 shadow-lime-400/50',
-  [Element.VITRIFIED_STORM]: 'border-teal-500 bg-teal-500/10 text-teal-200 shadow-teal-400/50',
+    [Element.VITRIFIED_STORM]: 'border-teal-500 bg-teal-500/10 text-teal-200 shadow-teal-400/50',
+    [Element.LIGHT]: 'border-yellow-300 bg-yellow-300/10 text-yellow-200 shadow-yellow-400/50',
+    [Element.DARK]: 'border-purple-500 bg-purple-500/10 text-purple-300 shadow-purple-500/50',
 };
 
 // --- NEW: Combat Background Biomes ---
@@ -308,6 +547,14 @@ export const BACKGROUND_BIOMES: Record<Element, { name: string; description: str
     [Element.VOLCANIC_STORM]: [{ name: "Vulkanisk Stormfront", description: "En front av eld och vind som drar fram över ett vulkaniskt landskap.", classes: "bg-fire-volcanic" }],
     [Element.ELECTRIFIED_MUD]: [{ name: "Elektrifierat Träsk", description: "Ett träsk där blixtar slår ner i den leriga marken.", classes: "bg-water-swamp" }],
     [Element.VITRIFIED_STORM]: [{ name: "Förglasad Öken", description: "En öken där sanden har smält till glas av extrem hetta och vind.", classes: "bg-neutral-desert" }],
+    [Element.LIGHT]: [
+        { name: "Ljusets Tempel", description: "Ett strålande tempel av guld och vit marmor, fyllt av ett himmelskt sken.", classes: "bg-light-temple" },
+        { name: "Solbelyst Äng", description: "En fridfull äng badad i evigt solsken med blommor i alla färger.", classes: "bg-light-meadow" },
+    ],
+    [Element.DARK]: [
+        { name: "Skuggornas Rike", description: "En mörk, dimmig dal där skuggorna tycks röra sig av egen kraft.", classes: "bg-dark-realm" },
+        { name: "Månbelyst Ruin", description: "Förfallna ruiner upplysta endast av ett svagt månsken.", classes: "bg-dark-ruins" },
+    ],
 };
 
 export const ARCHETYPES: Archetype[] = [
@@ -316,6 +563,7 @@ export const ARCHETYPES: Archetype[] = [
     description: 'En aggressiv magiker som fokuserar på rå skada och att bränna fiender över tid.',
     element: Element.FIRE,
     icon: Icons.Fire,
+    sprite: Icons.PyromantenSprite,
     statBonuses: { intelligence: 3, dexterity: 2 },
     startingSkill: 'fire_1',
     resourceName: 'Hetta',
@@ -325,6 +573,7 @@ export const ARCHETYPES: Archetype[] = [
     description: 'En tålig och orubblig försvarare som skyddar sig själv och allierade med stenhård magi.',
     element: Element.EARTH,
     icon: Icons.Earth,
+    sprite: Icons.StenvaktarenSprite,
     statBonuses: { constitution: 3, strength: 2 },
     startingSkill: 'earth_1',
     resourceName: 'Styrka',
@@ -334,6 +583,7 @@ export const ARCHETYPES: Archetype[] = [
     description: 'En snabb och undflyende kämpe som använder vinden för att kontrollera slagfältet.',
     element: Element.WIND,
     icon: Icons.Wind,
+    sprite: Icons.StormdansarenSprite,
     statBonuses: { dexterity: 3, intelligence: 2 },
     startingSkill: 'wind_1',
     resourceName: 'Energi',
@@ -343,9 +593,30 @@ export const ARCHETYPES: Archetype[] = [
     description: 'En anpassningsbar strateg som manipulerar livskraft och saktar ner fiender med vatten.',
     element: Element.WATER,
     icon: Icons.Water,
+    sprite: Icons.TidvattenvavarenSprite,
     statBonuses: { intelligence: 3, constitution: 2 },
     startingSkill: 'water_1',
     resourceName: 'Flöde',
+  },
+  {
+    name: 'Ljusbringaren',
+    description: 'En helande kraft som väver ljusets magi för att skydda och återuppliva sina allierade.',
+    element: Element.LIGHT,
+    icon: Icons.Light,
+    sprite: Icons.LjusbringarenSprite,
+    statBonuses: { intelligence: 2, constitution: 2, dexterity: 1 },
+    startingSkill: 'light_1',
+    resourceName: 'Nåd',
+  },
+  {
+    name: 'Skuggvävaren',
+    description: 'En gåtfull skugga som manipulerar mörker för att försvaga fiender och slå från skuggorna.',
+    element: Element.DARK,
+    icon: Icons.Dark,
+    sprite: Icons.SkuggvavarenSprite,
+    statBonuses: { dexterity: 2, intelligence: 2, strength: 1 },
+    startingSkill: 'dark_1',
+    resourceName: 'Skugga',
   },
 ];
 
@@ -492,6 +763,100 @@ export const SKILL_TREE_DATA: Skill[] = [
     id: 'vitrified_storm', name: 'Förglasad Storm', description: 'En het storm som smälter sand till ett fält av vasst glas. Kräver Sand och Ånga.',
     dependencies: ['sand', 'steam'], icon: Icons.VitrifiedStorm, x: 16, y: 8, element: Element.VITRIFIED_STORM, maxRank: 1,
   },
+  {
+    id: 'combustion', name: 'Förbränning', description: 'Ökar all skada mot brinnande mål med 5% per rank.',
+    dependencies: ['fire_3'], icon: Icons.Fire, x: 4, y: 2, element: Element.FIRE, maxRank: 3,
+  },
+  {
+    id: 'granite_stance', name: 'Granitgrepp', description: 'Minskar all fysisk skada du tar med 3 per rank.',
+    dependencies: ['earth_3'], icon: Icons.Earth, x: 4, y: 14, element: Element.EARTH, maxRank: 3,
+  },
+  {
+    id: 'tailwind', name: 'Medvind', description: 'Ökar din undvikandechans med 3% per rank.',
+    dependencies: ['wind_3'], icon: Icons.Wind, x: 24, y: 2, element: Element.WIND, maxRank: 3,
+  },
+  {
+    id: 'pure_flow', name: 'Renande Flöde', description: 'Ökar all helande du mottar eller gör med 5% per rank.',
+    dependencies: ['water_3'], icon: Icons.Water, x: 24, y: 14, element: Element.WATER, maxRank: 3,
+  },
+];
+
+export const LIGHT_SKILL_TREE_DATA: Skill[] = [
+  {
+    id: 'light_start', name: 'Ljusets Ursprung', description: 'Utgångspunkten för ljusets väg.',
+    dependencies: ['light_start'], icon: Icons.Light, x: 6, y: 5, element: Element.LIGHT, maxRank: 1,
+  },
+  {
+    id: 'light_1', name: 'Helande Ljus', description: 'Ett grundläggande helande ljus som återställer hälsa.',
+    dependencies: ['light_start'], icon: Icons.WaterRegen, x: 6, y: 3, element: Element.LIGHT, maxRank: 5,
+  },
+  {
+    id: 'light_2', name: 'Ljusstråle', description: 'En fokuserad stråle av ljus som skadar en fiende.',
+    dependencies: ['light_1'], icon: Icons.Light, x: 4, y: 1, element: Element.LIGHT, maxRank: 5,
+  },
+  {
+    id: 'light_3', name: 'Välsignelse', description: 'Välsignar en allierad och ökar deras egenskaper.',
+    dependencies: ['light_1'], icon: Icons.Boon, x: 8, y: 1, element: Element.LIGHT, maxRank: 3,
+  },
+  {
+    id: 'light_4', name: 'Rening', description: 'Rensar en allierad från negativa statusar och helar lätt.',
+    dependencies: ['light_start'], icon: Icons.Cleanse, x: 6, y: 7, element: Element.LIGHT, maxRank: 3,
+  },
+  {
+    id: 'light_5', name: 'Helig Glöd', description: 'Bränner fiender med heligt ljus över tid.',
+    dependencies: ['light_4'], icon: Icons.FireAura, x: 4, y: 9, element: Element.LIGHT, maxRank: 3,
+  },
+  {
+    id: 'light_6', name: 'Skyddsmantel', description: 'Skyddar en allierad med en mantel av ljus.',
+    dependencies: ['light_4'], icon: Icons.EarthShield, x: 8, y: 9, element: Element.LIGHT, maxRank: 3,
+  },
+  {
+    id: 'light_7', name: 'Uppenbarelse', description: 'En kraftfull explosion av ljus som skadar alla fiender och helar allierade.',
+    dependencies: ['light_2', 'light_3'], icon: Icons.FireNova, x: 6, y: 0, element: Element.LIGHT, maxRank: 1,
+  },
+  {
+    id: 'light_8', name: 'Ljusets Kraft', description: 'Alla dina helande effekter är 5% starkare per rank.',
+    dependencies: ['light_5', 'light_6'], icon: Icons.Regenerating, x: 6, y: 11, element: Element.LIGHT, maxRank: 3,
+  },
+];
+
+export const DARK_SKILL_TREE_DATA: Skill[] = [
+  {
+    id: 'dark_start', name: 'Skuggans Ursprung', description: 'Utgångspunkten för skuggans väg.',
+    dependencies: ['dark_start'], icon: Icons.Dark, x: 6, y: 5, element: Element.DARK, maxRank: 1,
+  },
+  {
+    id: 'dark_1', name: 'Skuggkast', description: 'Kastar en skugga som skadar en fiende.',
+    dependencies: ['dark_start'], icon: Icons.Dark, x: 6, y: 3, element: Element.DARK, maxRank: 5,
+  },
+  {
+    id: 'dark_2', name: 'Skuggsteg', description: 'Förflyttar dig genom skuggorna och ökar undvikandechans.',
+    dependencies: ['dark_1'], icon: Icons.WindDodge, x: 4, y: 1, element: Element.DARK, maxRank: 3,
+  },
+  {
+    id: 'dark_3', name: 'Förtvivlan', description: 'Sänker en fiendes egenskaper med mörkrets kraft.',
+    dependencies: ['dark_1'], icon: Icons.Frail, x: 8, y: 1, element: Element.DARK, maxRank: 3,
+  },
+  {
+    id: 'dark_4', name: 'Mörker', description: 'Omsluter fiender i totalt mörker, bländar och saktar ner dem.',
+    dependencies: ['dark_start'], icon: Icons.Blinded, x: 6, y: 7, element: Element.DARK, maxRank: 3,
+  },
+  {
+    id: 'dark_5', name: 'Själssug', description: 'Stjäl livskraft från en fiende och återställer din egen hälsa.',
+    dependencies: ['dark_4'], icon: Icons.Poison, x: 4, y: 9, element: Element.DARK, maxRank: 3,
+  },
+  {
+    id: 'dark_6', name: 'Nattslända', description: 'En svärm av skuggenergi som skadar alla fiender.',
+    dependencies: ['dark_4'], icon: Icons.Frightened, x: 8, y: 9, element: Element.DARK, maxRank: 3,
+  },
+  {
+    id: 'dark_7', name: 'Skuggornas Famn', description: 'Omsluter en fiende i totalt mörker och orsakar massiv skada.',
+    dependencies: ['dark_2', 'dark_3'], icon: Icons.Curse, x: 6, y: 0, element: Element.DARK, maxRank: 1,
+  },
+  {
+    id: 'dark_8', name: 'Skuggmantel', description: 'Ökar din undvikandechans med 5% per rank när du är under 50% hälsa.',
+    dependencies: ['dark_5', 'dark_6'], icon: Icons.Paralyzed, x: 6, y: 11, element: Element.DARK, maxRank: 3,
+  },
 ];
 
 export const PLAYER_ABILITIES: Record<string, PlayerAbility> = {
@@ -524,11 +889,11 @@ export const PLAYER_ABILITIES: Record<string, PlayerAbility> = {
   'earth_1': {
     id: 'earth_1', name: 'Stenhud', element: Element.EARTH, category: 'buff',
     ranks: [
-        { description: 'Ökar rustning i 2 rundor. Kostar 10 Styrka.', resourceCost: 10, duration: 2 },
-        { description: 'Ökar rustning i 3 rundor. Kostar 12 Styrka.', resourceCost: 12, duration: 3 },
-        { description: 'Ökar rustning i 3 rundor. Kostar 15 Styrka.', resourceCost: 15, duration: 3 },
-        { description: 'Ökar rustning i 4 rundor. Kostar 18 Styrka.', resourceCost: 18, duration: 4 },
-        { description: 'Blir som levande sten i 4 rundor. Kostar 20 Styrka.', resourceCost: 20, duration: 4 },
+        { description: 'Ökar rustning i 2 rundor. Genererar 15 Styrka.', resourceCost: 0, duration: 2 },
+        { description: 'Ökar rustning i 3 rundor. Genererar 18 Styrka.', resourceCost: 0, duration: 3 },
+        { description: 'Ökar rustning i 3 rundor. Genererar 21 Styrka.', resourceCost: 0, duration: 3 },
+        { description: 'Ökar rustning i 4 rundor. Genererar 24 Styrka.', resourceCost: 0, duration: 4 },
+        { description: 'Blir som levande sten i 4 rundor. Genererar 27 Styrka.', resourceCost: 0, duration: 4 },
     ]
    },
   'earth_3': {
@@ -542,11 +907,11 @@ export const PLAYER_ABILITIES: Record<string, PlayerAbility> = {
   'wind_1': { 
     id: 'wind_1', name: 'Hastighet', element: Element.WIND, category: 'buff',
     ranks: [
-      { description: 'Ökar ATB-hastighet i 2 rundor. Kostar 20 Energi.', resourceCost: 20, duration: 2},
-      { description: 'Ökar ATB-hastighet i 3 rundor. Kostar 25 Energi.', resourceCost: 25, duration: 3},
-      { description: 'Ökar ATB-hastighet i 4 rundor. Kostar 30 Energi.', resourceCost: 30, duration: 4},
-      { description: 'Rör dig som vinden i 4 rundor. Kostar 28 Energi.', resourceCost: 28, duration: 4},
-      { description: 'Bli ett med stormen i 5 rundor. Kostar 25 Energi.', resourceCost: 25, duration: 5},
+      { description: 'Ökar ATB-hastighet i 2 rundor. Genererar 18 Energi.', resourceCost: 0, duration: 2},
+      { description: 'Ökar ATB-hastighet i 3 rundor. Genererar 21 Energi.', resourceCost: 0, duration: 3},
+      { description: 'Ökar ATB-hastighet i 4 rundor. Genererar 24 Energi.', resourceCost: 0, duration: 4},
+      { description: 'Rör dig som vinden i 4 rundor. Genererar 27 Energi.', resourceCost: 0, duration: 4},
+      { description: 'Bli ett med stormen i 5 rundor. Genererar 30 Energi.', resourceCost: 0, duration: 5},
     ]
   },
   'wind_3': {
@@ -594,6 +959,122 @@ export const PLAYER_ABILITIES: Record<string, PlayerAbility> = {
   'growth': { 
     id: 'growth', name: 'Tillväxt', element: Element.GROWTH, category: 'heal',
     ranks: [{ description: 'Ger dig regenerering i flera rundor. Kostar Styrka / Bygger Flöde.', resourceCost: 30 }]
+  },
+  // Ljusbringaren abilities
+  'light_1': {
+    id: 'light_1', name: 'Helande Ljus', element: Element.LIGHT, category: 'heal',
+    ranks: [
+      { description: 'Ett svagt helande ljus. Bygger 10 Nåd.', resourceCost: 0, healMultiplier: 0.15 },
+      { description: 'Ett växande helande ljus. Bygger 12 Nåd.', resourceCost: 0, healMultiplier: 0.18 },
+      { description: 'Ett värmande helande ljus. Bygger 15 Nåd.', resourceCost: 0, healMultiplier: 0.22 },
+      { description: 'Ett starkt helande ljus. Bygger 18 Nåd.', resourceCost: 0, healMultiplier: 0.26 },
+      { description: 'Ett bländande helande ljus. Bygger 20 Nåd.', resourceCost: 0, healMultiplier: 0.30 },
+    ]
+  },
+  'light_2': {
+    id: 'light_2', name: 'Ljusstråle', element: Element.LIGHT, category: 'damage',
+    ranks: [
+      { description: 'En svag ljusstråle. Kostar 10 Nåd.', resourceCost: 10, damageMultiplier: 1.0 },
+      { description: 'En starkare ljusstråle. Kostar 12 Nåd.', resourceCost: 12, damageMultiplier: 1.2 },
+      { description: 'En intensiv ljusstråle. Kostar 15 Nåd.', resourceCost: 15, damageMultiplier: 1.4 },
+      { description: 'En brännande ljusstråle. Kostar 18 Nåd.', resourceCost: 18, damageMultiplier: 1.6 },
+      { description: 'En förintande ljusstråle. Kostar 20 Nåd.', resourceCost: 20, damageMultiplier: 1.8 },
+    ]
+  },
+  'light_3': {
+    id: 'light_3', name: 'Välsignelse', element: Element.LIGHT, category: 'buff',
+    ranks: [
+      { description: 'En lätt välsignelse som ökar egenskaper i 2 rundor. Kostar 15 Nåd.', resourceCost: 15, duration: 2 },
+      { description: 'En växande välsignelse som ökar egenskaper i 3 rundor. Kostar 18 Nåd.', resourceCost: 18, duration: 3 },
+      { description: 'En kraftfull välsignelse som ökar egenskaper i 4 rundor. Kostar 20 Nåd.', resourceCost: 20, duration: 4 },
+    ]
+  },
+  'light_4': {
+    id: 'light_4', name: 'Rening', element: Element.LIGHT, category: 'heal',
+    ranks: [
+      { description: 'Rensar en svag negativ status. Bygger 10 Nåd.', resourceCost: 0, healMultiplier: 0.10 },
+      { description: 'Rensar negativa statusar. Bygger 15 Nåd.', resourceCost: 0, healMultiplier: 0.15 },
+      { description: 'Rensar alla negativa statusar och helar. Bygger 20 Nåd.', resourceCost: 0, healMultiplier: 0.20 },
+    ]
+  },
+  'light_5': {
+    id: 'light_5', name: 'Helig Glöd', element: Element.LIGHT, category: 'damage',
+    ranks: [
+      { description: 'Bränner fienden med heligt ljus i 2 rundor. Kostar 15 Nåd.', resourceCost: 15, damageMultiplier: 0.5, dotDamage: 4, duration: 2 },
+      { description: 'Bränner intensivt i 3 rundor. Kostar 18 Nåd.', resourceCost: 18, damageMultiplier: 0.6, dotDamage: 6, duration: 3 },
+      { description: 'Helig eld bränner i 3 rundor. Kostar 20 Nåd.', resourceCost: 20, damageMultiplier: 0.7, dotDamage: 8, duration: 3 },
+    ]
+  },
+  'light_6': {
+    id: 'light_6', name: 'Skyddsmantel', element: Element.LIGHT, category: 'buff',
+    ranks: [
+      { description: 'Skyddar med ljusets mantel i 2 rundor. Bygger 10 Nåd.', resourceCost: 0, duration: 2 },
+      { description: 'Starkare skyddsmantel i 3 rundor. Bygger 15 Nåd.', resourceCost: 0, duration: 3 },
+      { description: 'Kraftfull skyddsmantel i 4 rundor. Bygger 20 Nåd.', resourceCost: 0, duration: 4 },
+    ]
+  },
+  'light_7': {
+    id: 'light_7', name: 'Uppenbarelse', element: Element.LIGHT, isAoe: true, category: 'damage',
+    ranks: [
+      { description: 'En explosion av ljus som skadar alla fiender och helar allierade. Kostar 30 Nåd.', resourceCost: 30, damageMultiplier: 1.5, healMultiplier: 0.20 },
+    ]
+  },
+  // Skuggvävaren abilities
+  'dark_1': {
+    id: 'dark_1', name: 'Skuggkast', element: Element.DARK, category: 'damage',
+    ranks: [
+      { description: 'Kastar en skugga. Bygger 10 Skugga.', resourceCost: 0, damageMultiplier: 0.8 },
+      { description: 'Kastar en mörkare skugga. Bygger 12 Skugga.', resourceCost: 0, damageMultiplier: 1.0 },
+      { description: 'Kastar en ond skugga. Bygger 15 Skugga.', resourceCost: 0, damageMultiplier: 1.2 },
+      { description: 'Kastar en fasansfull skugga. Bygger 18 Skugga.', resourceCost: 0, damageMultiplier: 1.4 },
+      { description: 'Kastar en förintande skugga. Bygger 20 Skugga.', resourceCost: 0, damageMultiplier: 1.6 },
+    ]
+  },
+  'dark_2': {
+    id: 'dark_2', name: 'Skuggsteg', element: Element.DARK, category: 'buff',
+    ranks: [
+      { description: 'Förflyttar dig genom skuggor i 2 rundor. Kostar 15 Skugga.', resourceCost: 15, duration: 2 },
+      { description: 'Snabbare skuggsteg i 3 rundor. Kostar 18 Skugga.', resourceCost: 18, duration: 3 },
+      { description: 'Bli ett med skuggorna i 4 rundor. Kostar 20 Skugga.', resourceCost: 20, duration: 4 },
+    ]
+  },
+  'dark_3': {
+    id: 'dark_3', name: 'Förtvivlan', element: Element.DARK, category: 'cc',
+    ranks: [
+      { description: 'Sänker fiendens krafter i 2 rundor. Kostar 12 Skugga.', resourceCost: 12, duration: 2 },
+      { description: 'Sänker fiendens krafter i 3 rundor. Kostar 15 Skugga.', resourceCost: 15, duration: 3 },
+      { description: 'Bryter fiendens vilja i 3 rundor. Kostar 18 Skugga.', resourceCost: 18, duration: 3 },
+    ]
+  },
+  'dark_4': {
+    id: 'dark_4', name: 'Mörker', element: Element.DARK, category: 'cc',
+    ranks: [
+      { description: 'Omsluter fienden i mörker. Bygger 10 Skugga.', resourceCost: 0, damageMultiplier: 0.4, duration: 2 },
+      { description: 'Djupare mörker. Bygger 15 Skugga.', resourceCost: 0, damageMultiplier: 0.5, duration: 2 },
+      { description: 'Totalit mörker. Bygger 20 Skugga.', resourceCost: 0, damageMultiplier: 0.6, duration: 3 },
+    ]
+  },
+  'dark_5': {
+    id: 'dark_5', name: 'Själssug', element: Element.DARK, category: 'damage',
+    ranks: [
+      { description: 'Stjäl liv från en fiende. Kostar 15 Skugga.', resourceCost: 15, damageMultiplier: 1.0, healMultiplier: 0.10 },
+      { description: 'Stjäl mer liv. Kostar 18 Skugga.', resourceCost: 18, damageMultiplier: 1.2, healMultiplier: 0.15 },
+      { description: 'Tömmer fiendens liv. Kostar 20 Skugga.', resourceCost: 20, damageMultiplier: 1.5, healMultiplier: 0.20 },
+    ]
+  },
+  'dark_6': {
+    id: 'dark_6', name: 'Nattslända', element: Element.DARK, isAoe: true, category: 'damage',
+    ranks: [
+      { description: 'En svärm av skuggor skadar alla fiender. Kostar 20 Skugga.', resourceCost: 20, damageMultiplier: 0.8 },
+      { description: 'En mörk svärm skadar alla. Kostar 25 Skugga.', resourceCost: 25, damageMultiplier: 1.0 },
+      { description: 'En förintande svärm. Kostar 30 Skugga.', resourceCost: 30, damageMultiplier: 1.2 },
+    ]
+  },
+  'dark_7': {
+    id: 'dark_7', name: 'Skuggornas Famn', element: Element.DARK, category: 'damage',
+    ranks: [
+      { description: 'Omsluter en fiende i skuggor. Kostar 30 Skugga.', resourceCost: 30, damageMultiplier: 2.5 },
+    ]
   },
 };
 
@@ -743,6 +1224,40 @@ export const PASSIVE_TALENTS: Record<string, PassiveTalent> = {
     element: Element.WATER,
     icon: Icons.WaterRegen,
     effect: { type: 'HEAL_BONUS', value: 5, isPercentage: true },
+  },
+  // LIGHT passive talents
+  'light_aura': {
+    id: 'light_aura',
+    name: 'Ljusets Aura',
+    description: 'Ökar all ljusskada med 10%.',
+    element: Element.LIGHT,
+    icon: Icons.FireAura,
+    effect: { type: 'STAT_BONUS', stat: 'skada', value: 10, isPercentage: true },
+  },
+  'holy_protection': {
+    id: 'holy_protection',
+    name: 'Heligt Skydd',
+    description: '10% chans att minska inkommande skada med 20% när du träffas.',
+    element: Element.LIGHT,
+    icon: Icons.EarthShield,
+    effect: { type: 'APPLY_STATUS', status: 'damage_reduction', duration: 1, value: 20, isPercentage: true, chance: 10 },
+  },
+  // DARK passive talents
+  'shadow_embrace': {
+    id: 'shadow_embrace',
+    name: 'Skuggomfamning',
+    description: 'Du genererar 5 extra Skugga när du undviker en attack.',
+    element: Element.DARK,
+    icon: Icons.WindDodge,
+    effect: { type: 'RESOURCE_GAIN', stat: 'aether', value: 5 },
+  },
+  'dark_bargain': {
+    id: 'dark_bargain',
+    name: 'Mörkerting',
+    description: '10% chans att göra 50% extra mörkerskada på en attack.',
+    element: Element.DARK,
+    icon: Icons.Curse,
+    effect: { type: 'DEAL_ELEMENTAL_DAMAGE', element: Element.DARK, damage: 50, chance: 10 },
   },
 };
 
@@ -938,6 +1453,83 @@ export const ULTIMATE_ABILITIES: Record<string, UltimateAbility> = {
     cooldown: 20,
     effect: { type: 'MASS_HEAL', heal: 80, buff: 'cleanse_all_debuffs_action' },
   },
+  // LIGHT ultimate
+  'light_judgment': {
+    id: 'light_judgment',
+    name: 'Ljusets Dom',
+    description: 'En domedagsstråle av ljus som skadar alla fiender och helar alla allierade.',
+    element: Element.LIGHT,
+    icon: Icons.FireNova,
+    cooldown: 15,
+    effect: { type: 'AOE_DAMAGE', damage: 45, buff: 'regenerating', duration: 3, value: 10 },
+  },
+  // DARK ultimate
+  'dark_realm': {
+    id: 'dark_realm',
+    name: 'Skuggornas Rike',
+    description: 'Omsluter alla fiender i en dimension av skuggor, skadar och skrämmer dem.',
+    element: Element.DARK,
+    icon: Icons.Curse,
+    cooldown: 15,
+    effect: { type: 'AOE_DAMAGE', damage: 40, buff: 'frightened', duration: 2, value: 30 },
+  },
+};
+
+// --- NEW: Enemy Abilities ---
+export const ENEMY_ABILITIES: Record<string, EnemyAbility> = {
+  'fireball': {
+    id: 'fireball',
+    name: 'Eldklot',
+    element: Element.FIRE,
+    category: 'damage',
+    targetType: 'SINGLE_PLAYER',
+    damageMultiplier: 1.4,
+    statusEffectsToApply: ['burning'],
+    duration: 2,
+    value: 3, // Deals burning damage
+    cooldown: 3,
+  },
+  'stone_shield': {
+    id: 'stone_shield',
+    name: 'Stensköld',
+    element: Element.EARTH,
+    category: 'buff',
+    targetType: 'SELF',
+    statusEffectsToApply: ['defending'],
+    duration: 2,
+    cooldown: 4,
+  },
+  'healing_stream': {
+    id: 'healing_stream',
+    name: 'Helande Ström',
+    element: Element.WATER,
+    category: 'heal',
+    targetType: 'ALL_ENEMIES',
+    healMultiplier: 0.25,
+    cooldown: 4,
+  },
+  'lightning_bolt': {
+    id: 'lightning_bolt',
+    name: 'Blixtstöt',
+    element: Element.STORM,
+    category: 'damage',
+    targetType: 'SINGLE_PLAYER',
+    damageMultiplier: 1.2,
+    statusEffectsToApply: ['stunned'],
+    duration: 1,
+    cooldown: 4,
+  },
+  'mud_entangle': {
+    id: 'mud_entangle',
+    name: 'Lerhinder',
+    element: Element.MUD,
+    category: 'cc',
+    targetType: 'SINGLE_PLAYER',
+    damageMultiplier: 0.6,
+    statusEffectsToApply: ['slowed'],
+    duration: 2,
+    cooldown: 3,
+  }
 };
 
 
@@ -1116,4 +1708,30 @@ export const ELEMENTAL_AFFINITY_BONUSES: Record<Element, ElementalBonus[]> = {
     { threshold: 20, description: "+25% Vitrified Storm-skada", effect: { type: 'DAMAGE_BONUS', element: Element.VITRIFIED_STORM, value: 25, isPercentage: true } },
     { threshold: 25, description: "Låser upp ultimat förmåga: Förglasad Storm", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'vitrified_storm_ultimate' } },
   ],
-};
+  [Element.LIGHT]: [
+    { threshold: 1, description: "+1 Helande effekt", effect: { type: 'HEAL_BONUS', value: 1, isPercentage: true } },
+    { threshold: 5, description: "+5% Ljusskada", effect: { type: 'DAMAGE_BONUS', element: Element.LIGHT, value: 5, isPercentage: true } },
+    { threshold: 10, description: "+10% Helande effekt", effect: { type: 'HEAL_BONUS', value: 10, isPercentage: true } },
+    { threshold: 15, description: "Låser upp passiv talang: Ljusets Aura", effect: { type: 'PASSIVE_TALENT', talentId: 'light_aura' } },
+    { threshold: 20, description: "+10 Max Nåd", effect: { type: 'RESOURCE_REGEN', stat: 'aether', value: 10 } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Ljusets Dom", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'light_judgment' } },
+    { threshold: 30, description: "+2 Intelligens", effect: { type: 'STAT_BONUS', stat: 'intelligence', value: 2 } },
+    { threshold: 35, description: "+10% Ljusresistans", effect: { type: 'RESISTANCE', element: Element.LIGHT, value: 10, isPercentage: true } },
+    { threshold: 40, description: "Låser upp passiv talang: Heligt Skydd", effect: { type: 'PASSIVE_TALENT', talentId: 'holy_protection' } },
+    { threshold: 45, description: "+15% Ljusskada", effect: { type: 'DAMAGE_BONUS', element: Element.LIGHT, value: 15, isPercentage: true } },
+    { threshold: 50, description: "+20% Helande effekt", effect: { type: 'HEAL_BONUS', value: 20, isPercentage: true } },
+  ],
+  [Element.DARK]: [
+    { threshold: 1, description: "+1 Skada", effect: { type: 'STAT_BONUS', stat: 'skada', value: 1 } },
+    { threshold: 5, description: "+5% Mörkerskada", effect: { type: 'DAMAGE_BONUS', element: Element.DARK, value: 5, isPercentage: true } },
+    { threshold: 10, description: "+5% Kritisk Träff", effect: { type: 'STAT_BONUS', stat: 'kritiskTräff', value: 5, isPercentage: true } },
+    { threshold: 15, description: "Låser upp passiv talang: Skuggomfamning", effect: { type: 'PASSIVE_TALENT', talentId: 'shadow_embrace' } },
+    { threshold: 20, description: "+10 Max Skugga", effect: { type: 'RESOURCE_REGEN', stat: 'aether', value: 10 } },
+    { threshold: 25, description: "Låser upp ultimat förmåga: Skuggornas Rike", effect: { type: 'ULTIMATE_ABILITY', abilityId: 'dark_realm' } },
+    { threshold: 30, description: "+2 Dexteritet", effect: { type: 'STAT_BONUS', stat: 'dexterity', value: 2 } },
+    { threshold: 35, description: "+10% Mörkerresistans", effect: { type: 'RESISTANCE', element: Element.DARK, value: 10, isPercentage: true } },
+    { threshold: 40, description: "Låser upp passiv talang: Mörkerting", effect: { type: 'PASSIVE_TALENT', talentId: 'dark_bargain' } },
+    { threshold: 45, description: "+15% Mörkerskada", effect: { type: 'DAMAGE_BONUS', element: Element.DARK, value: 15, isPercentage: true } },
+    { threshold: 50, description: "+15% Kritisk Träff", effect: { type: 'STAT_BONUS', stat: 'kritiskTräff', value: 15, isPercentage: true } },
+  ],
+};

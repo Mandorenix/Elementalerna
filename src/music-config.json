@@ -1,0 +1,50 @@
+{
+  "mainMenu": {
+    "files": ["/audio/menu-theme 1.mp3", "/audio/menu-theme 2.mp3", "/audio/menu-theme.mp3"],
+    "shuffle": true,
+    "continuePlaying": true,
+    "continueOnTabs": ["characterSelection", "deck", "skillTree", "inventory", "characterSheet", "gameOver"]
+  },
+  "characterSelection": {
+    "files": [],
+    "shuffle": false,
+    "continuePlaying": false,
+    "continueOnTabs": []
+  },
+  "deck": {
+    "files": [],
+    "shuffle": false,
+    "continuePlaying": false,
+    "continueOnTabs": []
+  },
+  "event": {
+    "files": ["/audio/Fight 1.mp3", "/audio/Fight 2.mp3", "/audio/Fight 3.mp3", "/audio/Fight 4.mp3"],
+    "shuffle": true,
+    "continuePlaying": false,
+    "continueOnTabs": []
+  },
+  "skillTree": {
+    "files": [],
+    "shuffle": false,
+    "continuePlaying": false,
+    "continueOnTabs": []
+  },
+  "inventory": {
+    "files": [],
+    "shuffle": false,
+    "continuePlaying": false,
+    "continueOnTabs": []
+  },
+  "characterSheet": {
+    "files": [],
+    "shuffle": false,
+    "continuePlaying": false,
+    "continueOnTabs": []
+  },
+  "gameOver": {
+    "files": [],
+    "shuffle": false,
+    "continuePlaying": false,
+    "continueOnTabs": []
+  }
+}

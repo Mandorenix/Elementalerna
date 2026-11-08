@@ -2,27 +2,201 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Elemental RPG Skill Tree</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="/app_icon.png" />
+    <link rel="apple-touch-icon" href="/app_icon.png" />
+    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Elementarerna</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/index.css">
-  <script type="importmap">
-{
-  "imports": {
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
-    "react/": "https://aistudiocdn.com/react@^19.1.1/",
-    "react": "https://aistudiocdn.com/react@^19.1.1"
-  }
-}
-</script>
+    <script>
+      (function() {
+        var errors = [];
+        window.__reactMounted = false;
+
+        function logError(msg, stack) {
+          errors.push({ msg: msg, stack: stack, time: new Date().toLocaleTimeString() });
+          console.error("Diagnostic log:", msg, stack);
+          if (!window.__reactMounted) {
+            setTimeout(showDiagnostics, 300);
+          }
+        }
+
+        window.onerror = function(message, source, lineno, colno, error) {
+          var details = message + " at " + source + ":" + lineno + ":" + colno;
+          logError(details, error ? error.stack : 'Ingen stacktrace tillgänglig');
+          return false;
+        };
+
+        window.addEventListener('unhandledrejection', function(event) {
+          var reason = event.reason;
+          var stack = (reason && reason.stack) ? reason.stack : 'Ingen stacktrace';
+          var message = 'Promise Rejection: ' + (reason && reason.message ? reason.message : reason);
+          logError(message, stack);
+        });
+
+        setTimeout(function() {
+          var root = document.getElementById('root');
+          if (!window.__reactMounted && (!root || !root.hasChildNodes())) {
+            showDiagnostics("Spelet startade inte inom rimlig tid (Timeout). Kontrollera om din dev-server körs eller om det finns kompileringsfel.");
+          }
+        }, 4000);
+
+        function showDiagnostics(fallbackMsg) {
+          if (window.__reactMounted || document.getElementById('diagnostic-screen')) return;
+
+          var overlay = document.createElement('div');
+          overlay.id = 'diagnostic-screen';
+          overlay.style.position = 'fixed';
+          overlay.style.inset = '0';
+          overlay.style.backgroundColor = '#0c0d12';
+          overlay.style.backgroundImage = 'radial-gradient(ellipse at bottom, #1a1b26 0%, #07080c 100%)';
+          overlay.style.color = '#fff';
+          overlay.style.zIndex = '999999';
+          overlay.style.padding = '20px';
+          overlay.style.fontFamily = 'monospace';
+          overlay.style.overflowY = 'auto';
+          overlay.style.display = 'flex';
+          overlay.style.flexDirection = 'column';
+          overlay.style.alignItems = 'center';
+          overlay.style.justifyContent = 'center';
+
+          var container = document.createElement('div');
+          container.style.width = '100%';
+          container.style.maxWidth = '700px';
+          container.style.backgroundColor = 'rgba(20, 20, 30, 0.9)';
+          container.style.border = '4px solid #ef4444';
+          container.style.boxShadow = '0 0 20px rgba(239, 68, 68, 0.3)';
+          container.style.padding = '20px';
+          container.style.textAlign = 'center';
+          container.style.borderRadius = '4px';
+
+          var title = document.createElement('h1');
+          title.innerText = '⚠️ SYSTEMFEL ⚠️';
+          title.style.color = '#ef4444';
+          title.style.fontSize = '22px';
+          title.style.margin = '0 0 10px 0';
+          title.style.fontWeight = 'bold';
+          title.style.letterSpacing = '1px';
+          container.appendChild(title);
+
+          var desc = document.createElement('p');
+          desc.innerText = 'Spelet kraschade eller fastnade på en svart skärm under uppstart. Detta beror oftast på en inkompatibel sparfil efter en uppdatering eller att anslutningen till utvecklingsservern misslyckades.';
+          desc.style.color = '#a1a1aa';
+          desc.style.fontSize = '12px';
+          desc.style.lineHeight = '1.6';
+          desc.style.margin = '0 0 20px 0';
+          container.appendChild(desc);
+
+          var buttons = document.createElement('div');
+          buttons.style.display = 'flex';
+          buttons.style.gap = '10px';
+          buttons.style.justifyContent = 'center';
+          buttons.style.flexWrap = 'wrap';
+          buttons.style.marginBottom = '20px';
+
+          var fixBtn = document.createElement('button');
+          fixBtn.innerText = 'AUTO-FIXA (RENSA SPARAD DATA)';
+          fixBtn.style.backgroundColor = '#d97706';
+          fixBtn.style.color = '#fff';
+          fixBtn.style.border = '2px solid #b45309';
+          fixBtn.style.padding = '8px 16px';
+          fixBtn.style.fontWeight = 'bold';
+          fixBtn.style.cursor = 'pointer';
+          fixBtn.style.fontFamily = 'monospace';
+          fixBtn.style.fontSize = '12px';
+          fixBtn.onclick = function() {
+            if (confirm('Är du säker? Detta rensar din sparade speldata och startar om spelet.')) {
+              localStorage.clear();
+              location.reload();
+            }
+          };
+          buttons.appendChild(fixBtn);
+
+          var copyBtn = document.createElement('button');
+          copyBtn.innerText = 'KOPIERA LOGG';
+          copyBtn.style.backgroundColor = '#2563eb';
+          copyBtn.style.color = '#fff';
+          copyBtn.style.border = '2px solid #1d4ed8';
+          copyBtn.style.padding = '8px 16px';
+          copyBtn.style.fontWeight = 'bold';
+          copyBtn.style.cursor = 'pointer';
+          copyBtn.style.fontFamily = 'monospace';
+          copyBtn.style.fontSize = '12px';
+          copyBtn.onclick = function() {
+            var logText = "ELEMENTALERNA MOBIL LOGG\\n========================\\n";
+            logText += "Tid: " + new Date().toISOString() + "\\n";
+            logText += "User Agent: " + navigator.userAgent + "\\n\\n";
+            if (errors.length > 0) {
+              errors.forEach(function(e, idx) {
+                logText += "Fel #" + (idx + 1) + " [" + e.time + "]:\\n" + e.msg + "\\n" + e.stack + "\\n\\n";
+              });
+            } else {
+              logText += "Inga fel fångade. " + (fallbackMsg || '') + "\\n";
+            }
+            var ta = document.createElement('textarea');
+            ta.value = logText;
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+              document.execCommand('copy');
+              alert('Logg kopierad till urklipp!');
+            } catch (err) {
+              alert('Kunde inte kopiera automatiskt.');
+            }
+            document.body.removeChild(ta);
+          };
+          buttons.appendChild(copyBtn);
+
+          var reloadBtn = document.createElement('button');
+          reloadBtn.innerText = 'STARTA OM';
+          reloadBtn.style.backgroundColor = '#374151';
+          reloadBtn.style.color = '#fff';
+          reloadBtn.style.border = '2px solid #4b5563';
+          reloadBtn.style.padding = '8px 16px';
+          reloadBtn.style.fontWeight = 'bold';
+          reloadBtn.style.cursor = 'pointer';
+          reloadBtn.style.fontFamily = 'monospace';
+          reloadBtn.style.fontSize = '12px';
+          reloadBtn.onclick = function() {
+            location.reload();
+          };
+          buttons.appendChild(reloadBtn);
+
+          container.appendChild(buttons);
+
+          var logArea = document.createElement('pre');
+          logArea.style.backgroundColor = '#090a0f';
+          logArea.style.border = '1px solid #3f3f46';
+          logArea.style.color = '#f87171';
+          logArea.style.padding = '12px';
+          logArea.style.textAlign = 'left';
+          logArea.style.fontSize = '11px';
+          logArea.style.overflowX = 'auto';
+          logArea.style.maxHeight = '250px';
+          logArea.style.margin = '0';
+          logArea.style.whiteSpace = 'pre-wrap';
+
+          var errText = '';
+          if (errors.length > 0) {
+            errors.forEach(function(e) {
+              errText += "[" + e.time + "] " + e.msg + "\\n" + e.stack + "\\n\\n";
+            });
+          } else {
+            errText = fallbackMsg || "Okänt laddningsfel. Vänligen kontrollera om dev-servern är nåbar.";
+          }
+          logArea.innerText = errText;
+          container.appendChild(logArea);
+
+          overlay.appendChild(container);
+          document.body.appendChild(overlay);
+        }
+      })();
+    </script>
 </head>
   <body>
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
-  <script type="module" src="/index.tsx"></script>
-</body>
+  </body>
 </html>

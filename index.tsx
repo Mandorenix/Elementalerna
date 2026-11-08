@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import ErrorBoundary from './components/ErrorBoundary';
+
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -10,7 +12,10 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </React.StrictMode>
 );
+(window as any).__reactMounted = true;
 // This empty change is to signal the creation of the 'utils' directory for the new card generator.

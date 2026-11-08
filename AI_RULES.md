@@ -45,3 +45,7 @@ Allt innehåll måste kretsa kring och respektera spelets elementära magisystem
 *   **JSON-format:** När du ombeds generera data (t.ex. ett nytt händelsekort), se till att din output är i ett giltigt JSON-format som matchar de befintliga typerna i `types.ts`.
 *   **Längd:** Tänk på att texten måste få plats i användargränssnittet. Håll beskrivningar på kort och i dialogrutor till ett rimligt antal tecken.
 *   **Inga Nya Koncept:** Introducera inte nya element, platser eller mekaniker utan att bli ombedd. Bygg vidare på den existerande världen.
+
+## 5. Arbetsflöde & Kodkvalitet
+
+*   **Inkrementella Uppgraderingar:** Varje gång en stor plan (Implementation Plan) ska utföras, MÅSTE arbetet brytas ner i mindre, hanterbara steg. Uppgradera och implementera koden i små, stegvisa uppdateringar tills allting är klart, istället för att försöka skriva massiva sjok av kod på en och samma gång. Detta säkerställer högre kodkvalitet och minskar risken för kritiska buggar.

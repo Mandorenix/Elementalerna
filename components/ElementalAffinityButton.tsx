@@ -1,5 +1,5 @@
 import React, { useState, useLayoutEffect, useRef } from 'react';
-import { Element, ElementalBonus } from '../types';
+import { Element } from '../types';
 import { ELEMENT_ICONS, elementThemes, ELEMENTAL_AFFINITY_BONUSES } from '../constants';
 
 interface ElementalAffinityTooltipProps {

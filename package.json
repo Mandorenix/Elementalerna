@@ -1,20 +1,40 @@
 {
-  "name": "copy-of-elemental-rpg-skill-tree",
+  "name": "elementalerna",
+  "description": "Ett episkt fantasy-spel med magiska element",
+  "author": "Findus & AI",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "main": "main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "android:sync": "npm run build && cap sync android",
+    "android:open": "cap open android",
+    "android:build": "npm run android:sync && cd android && gradlew.bat assembleDebug",
+    "desktop:dev": "electron .",
+    "desktop:package": "npm run build && electron-builder --win --x64",
+    "test:mobile": "node tests/manual/run_mobile_test.cjs",
+    "test:expansion": "node tests/manual/run_expansion_test.cjs",
+    "test:core": "node tests/e2e/core-flows.cjs",
+    "test:gameplay": "node tests/e2e/gameplay-smoke.cjs",
+    "test:combat-stats": "node --test tests/unit/playerCombatStats.test.cjs",
+    "test:save-validation": "node --test tests/unit/validateSaveData.test.cjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.3",
     "@capacitor/cli": "^7.4.3",
     "@capacitor/core": "^7.4.3",
     "@capacitor/ios": "^7.4.3",
+    "@pollinations/react": "^2.0.7",
+    "@pollinations/sdk": "^5.0.0",
     "@tsparticles/react": "^3.0.0",
     "@tsparticles/slim": "^3.9.1",
+    "caniuse-lite": "^1.0.30001600",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "tsparticles": "^3.9.1",
@@ -22,9 +42,38 @@
   },
   "devDependencies": {
     "@dyad-sh/react-vite-component-tagger": "latest",
+    "@eslint/js": "^10.0.1",
+    "@tailwindcss/vite": "^4.3.0",
     "@types/node": "^22.14.0",
+    "@typescript-eslint/eslint-plugin": "^8.60.0",
+    "@typescript-eslint/parser": "^8.60.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "autoprefixer": "^10.5.0",
+    "electron": "^42.2.0",
+    "electron-builder": "^26.8.1",
+    "eslint": "^10.4.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "postcss": "^8.5.15",
+    "puppeteer": "^25.1.0",
+    "tailwindcss": "^4.3.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
-  }
+  },
+  "build": {
+    "files": [
+      "dist/**/*",
+      "!dist/win-unpacked/**/*",
+      "!dist/*.exe",
+      "!dist/*.7z",
+      "!dist/*.blockmap",
+      "main.cjs",
+      "package.json"
+    ],
+    "asar": true,
+    "directories": {
+      "output": "release"
+    }
+  },
+  "packageManager": "npm@11.13.0"
 }

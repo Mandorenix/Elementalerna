@@ -1,18 +1,13 @@
 import React from 'react';
 import { Element } from '../types';
-import { elementThemes } from '../constants';
 
 interface AnimatedElementalBackgroundProps {
   element: Element;
 }
 
 const AnimatedElementalBackground: React.FC<AnimatedElementalBackgroundProps> = ({ element }) => {
-  const theme = elementThemes[element] || elementThemes[Element.NEUTRAL];
-  const colorClass = theme.split(' ').find(cls => cls.startsWith('text-')) || 'text-white';
-  const fillColor = `var(--${colorClass.replace('text-', '')})`; // Use CSS variable for dynamic color
-
   // Define specific colors for elements for SVG fill
-  let svgFillColor = '#fff'; // Default white
+  let svgFillColor: string;
   switch (element) {
     case Element.FIRE: svgFillColor = '#f97316'; break;
     case Element.EARTH: svgFillColor = '#22c55e'; break;

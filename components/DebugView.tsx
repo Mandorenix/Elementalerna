@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import AISettings from './AISettings';
 
 interface DebugViewProps {
     addDebugXP: () => void;
@@ -8,7 +9,15 @@ interface DebugViewProps {
     addDebugItem: () => void;
     debugHealPlayer: () => void;
     resetCharacter: () => void;
-    addDebugGold: () => void; // New prop
+    addDebugGold: () => void;
+    aiApiKey: string;
+    aiModel: string;
+    npcDialogueEnabled: boolean;
+    aiEventGenEnabled: boolean;
+    onAIConfig: (key: string) => void;
+    onAIModelChange: (model: string) => void;
+    onNPCToggle: (enabled: boolean) => void;
+    onEventGenToggle: (enabled: boolean) => void;
 }
 
 const DebugButton: React.FC<{ onClick: () => void; children: React.ReactNode; }> = ({ onClick, children }) => (
@@ -18,11 +27,13 @@ const DebugButton: React.FC<{ onClick: () => void; children: React.ReactNode; }>
 );
 
 const DebugView: React.FC<DebugViewProps> = (props) => {
+    const [showAISettings, setShowAISettings] = useState(false);
+
     return (
         <div className="flex-grow w-full h-full p-6 text-white overflow-y-auto">
             <div className="max-w-md mx-auto">
                 <h1 className="text-2xl text-yellow-400 mb-6 text-center">Debug Panel</h1>
-                <div className="p-4 bg-black/30 pixelated-border">
+                <div className="p-4 bg-black/30 pixelated-border mb-4">
                     <div className="grid grid-cols-2 gap-4">
                         <DebugButton onClick={props.addDebugXP}>+100 XP</DebugButton>
                         <DebugButton onClick={props.addDebugSkillPoint}>+1 Skill Point</DebugButton>
@@ -31,9 +42,28 @@ const DebugView: React.FC<DebugViewProps> = (props) => {
                         <DebugButton onClick={props.addDebugItem}>Add Random Item</DebugButton>
                         <DebugButton onClick={props.debugHealPlayer}>Heal Player</DebugButton>
                         <DebugButton onClick={props.resetCharacter}>Reset Character (Hard)</DebugButton>
-                        <DebugButton onClick={props.addDebugGold}>+100 Gold</DebugButton> {/* New button */}
+                        <DebugButton onClick={props.addDebugGold}>+100 Gold</DebugButton>
                     </div>
                 </div>
+                <div className="mb-4 text-center">
+                    <button
+                        onClick={() => setShowAISettings(!showAISettings)}
+                        className="px-4 py-2 border-2 border-yellow-600 bg-yellow-800/30 text-yellow-300 text-xs font-bold hover:bg-yellow-700/50 transition-colors"
+                    >
+                        {showAISettings ? 'Dölj AI-inställningar' : 'AI-inställningar'}
+                    </button>
+                </div>
+                {showAISettings && (
+                  <AISettings 
+                    onApiKeyChange={props.onAIConfig}
+                    onModelChange={props.onAIModelChange}
+                    onNPCToggle={props.onNPCToggle}
+                    onEventGenToggle={props.onEventGenToggle}
+                    currentModel={props.aiModel}
+                    npcEnabled={props.npcDialogueEnabled}
+                    eventGenEnabled={props.aiEventGenEnabled}
+                  />
+                )}
             </div>
         </div>
     );

@@ -21,6 +21,8 @@ export enum Element {
   VOLCANIC_STORM,
   ELECTRIFIED_MUD,
   VITRIFIED_STORM,
+  LIGHT,
+  DARK,
 }
 
 export interface Skill {
@@ -51,14 +53,15 @@ export interface AetherResource extends Resource {
   name: string;
 }
 
-export type ArchetypeName = 'Pyromanten' | 'Stenväktaren' | 'Stormdansaren' | 'Tidvattenvävaren';
-export type SpecialResourceName = 'Hetta' | 'Styrka' | 'Energi' | 'Flöde';
+export type ArchetypeName = 'Pyromanten' | 'Stenväktaren' | 'Stormdansaren' | 'Tidvattenvävaren' | 'Ljusbringaren' | 'Skuggvävaren';
+export type SpecialResourceName = 'Hetta' | 'Styrka' | 'Energi' | 'Flöde' | 'Nåd' | 'Skugga';
 
 export interface Archetype {
   name: ArchetypeName;
   description: string;
   element: Element;
   icon: React.FC;
+  sprite?: React.FC;
   statBonuses: Partial<CharacterStats>;
   startingSkill: string;
   resourceName: SpecialResourceName;
@@ -116,6 +119,7 @@ export interface ElementalBonus {
 export interface Character {
   name: string;
   archetype: ArchetypeName;
+  secondaryArchetype?: ArchetypeName;
   level: number;
   stats: CharacterStats;
   resources: {
@@ -179,6 +183,12 @@ export interface Item {
   visual?: React.FC;
   affix?: ItemAffix;
   price?: number; // New: for merchant
+  consumableEffect?: // New: for potions and relics
+    | { type: 'HEAL'; value: number; description: string }
+    | { type: 'AETHER'; value: number; description: string }
+    | { type: 'REVIVE'; value: number; description: string }
+    | { type: 'BUFF'; status: StatusEffect['type']; duration: number; value?: number; damage?: number; description: string };
+  isRelic?: boolean; // New: marks item as a passive relic (not consumable)
 }
 
 export interface AbilityRankData {
@@ -347,8 +357,7 @@ export type StatusEffect =
   | { type: 'reflecting'; duration: number; element: Element; value: number; } // New
   | { type: 'absorbing'; duration: number; element: Element; value: number; } // New
   | { type: 'petrified'; duration: number; damageTakenIncrease?: number; } // New: Förstenad
-  | { type: 'frail'; duration: number; damageTakenIncrease: number; isPercentage?: boolean; } // New: Förgänglighet
-  | { type: 'frightened'; duration: number; chanceToMissTurn: number; chanceToAttackRandom: number; }; // New: Fruktan
+  | { type: 'frail'; duration: number; damageTakenIncrease: number; isPercentage?: boolean; }; // New: Förgänglighet
 
 export interface CombatLogMessage {
   id: number;
@@ -376,7 +385,7 @@ export interface MerchantOffer {
     onLeave: Outcome;
 }
 
-export type DamagePopupType = 'damage' | 'crit' | 'heal' | 'miss' | 'status_damage' | 'resisted' | 'weakness'; // Added 'resisted' and 'weakness'
+export type DamagePopupType = 'damage' | 'crit' | 'heal' | 'miss' | 'status_damage' | 'resisted' | 'weakness' | 'fatal'; // Added 'fatal'
 
 export interface EventCard {
     id: string;

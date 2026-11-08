@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import type { GameEvent, Character } from '../types';
+import type { GameEvent } from '../types';
 import { soundEffects } from '../sound';
 
 interface Props {
   rewards: GameEvent['rewards'];
-  character: Character;
   onDismiss: () => void;
 }
 
@@ -15,7 +14,7 @@ const rarityColors: Record<string, string> = {
   Legendarisk: '#f59e0b',
 };
 
-const VictoryOverlay: React.FC<Props> = ({ rewards, character, onDismiss }) => {
+const VictoryOverlay: React.FC<Props> = ({ rewards, onDismiss }) => {
   const [phase, setPhase] = useState<'enter' | 'show' | 'exit'>('enter');
   const [showContent, setShowContent] = useState(false);
   const [showItems, setShowItems] = useState(false);

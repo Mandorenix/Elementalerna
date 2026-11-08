@@ -466,7 +466,8 @@ function App() {
   const debugAddGold = useCallback(() => setGold(g => g + 100), [setGold]); // New debug function
 
   // --- AI STATE ---
-  const [aiApiKey, _setAiApiKey] = useState<string>('');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [aiApiKey, setAiApiKey] = useState<string>('');
   const [aiModel, setAiModel] = useState<string>('openai');
   const [npcDialogueEnabled, setNpcDialogueEnabled] = useState(false);
   const [aiEventGenEnabled, setAiEventGenEnabled] = useState(false);
@@ -655,7 +656,6 @@ function App() {
       {showVictory && victoryRewards && character && (
         <VictoryOverlay
           rewards={victoryRewards}
-          character={character}
           onDismiss={() => setShowVictory(false)}
         />
       )}

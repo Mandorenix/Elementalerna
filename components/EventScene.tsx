@@ -52,7 +52,7 @@ const ChestScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }>
   </svg>
 );
 
-const AltarScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }> = ({ colors, _resolving }) => (
+const AltarScene: React.FC<{ colors: typeof defaultColor }> = ({ colors }) => (
   <svg viewBox="0 0 240 320" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
     <rect x="0" y="0" width="240" height="320" fill="#0a0a14" />
     <rect x="0" y="0" width="240" height="320" fill={`${colors.glow}`} opacity="0.08" />
@@ -71,7 +71,7 @@ const AltarScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }>
   </svg>
 );
 
-const FountainScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }> = ({ colors, _resolving }) => (
+const FountainScene: React.FC<{ colors: typeof defaultColor }> = ({ colors }) => (
   <svg viewBox="0 0 240 320" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
     <rect x="0" y="0" width="240" height="320" fill="#0a0a14" />
     <rect x="0" y="0" width="240" height="320" fill={`${colors.glow}`} opacity="0.08" />
@@ -90,7 +90,7 @@ const FountainScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean
   </svg>
 );
 
-const CampfireScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }> = ({ colors, _resolving }) => (
+const CampfireScene: React.FC<{ colors: typeof defaultColor }> = ({ colors }) => (
   <svg viewBox="0 0 240 320" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
     <rect x="0" y="0" width="240" height="320" fill="#0a0a14" />
     <g className="animate-fire-glow">
@@ -115,7 +115,7 @@ const CampfireScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean
   </svg>
 );
 
-const RuneScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }> = ({ colors, _resolving }) => (
+const RuneScene: React.FC<{ colors: typeof defaultColor }> = ({ colors }) => (
   <svg viewBox="0 0 240 320" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
     <rect x="0" y="0" width="240" height="320" fill="#0a0a14" />
     <rect x="0" y="0" width="240" height="320" fill={`${colors.glow}`} opacity="0.08" />
@@ -155,7 +155,7 @@ const BarrierScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean 
   </svg>
 );
 
-const MerchantScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }> = ({ colors, _resolving }) => (
+const MerchantScene: React.FC<{ colors: typeof defaultColor }> = ({ colors }) => (
   <svg viewBox="0 0 240 320" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
     <rect x="0" y="0" width="240" height="320" fill="#0a0a14" />
     <rect x="0" y="0" width="240" height="320" fill={`${colors.glow}`} opacity="0.05" />
@@ -204,7 +204,7 @@ const LeverScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }>
   </svg>
 );
 
-const SacrificialAltarScene: React.FC<{ colors: typeof defaultColor; resolving?: boolean }> = ({ colors, _resolving }) => (
+const SacrificialAltarScene: React.FC<{ colors: typeof defaultColor }> = ({ colors }) => (
   <svg viewBox="0 0 240 320" className="w-full h-full" preserveAspectRatio="xMidYMid meet">
     <rect x="0" y="0" width="240" height="320" fill="#0a0a14" />
     <rect x="0" y="0" width="240" height="320" fill={`${colors.glow}`} opacity="0.1" />
@@ -232,12 +232,12 @@ const matchScene = (title: string, type: string, colors: typeof defaultColor, is
   }
   const scenes: { match: string; scene: React.ReactNode }[] = [
     { match: 'kista', scene: <ChestScene colors={colors} resolving={resolving} /> },
-    { match: 'uråldrigt altare', scene: <AltarScene colors={colors} resolving={resolving} /> },
-    { match: 'offersaltare', scene: <SacrificialAltarScene colors={colors} resolving={resolving} /> },
-    { match: 'källa', scene: <FountainScene colors={colors} resolving={resolving} /> },
-    { match: 'rastplats', scene: <CampfireScene colors={colors} resolving={resolving} /> },
-    { match: 'gåtan', scene: <RuneScene colors={colors} resolving={resolving} /> },
-    { match: 'handlare', scene: <MerchantScene colors={colors} resolving={resolving} /> },
+    { match: 'uråldrigt altare', scene: <AltarScene colors={colors} /> },
+    { match: 'offersaltare', scene: <SacrificialAltarScene colors={colors} /> },
+    { match: 'källa', scene: <FountainScene colors={colors} /> },
+    { match: 'rastplats', scene: <CampfireScene colors={colors} /> },
+    { match: 'gåtan', scene: <RuneScene colors={colors} /> },
+    { match: 'handlare', scene: <MerchantScene colors={colors} /> },
     { match: 'mekanism', scene: <LeverScene colors={colors} resolving={resolving} /> },
     { match: 'spak', scene: <LeverScene colors={colors} resolving={resolving} /> },
   ];

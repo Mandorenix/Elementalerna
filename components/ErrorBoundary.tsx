@@ -39,7 +39,8 @@ class ErrorBoundary extends React.Component<Props, State> {
       try {
         document.execCommand('copy');
         alert("Logg kopierad till urklipp!");
-      } catch (_err) {
+      } catch (err) {
+        void err;
         alert("Kunde inte kopiera automatiskt. Markera texten manuellt.");
       }
       document.body.removeChild(textArea);

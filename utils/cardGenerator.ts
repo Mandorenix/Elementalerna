@@ -253,7 +253,7 @@ const CHOICE_SCENARIOS = [
         }
     }),
     // Scenario 9: Obelisk of Elements
-    (playerLevel: number, round: number, _element: Element) => ({
+    (playerLevel: number, round: number) => ({
         title: "Elementens Obelisk",
         description: "En hög obelisk av mörkt stenmaterial reser sig framför dig. Runor som pulserar i olika elementära färger är inhuggna på dess yta.",
         payload: {

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import type { GameEvent, Character, StatusEffect, PlayerAbility, EquipmentSlot, Item, ItemAffix, DamagePopupType, EnemyApplyStatusEffect, EnemyAbility, Actor } from '../types';
+import type { GameEvent, Character, StatusEffect, PlayerAbility, EquipmentSlot, Item, ItemAffix, DamagePopupType, DamagePopup, EnemyApplyStatusEffect, EnemyAbility, Actor } from '../types';
 import { Element } from '../types';
 import { Icons, ARCHETYPES, PLAYER_ABILITIES, ULTIMATE_ABILITIES } from '../constants'; // Added ULTIMATE_ABILITIES
 import { soundEffects } from '../sound'; // Aktiverar importen av ljudeffekter
 import CombatLog from './CombatLog';
 import ActionMenu from './ActionMenu';
 import VFXLayer from './VFXLayer';
+import DamagePopups from './DamagePopups';
 import CombatArena from './CombatArena';
 import { useATBEngine } from '../hooks/useATBEngine';
 import { evaluateBossPhase, resolveBehaviorTarget } from '../utils/combatAI';
@@ -14,7 +15,6 @@ const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 type GameState = 'INTRO' | 'ACTIVE' | 'PLAYER_TURN' | 'EXECUTING' | 'VICTORY' | 'DEFEAT';
 
-type DamagePopup = { id: number; text: string; x: number; y: number; type: DamagePopupType; };
 type VisualEffect = { id: number; type: 'slash' | 'fireball' | 'heal' | 'haste' | 'frozen' | 'paralyzed' | 'meteor_impact' | 'earthquake_vfx' | 'wind_burst_vfx' | 'water_bless_vfx' | 'electrified_vfx' | 'molten_ground_vfx' | 'quicksand_vfx' | 'petrified_vfx' | 'frail_vfx' | 'frightened_vfx' | 'blood_spatter' | 'burning_spell_vfx' | 'blizzard_storm_vfx' | 'flying_stones_vfx'; targetId: string; originId: string; }; // Added new VFX types
 
 const resourceThemes: Record<string, { text: string; bg: string }> = {
@@ -2060,16 +2060,12 @@ const EventView: React.FC<{
             </div>
         )}
         
-         <div ref={popupContainerRef} className="absolute inset-0 pointer-events-none">
-             <VFXLayer visualEffects={visualEffects} actors={actors}/>
-             
-             {/* Damage Popups */}
-            {damagePopups.map(p => (
-                <div key={p.id} className={`damage-popup damage-popup-${p.type}`} style={{ left: p.x, top: p.y }}>
-                    {p.text}
-                </div>
-            ))}
-        </div>
+          <div ref={popupContainerRef} className="absolute inset-0 pointer-events-none">
+              <VFXLayer visualEffects={visualEffects} actors={actors}/>
+              
+              {/* Damage Popups */}
+              <DamagePopups damagePopups={damagePopups} />
+         </div>
     </div>
   );
 };

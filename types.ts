@@ -387,6 +387,8 @@ export interface MerchantOffer {
 
 export type DamagePopupType = 'damage' | 'crit' | 'heal' | 'miss' | 'status_damage' | 'resisted' | 'weakness' | 'fatal'; // Added 'fatal'
 
+export type DamagePopup = { id: number; text: string; x: number; y: number; type: DamagePopupType; };
+
 export interface EventCard {
     id: string;
     title: string;

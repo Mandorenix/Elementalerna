@@ -635,8 +635,8 @@ export const generateBossCard = (playerLevel: number, round: number): EventCard 
 };
 
 export const createCombatPayload = (playerLevel: number, element: Element, difficulty: 'easy' | 'medium' | 'hard' | 'boss', round: number): GameEvent => {
-    const baseHealth = 50 + (playerLevel * 10);
-    const baseDamage = 5 + (playerLevel * 2);
+    const baseHealth = 75 + (playerLevel * 11);
+    const baseDamage = 8 + (playerLevel * 3);
     const baseArmor = 2 + Math.floor(playerLevel / 2);
 
     let healthMultiplier = 1;
@@ -888,7 +888,7 @@ export const createBossCombatPayload = (playerLevel: number, round: number): Gam
             break;
     }
 
-    const baseHealth = 200 + (playerLevel * 50);
+    const baseHealth = 160 + (playerLevel * 35);
     const baseDamage = 15 + (playerLevel * 5);
     const baseArmor = 10 + (playerLevel * 2);
 
@@ -941,14 +941,14 @@ export const createBossCombatPayload = (playerLevel: number, round: number): Gam
         phases: [
             {
                 name: "Rasande",
-                threshold: 0.5, // Below 50% HP
+                threshold: 0.55, // Below 55% HP
                 newBehavior: 'ATTACK_HIGHEST_DAMAGE_PLAYER',
                 statusEffectsToApplyToSelf: [{ type: 'hasted', duration: 99 } as StatusEffect],
                 description: "Bossen blir rasande och attackerar den starkaste fienden!"
             },
             {
                 name: "Försvar",
-                threshold: 0.2, // Below 20% HP
+                threshold: 0.30, // Below 30% HP
                 newBehavior: 'BUFF_SELF',
                 statusEffectsToApplyToSelf: [{ type: 'defending', duration: 99, value: 50 } as StatusEffect],
                 description: "Bossen drar sig tillbaka och förstärker sitt försvar!"
